@@ -57,6 +57,30 @@ const nextConfig = {
     ];
   },
 
+  async redirects() {
+    return [
+
+      {
+        source: '/&',
+        destination: '/',
+        statusCode: 301,
+      },
+
+      {
+        source: '/hi/products/rudrabhishek-pooja',
+        destination: '/product/rudrabhishek-puja-kit',
+        statusCode: 301,
+      },
+
+      {
+        source: '/hi/collections/puja/products/rudrabhishek-pooja',
+        destination: '/product/rudrabhishek-puja-kit',
+        statusCode: 301,
+      },
+
+    ];
+  },
+
   images: {
     remotePatterns: [
       {
