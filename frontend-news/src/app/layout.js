@@ -68,9 +68,28 @@ export default async function RootLayout({ children }) {
               url: 'https://www.adhyatmah.com',
               logo: branding?.logoLight?.url || branding?.logoDark?.url || branding?.favicon?.url || '',
               sameAs: [
-                'https://www.facebook.com/adhyatamh/',
-                'https://www.instagram.com/adhyatmah',
+                'https://facebook.com/profile.php?id=61584256664893',
+                'https://x.com/Adhyatmah15579',
+                'https://instagram.com/adhyatmah',
+                'https://linkedin.com/company/adhyamah',
               ],
+            }),
+          }}
+        />
+
+        {/* SEO: LocalBusiness schema — site-wide, plain <script> so it's in the initial server HTML. */}
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify({
+              '@context': 'https://schema.org',
+              '@type': 'LocalBusiness',
+              name: 'Adhyatmah Bharat',
+              address: {
+                '@type': 'PostalAddress',
+                addressLocality: 'Noida',
+                addressCountry: 'IN',
+              },
             }),
           }}
         />

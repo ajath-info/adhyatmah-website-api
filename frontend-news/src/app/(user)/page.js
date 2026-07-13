@@ -21,9 +21,9 @@ export const revalidate = 60;
 // This overrides the dynamic title/description from src/app/layout.js for the homepage route only.
 export async function generateMetadata() {
   return {
-    title: 'Book Pandit Online | Adhyatmah',
+    title: 'Book Pandit Online for Puja & Rituals | Adhyatmah',
     description:
-      'Book verified pandits for puja, havan, griha pravesh and Hindu rituals across India with Adhyatmah.',
+      'Book verified pandits online for puja, havan, griha pravesh and satyanarayan katha across India. Trusted, authentic rituals at home.',
     alternates: {
       canonical: 'https://www.adhyatmah.com/',
     },
