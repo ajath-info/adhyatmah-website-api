@@ -57,6 +57,9 @@ export async function generateMetadata({ params }) {
       title: product.metaTitle || product.name,
       description: product.metaDescription || product.shortDescription,
       keywords: product.tags || [],
+      alternates: {
+        canonical: `https://www.adhyatmah.com/product/${slug}`
+      },
       openGraph: {
         title: product.name,
         description: product.metaDescription,
