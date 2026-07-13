@@ -93,7 +93,7 @@ export default function Search({ ...props }) {
       }
     } else {
       !mobile && onClose(prop);
-      router.push(`/product/${prop}`);
+      if (prop) router.push(`/product/${prop}`);
     }
   };
   const onKeyDown = (e) => {

@@ -165,11 +165,17 @@ export default function ProductRow({ isLoading, row, handleClickOpen, isVendor }
         ) : (
           <Stack direction="row" justifyContent="flex-end">
             <Tooltip title="Preview">
-              <Link target="_blank" href={`/product/${row.slug}`}>
-                <IconButton>
+              {row.slug ? (
+                <Link target="_blank" href={`/product/${row.slug}`}>
+                  <IconButton>
+                    <IoEye />
+                  </IconButton>
+                </Link>
+              ) : (
+                <IconButton disabled>
                   <IoEye />
                 </IconButton>
-              </Link>
+              )}
             </Tooltip>
             <Tooltip title="Edit">
               <IconButton onClick={() => router.push(`/${isVendor ? 'vendor' : 'admin'}/products/${row.slug}`)}>

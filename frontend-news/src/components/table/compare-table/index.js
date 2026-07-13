@@ -80,7 +80,7 @@ const CompareTable = ({ data, isLoading }) => {
                 key={product._id}
                 align="left"
                 sx={{ minWidth: 292, maxWidth: 292, cursor: 'pointer' }}
-                onClick={() => router.push('/product/' + product.slug)}
+                onClick={() => { if (product.slug) router.push('/product/' + product.slug); }}
               >
                 <Stack sx={{ position: 'relative' }}>
                   <IconButton
