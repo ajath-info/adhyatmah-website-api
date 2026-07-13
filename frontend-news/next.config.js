@@ -78,6 +78,37 @@ const nextConfig = {
         statusCode: 301,
       },
 
+      // Duplicate URL variants for "Brahmin Varan Kit" -> canonical product URL
+      {
+        source: '/products/brahmin-varan-kit',
+        destination: '/product/brahmin-varan-kit',
+        statusCode: 301,
+      },
+
+      {
+        source: '/products/brahmin-varan-kit/brahmin-varan-kit',
+        destination: '/product/brahmin-varan-kit',
+        statusCode: 301,
+      },
+
+      {
+        source: '/products/brahmin-varan-kit/brahmin-varan-kit/brahmin-varan-kit',
+        destination: '/product/brahmin-varan-kit',
+        statusCode: 301,
+      },
+
+      {
+        source: '/products/vastra-dakshina-for-pandit-ji/brahmin-varan-kit',
+        destination: '/product/brahmin-varan-kit',
+        statusCode: 301,
+      },
+
+      {
+        source: '/products/vastra-dakshina-for-pandit-ji/brahmin-varan-kit/brahmin-varan-kit',
+        destination: '/product/brahmin-varan-kit',
+        statusCode: 301,
+      },
+
     ];
   },
 
