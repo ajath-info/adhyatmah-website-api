@@ -45,11 +45,10 @@ export default function Brands({ data }) {
                         <Image
                           src={v.logo.url}
                           alt="brand logo"
-                          // layout="responsive"
                           width={70}
                           height={70}
                           draggable="false"
-                          objectFit="cover"
+                          style={{ objectFit: 'cover' }}
                         />
                         <Stack
                           sx={{

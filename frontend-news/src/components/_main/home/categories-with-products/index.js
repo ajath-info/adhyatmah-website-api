@@ -27,18 +27,18 @@ export default function CategoriesWithProducts({ data, isHome }) {
     }));
   };
 
-  // Get limited products (max 4) and check if there are more
+  // Get limited products (max 5) and check if there are more
   const getLimitedProducts = (products) => {
     if (!products || products.length === 0) return { limited: [], hasMore: false };
 
-    const limited = products.slice(0, 4);
-    const hasMore = products.length > 4;
+    const limited = products.slice(0, 5);
+    const hasMore = products.length > 5;
 
     return { limited, hasMore };
   };
 
   return (
-    <Container maxWidth="xl">
+    <Container maxWidth="xl" disableGutters>
       <Stack gap={4}>
         {data.map((category) => {
           const { limited: limitedProducts, hasMore } = getLimitedProducts(category.products);
@@ -77,6 +77,7 @@ export default function CategoriesWithProducts({ data, isHome }) {
                 data={transformProductData(limitedProducts)}
                 isLoading={false}
                 query={`?category=${category.slug}`}
+                desktopSlides={5}
               />
             </Stack>
           );

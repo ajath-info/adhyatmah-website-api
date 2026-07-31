@@ -32,6 +32,7 @@ export default function NestedList({ data, isLoading, onClose }) {
                 onClick={() => {
                   if (parentCategory.subCategories?.length > 0) {
                     handleParentToggle(parentKey);
+                    // } else {
                   } else if (parentCategory.slug) {
                     router.push('/products/' + parentCategory.slug);
                     onClose?.();
@@ -121,6 +122,7 @@ export default function NestedList({ data, isLoading, onClose }) {
                           onClick={() => {
                             if (hasGrandchildren) {
                               handleChildToggle(childKey);
+                              // } else {
                             } else if (parentCategory.slug && subCategory.slug) {
                               router.push('/products/' + parentCategory.slug + '/' + subCategory.slug);
                               onClose?.();
@@ -219,11 +221,11 @@ export default function NestedList({ data, isLoading, onClose }) {
                                     onClick={() => {
                                       router.push(
                                         '/products/' +
-                                          parentCategory.slug +
-                                          '/' +
-                                          subCategory.slug +
-                                          '/' +
-                                          childCategory.slug
+                                        parentCategory.slug +
+                                        '/' +
+                                        subCategory.slug +
+                                        '/' +
+                                        childCategory.slug
                                       );
                                       onClose?.();
                                     }}

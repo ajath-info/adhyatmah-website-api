@@ -5,28 +5,26 @@ import React from 'react';
 import { Typography, Card, Stack, Divider, Fab, alpha, Container } from '@mui/material';
 
 // icons
-import { MdOutlineSupportAgent } from 'react-icons/md';
-import { AiOutlineShoppingCart } from 'react-icons/ai';
-import { VscFeedback } from 'react-icons/vsc';
-import { MdSettingsBackupRestore } from 'react-icons/md';
+import { MdOutlineSupportAgent, MdVerified, MdOutlineAssignmentReturn } from 'react-icons/md';
 import { RiExchangeDollarLine } from 'react-icons/ri';
+import { TbTruckDelivery } from 'react-icons/tb';
 
 export default function WhyUs() {
   const data = [
     {
-      title: 'Free Shipping',
-      icon: <AiOutlineShoppingCart />,
-      description: ' All over India'
+      title: '100% Authentic',
+      icon: <MdVerified />,
+      description: 'Products'
     },
     {
-      title: 'Feedbacks',
-      icon: <VscFeedback />,
-      description: '100% Customer'
+      title: 'Carefully Packed',
+      icon: <TbTruckDelivery />,
+      description: '& Safe Delivery'
     },
     {
-      title: 'Free Return',
-      icon: <MdSettingsBackupRestore />,
-      description: '7 Days Returns Policy'
+      title: 'Easy Returns',
+      icon: <MdOutlineAssignmentReturn />,
+      description: '& Refunds'
     },
     {
       title: 'Secure System',
@@ -42,6 +40,7 @@ export default function WhyUs() {
   return (
     <Container
       maxWidth="xl"
+      disableGutters
       sx={{
         display: {
           md: 'block',

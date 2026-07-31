@@ -93,6 +93,7 @@ export default function Search({ ...props }) {
       }
     } else {
       !mobile && onClose(prop);
+      // router.push(`/product/${prop}`);
       if (prop) router.push(`/product/${prop}`);
     }
   };
@@ -268,13 +269,13 @@ export default function Search({ ...props }) {
             >
               {(isLoading
                 ? Array.from(new Array(mobile ? 6 : 8)).map((_, index) => ({
-                    _id: `skeleton-${index}`,
-                    name: '',
-                    category: '',
-                    image: { url: '' },
-                    salePrice: 0,
-                    slug: ''
-                  }))
+                  _id: `skeleton-${index}`,
+                  name: '',
+                  category: '',
+                  image: { url: '' },
+                  salePrice: 0,
+                  slug: ''
+                }))
                 : state.products
               ).map((product) => (
                 <MenuItem

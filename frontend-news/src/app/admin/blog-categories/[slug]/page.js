@@ -1,62 +1,52 @@
 'use client';
 
-import React, { use } from 'react';
-import PropTypes from 'prop-types';
+import React from 'react';
+import { useParams } from 'next/navigation';
+import { useQuery } from '@tanstack/react-query';
+
+import * as api from 'src/services';
 
 import HeaderBreadcrumbs from '@/components/header-breadcrumbs';
 import EditBlogCategory from '@/components/_admin/blogs/category/edit-blog-category';
 
-import * as api from 'src/services';
+export default function Page() {
 
-import { useQuery } from '@tanstack/react-query';
+    const { slug } = useParams();
 
-Page.propTypes = {
-  params: PropTypes.shape({
-    slug: PropTypes.string.isRequired
-  }).isRequired
-};
+    const { data, isPending } = useQuery({
 
-export default function Page(props) {
+        queryKey: ['blog-category', slug],
 
-  const params = use(props.params);
+        queryFn: () => api.getBlogByAdmin(slug),
 
-  const { data, isPending } = useQuery({
+        enabled: !!slug
 
-    queryKey: [
-      'blog-category',
-      params.slug
-    ],
+    });
 
-    queryFn: () =>
-      api.getBlogByAdmin(params.slug)
+    return (
+        <>
+            <HeaderBreadcrumbs
+                admin
+                heading="Edit Blog Category"
+                links={[
+                    {
+                        name: 'Dashboard',
+                        href: '/admin/dashboard'
+                    },
+                    {
+                        name: 'Blog Categories',
+                        href: '/admin/blog-categories'
+                    },
+                    {
+                        name: 'Edit Blog Category'
+                    }
+                ]}
+            />
 
-  });
-
-  return (
-    <>
-      <HeaderBreadcrumbs
-        admin
-        heading="Edit Blog Category"
-        links={[
-          {
-            name: 'Dashboard',
-            href: '/admin/dashboard'
-          },
-          {
-            name: 'Blog Categories',
-            href: '/admin/blog-categories'
-          },
-          {
-            name: 'Edit Blog Category'
-          }
-        ]}
-      />
-
-      <EditBlogCategory
-        data={data?.data}
-        isLoading={isPending}
-      />
-    </>
-  );
-
+            <EditBlogCategory
+                data={data?.data}
+                isLoading={isPending}
+            />
+        </>
+    );
 }

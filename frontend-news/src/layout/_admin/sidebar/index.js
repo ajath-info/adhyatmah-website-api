@@ -4,7 +4,6 @@ import { usePathname } from 'next/navigation';
 import Link from 'next/link';
 import { useRouter } from '@bprogress/next';
 
-
 // mui
 import {
   styled,
@@ -32,6 +31,7 @@ import { TbCategory2 } from 'react-icons/tb';
 import { BsShop } from 'react-icons/bs';
 import { BsCart3 } from 'react-icons/bs';
 import { LuUsers } from 'react-icons/lu';
+import { LuUserCog } from 'react-icons/lu';
 import { SlEnvolopeLetter } from 'react-icons/sl';
 import { IoSettingsOutline } from 'react-icons/io5';
 import { RiCoupon5Line } from 'react-icons/ri';
@@ -141,6 +141,13 @@ export const navlinks = [
     isSearch: true
   },
   {
+    id: 203,
+    title: 'Vendors',
+    slug: 'vendors',
+    icon: <LuUserCog />,
+    isSearch: true
+  },
+  {
     id: 9,
     title: 'Payouts',
     slug: 'payouts',
@@ -171,27 +178,27 @@ export const navlinks = [
     isSearch: false
   },
   {
-  id: 200,
-  title: "Content",
-  icon: <MdArticle />,
-  isSearch: true,
-  children: [
-    {
-      id: 201,
-      title: "Blog Categories",
-      slug: "blog-categories",
-      icon: <BiCategoryAlt />,
-      isSearch: true
-    },
-    {
-      id: 202,
-      title: "Articles",
-      slug: "articles",
-      icon: <MdArticle />,
-      isSearch: true
-    }
-  ]
-},
+    id: 200,
+    title: "Content",
+    icon: <MdArticle />,
+    isSearch: true,
+    children: [
+      {
+        id: 201,
+        title: "Blog Categories",
+        slug: "blog-categories",
+        icon: <BiCategoryAlt />,
+        isSearch: true
+      },
+      {
+        id: 202,
+        title: "Articles",
+        slug: "articles",
+        icon: <MdArticle />,
+        isSearch: true
+      }
+    ]
+  },
   {
     id: 14,
     title: 'Settings',
@@ -424,18 +431,18 @@ export default function Sidebar({ handleDrawerToggle, open }) {
                       {...(item.children
                         ? open
                           ? {
-                              onClick: () => handleExpand(item.id)
-                            }
+                            onClick: () => handleExpand(item.id)
+                          }
                           : item.children && {
-                              onMouseEnter: (e) => handleClick(e, item)
-                            }
+                            onMouseEnter: (e) => handleClick(e, item)
+                          }
                         : {
-                            onClick: () => {
-                              if (isMobile) handleDrawerToggle();
-                            },
-                            component: Link,
-                            href: '/admin/' + item.slug
-                          })}
+                          onClick: () => {
+                            if (isMobile) handleDrawerToggle();
+                          },
+                          component: Link,
+                          href: '/admin/' + item.slug
+                        })}
                       sx={{
                         minHeight: 48,
                         justifyContent: open ? 'initial' : 'center',

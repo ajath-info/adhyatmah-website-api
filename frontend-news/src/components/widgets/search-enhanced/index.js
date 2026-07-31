@@ -88,14 +88,19 @@ export default function SearchEnhanced() {
       sx={{
         display: 'flex',
         alignItems: 'center',
-        border: 1,
+        border: '1.5px solid',
         borderColor: 'divider',
-        borderRadius: 6,
+        borderRadius: 50,
         overflow: 'hidden',
-        bgcolor: '#f5f5f5',
-        width: { xs: '100%', md: '100%' },
-        maxWidth: 600,
-        boxShadow: '0 2px 8px rgba(0,0,0,0.04)'
+        bgcolor: 'background.paper',
+        width: '100%',
+        maxWidth: 850,
+        transition: 'all 0.25s ease',
+        boxShadow: (theme) => `0 2px 10px ${theme.palette.mode === 'dark' ? 'rgba(0,0,0,0.4)' : 'rgba(232,119,34,0.06)'}`,
+        '&:focus-within': {
+          borderColor: '#FB8B05',
+          boxShadow: '0 4px 16px rgba(232,119,34,0.18)'
+        }
       }}
     >
       {/* Collection Dropdown */}
@@ -135,15 +140,20 @@ export default function SearchEnhanced() {
             }
           },
           '& .MuiInputBase-input': {
-            padding: '16px 12px',
-            fontSize: '0.95rem'
+            padding: '18px 8px',
+            fontSize: '1rem',
+            color: 'text.primary',
+            '&::placeholder': {
+              color: 'text.secondary',
+              opacity: 1
+            }
           }
         }}
         InputProps={{
           startAdornment: (
             <InputAdornment position="start">
-              <Box sx={{ color: 'text.secondary', mr: 1 }}>
-                <IoSearchOutline size={20} />
+              <Box sx={{ color: '#FB8B05', ml: 2, display: 'flex' }}>
+                <IoSearchOutline size={22} />
               </Box>
             </InputAdornment>
           )
@@ -175,25 +185,28 @@ export default function SearchEnhanced() {
         onClick={handleSearch}
         variant="contained"
         sx={{
-          height: '56px',
-          marginRight: 1,
-          minWidth: 80,
-          borderRadius: 0,
-          bgcolor: '#F9A34A',
+          height: 50,
+          width: 50,
+          minWidth: 50,
+          my: 0.75,
+          mr: 0.75,
+          p: 0,
+          borderRadius: '50%',
+          bgcolor: '#FB8B05',
           color: 'white',
-          fontWeight: 600,
-          fontSize: '0.95rem',
-          borderRadius: '8px 8px ',
-          px: 2,
+          boxShadow: '0 3px 10px rgba(232,119,34,0.35)',
+          transition: 'all 0.2s ease',
           '&:hover': {
-            bgcolor: '#e6953d'
+            bgcolor: '#E07D04',
+            boxShadow: '0 4px 14px rgba(232,119,34,0.45)',
+            transform: 'scale(1.05)'
           },
           '&:active': {
-            bgcolor: '#d6852d'
+            transform: 'scale(0.97)'
           }
         }}
       >
-        <IoSearchOutline size={20} />
+        <IoSearchOutline size={21} />
       </Button>
     </Paper>
   );

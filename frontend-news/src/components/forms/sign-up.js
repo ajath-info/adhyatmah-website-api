@@ -52,10 +52,8 @@ export default function SignUpForm() {
     onSuccess: async (data) => {
       dispatch(signIn(data.user));
       await setCookie('token', data.token);
-      // toast.success(`OTP sent to your email ${data.user.firstName}`);
-      // router.push(redirect ? `/auth/verify-otp?redirect=${redirect}` : `/auth/verify-otp`);
-      toast.success(`Welcome ${data.user.firstName}`);
-      router.push('/');
+      toast.success(`OTP sent to your email`);
+      router.push(redirect ? `/auth/verify-otp?redirect=${redirect}` : `/auth/verify-otp`);
     },
     onError: (err) => {
       const message = err?.response?.data?.message;

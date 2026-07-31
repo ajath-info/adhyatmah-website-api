@@ -16,7 +16,8 @@ import {
   IconButton,
   Tooltip
 } from '@mui/material';
-import { SwapHoriz, Info } from '@mui/icons-material';
+import SwapHoriz from '@mui/icons-material/SwapHoriz';
+import Info from '@mui/icons-material/Info';
 // utils
 import { 
   convertUSDToINR, 

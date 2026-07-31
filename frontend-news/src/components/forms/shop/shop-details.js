@@ -5,7 +5,7 @@ import { Box, Grid, Stack, TextField, Typography, FormHelperText, Skeleton } fro
 import UploadAvatar from '@/components/upload/upload-avatar';
 import countries from 'src/data/countries.json';
 import PhoneInputField from 'src/components/phone-input-field';
-export default function ShopDetailsForm({ handleDrop, formik, state, handleNameChange, isLoading }) {
+export default function ShopDetailsForm({ handleDrop, formik, state, handleNameChange, isLoading, photoOnly = false }) {
   const { values, errors, touched, getFieldProps, setFieldValue } = formik;
 
   const renderLabel = (label) =>
@@ -28,9 +28,9 @@ export default function ShopDetailsForm({ handleDrop, formik, state, handleNameC
         ) : (
           <UploadAvatar
             title="Upload pandit photo"
-            accept="image/*"
+            accept={{ 'image/*': ['.jpeg', '.jpg', '.png', '.webp', '.gif'] }}
             file={values?.logo?.url}
-            loading={state.logoLoading}
+            loading={Boolean(state.logoLoading)}
             maxSize={3145728}
             onDrop={(v) => handleDrop(v, 'logo')}
             error={Boolean(touched?.logo && errors?.logo)}
@@ -43,6 +43,7 @@ export default function ShopDetailsForm({ handleDrop, formik, state, handleNameC
         )}
       </Stack>
 
+      {!photoOnly && (
       <Stack mt={3} spacing={3}>
         <Grid container spacing={3}>
           {/* Left Column */}
@@ -242,6 +243,7 @@ export default function ShopDetailsForm({ handleDrop, formik, state, handleNameC
           )}
         </Stack>
       </Stack>
+      )}
     </Box>
   );
 }

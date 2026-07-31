@@ -39,7 +39,7 @@ export default function CheckoutCard({ cart, loading }) {
                       }
                     }}
                   >
-                    <Image priority src={item.image} alt="product" layout="fill" objectFit="cover" />
+                    <Image priority src={item.image} alt="product" fill style={{ objectFit: 'cover' }} />
                   </Box>
                 )}
                 <Box>

@@ -5,29 +5,60 @@ import { Typography, Grid, Stack, Button, Box, Container } from '@mui/material';
 import { IoArrowForward } from 'react-icons/io5';
 import PoojaCard from 'src/components/cards/service/PoojaCard';
 
+const ORANGE = '#E87722';
+
+/* ---------------- DECORATIVE ARROW LINE (matches other home sections) ---------------- */
+function ArrowLine({ direction = 'left' }) {
+    return (
+        <Box
+            component="svg"
+            viewBox="0 0 46 14"
+            sx={{
+                width: { xs: 26, sm: 36, md: 42 },
+                height: 14,
+                display: { xs: 'none', sm: 'block' },
+                transform: direction === 'right' ? 'scaleX(-1)' : 'none'
+            }}
+        >
+            <line x1="0" y1="7" x2="34" y2="7" stroke={ORANGE} strokeWidth="2" />
+            <path d="M28 1.5 L37 7 L28 12.5" fill="none" stroke={ORANGE} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+        </Box>
+    );
+}
+
 export default function PoojaServicesSection({ services }) {
     return (
-        <Container maxWidth="xl">
+        <Container maxWidth="xl" disableGutters>
             <Stack gap={3}>
-                <Stack>
-                    <Typography variant="h4" color="text.primary">
-                        Puja Services
-                    </Typography>
-                    <Typography variant="body1" color="text.secondary">
+                <Stack alignItems="center" spacing={1}>
+                    <Stack direction="row" alignItems="center" justifyContent="center" spacing={{ xs: 1, sm: 1.5 }}>
+                        <ArrowLine direction="left" />
+                        <Typography
+                            sx={{
+                                fontSize: { xs: 20, sm: 24, md: 26 },
+                                fontWeight: 700,
+                                color: 'text.primary'
+                            }}
+                        >
+                            Puja Services
+                        </Typography>
+                        <ArrowLine direction="right" />
+                    </Stack>
+                    <Typography variant="body1" color="text.secondary" textAlign="center">
                         Book Authentic Puja Services For Every Occasion
                     </Typography>
                 </Stack>
 
                 <Grid container spacing={2}>
                     {services?.length > 0
-                        ? services.slice(0, 4).map((service, i) => (
-                            <Grid size={{ lg: 3, md: 4, sm: 6, xs: 12 }} key={'pooja-' + i}>
-                                <PoojaCard service={service} isLoading={false} />
+                        ? services.slice(0, 5).map((service, i) => (
+                            <Grid size={{ lg: 2.4, md: 4, sm: 6, xs: 12 }} key={'pooja-' + i}>
+                                <PoojaCard service={service} isLoading={false} compact />
                             </Grid>
                         ))
-                        : [...Array(4)].map((_, i) => (
-                            <Grid size={{ lg: 3, md: 4, sm: 6, xs: 12 }} key={'pooja-skeleton-' + i}>
-                                <PoojaCard isLoading={true} />
+                        : [...Array(5)].map((_, i) => (
+                            <Grid size={{ lg: 2.4, md: 4, sm: 6, xs: 12 }} key={'pooja-skeleton-' + i}>
+                                <PoojaCard isLoading={true} compact />
                             </Grid>
                         ))
                     }
@@ -39,7 +70,7 @@ export default function PoojaServicesSection({ services }) {
                         color="secondary"
                         endIcon={<IoArrowForward />}
                         component={Link}
-                        href={'/online-puja-services'}
+                        href={'/offline-puja-services'}
                         sx={{
                             '& svg': { transition: 'transform 0.3s ease' },
                             '&:hover': { svg: { transform: 'translateX(4px)' } }

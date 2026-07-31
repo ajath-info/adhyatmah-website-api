@@ -117,8 +117,8 @@ function ReviewItem({ ...props }) {
         <>
           <Box p={3}>
             <Grid container spacing={2} sx={{ img: { borderRadius: '8px' } }}>
-              {review.images.map((image) => (
-                <Grid size={{ lg: 2, md: 3, xs: 6 }} key={Math.random()}>
+              {review.images.map((image, idx) => (
+                <Grid size={{ lg: 2, md: 3, xs: 6 }} key={image?._id || image.url || idx}>
                   <Box
                     sx={{
                       position: 'relative',
@@ -126,7 +126,7 @@ function ReviewItem({ ...props }) {
                     }}
                   >
                     {' '}
-                    <Image src={image.url} alt={review.name + "'s review"} layout="fill" objectFit="cover" />
+                    <Image src={image.url} alt={review.name + "'s review"} fill style={{ objectFit: 'cover' }} />
                   </Box>
                 </Grid>
               ))}

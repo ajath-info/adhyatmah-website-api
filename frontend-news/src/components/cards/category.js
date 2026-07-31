@@ -42,8 +42,8 @@ export default function CategoryCard({ category, slug, variant = 'square' }) {
           <Image
             alt={category?.name}
             src={category?.cover?.url}
-            layout="fill"
-            objectFit="cover"
+            fill
+            style={{ objectFit: 'cover' }}
             draggable="false"
             quality={10}
             sizes="200px"
@@ -104,8 +104,8 @@ export default function CategoryCard({ category, slug, variant = 'square' }) {
             <Image
               alt={category?.name}
               src={category?.cover?.url}
-              layout="fill"
-              objectFit="cover"
+              fill
+              style={{ objectFit: 'cover' }}
               draggable="false"
               quality={10}
               sizes="(max-width: 600px) 50vw, 25vw"

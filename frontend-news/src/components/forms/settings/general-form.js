@@ -25,6 +25,8 @@ import { generalSettingsSchema } from '@/validations';
 
 export default function MainSettingsForm({ ...props }) {
   const { currentSetting, isLoading } = props;
+  const unmask = (val) => (val && val !== '********' ? val : '');
+
   const { mutate, isPending } = useMutation({
     mutationKey: ['update-general-setting'],
     mutationFn: api.updateGeneralSettingsByAdmin,
@@ -41,34 +43,34 @@ export default function MainSettingsForm({ ...props }) {
       paypal: {
         isActive: currentSetting?.paypal?.isActive || false,
         mode: currentSetting?.paypal?.mode || 'sandbox',
-        clientId: currentSetting?.paypal?.clientId || ''
+        clientId: unmask(currentSetting?.paypal?.clientId)
       },
       stripe: {
         isActive: currentSetting?.stripe?.isActive || false,
         mode: currentSetting?.stripe?.mode || 'sandbox',
-        publishableKey: currentSetting?.stripe?.publishableKey || '',
-        secretKey: currentSetting?.stripe?.secretKey || ''
+        publishableKey: unmask(currentSetting?.stripe?.publishableKey),
+        secretKey: unmask(currentSetting?.stripe?.secretKey)
       },
       razorpay: {
         isActive: currentSetting?.razorpay?.isActive || false,
         mode: currentSetting?.razorpay?.mode || 'sandbox',
-        keyId: currentSetting?.razorpay?.keyId || '',
-        keySecret: currentSetting?.razorpay?.keySecret || '',
-        webhookSecret: currentSetting?.razorpay?.webhookSecret || ''
+        keyId: unmask(currentSetting?.razorpay?.keyId),
+        keySecret: unmask(currentSetting?.razorpay?.keySecret),
+        webhookSecret: unmask(currentSetting?.razorpay?.webhookSecret)
       },
       cloudinary: {
-        cloudName: currentSetting?.cloudinary?.cloudName || '',
-        apiKey: currentSetting?.cloudinary?.apiKey || '',
-        apiSecret: currentSetting?.cloudinary?.apiSecret || '',
-        preset: currentSetting?.cloudinary?.preset || ''
+        cloudName: unmask(currentSetting?.cloudinary?.cloudName),
+        apiKey: unmask(currentSetting?.cloudinary?.apiKey),
+        apiSecret: unmask(currentSetting?.cloudinary?.apiSecret),
+        preset: unmask(currentSetting?.cloudinary?.preset)
       },
       smtp: {
         isActive: currentSetting?.smtp?.isActive || false,
-        host: currentSetting?.smtp?.host || '',
+        host: unmask(currentSetting?.smtp?.host),
         port: currentSetting?.smtp?.port || 587,
-        user: currentSetting?.smtp?.user || '',
-        password: currentSetting?.smtp?.password || '',
-        fromEmail: currentSetting?.smtp?.fromEmail || '',
+        user: unmask(currentSetting?.smtp?.user),
+        password: unmask(currentSetting?.smtp?.password),
+        fromEmail: unmask(currentSetting?.smtp?.fromEmail),
         secure: currentSetting?.smtp?.secure || false
       }
     },

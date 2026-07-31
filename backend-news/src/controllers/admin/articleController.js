@@ -4,14 +4,12 @@ const slugify = require("../../utils/slugify");
 
 
 exports.getArticles = async (req, res) => {
-
     try {
 
         let {
             page = 1,
             limit = 10,
-            search = "",
-            blog = ""
+            search = ""
         } = req.query;
 
         page = Number(page);
@@ -26,21 +24,15 @@ exports.getArticles = async (req, res) => {
             };
         }
 
-        if (blog) {
-            filter.blog = blog;
-        }
-
         const total = await Article.countDocuments(filter);
 
         const articles = await Article.find(filter)
             .populate("blog")
-            .sort({
-                publishedAt: -1
-            })
+            .sort({ createdAt: -1 })
             .skip((page - 1) * limit)
             .limit(limit);
 
-        res.json({
+        return res.json({
             status: true,
             total,
             page,
@@ -50,13 +42,12 @@ exports.getArticles = async (req, res) => {
 
     } catch (err) {
 
-        res.status(500).json({
+        return res.status(500).json({
             status: false,
             message: err.message
         });
 
     }
-
 };
 
 
@@ -77,14 +68,14 @@ exports.getArticle = async (req, res) => {
 
         }
 
-        res.json({
+        return res.json({
             status: true,
             data: article
         });
 
     } catch (err) {
 
-        res.status(500).json({
+        return res.status(500).json({
             status: false,
             message: err.message
         });
@@ -98,11 +89,13 @@ exports.createArticle = async (req, res) => {
 
     try {
 
-        const body = req.body;
+        const handle = req.body.handle
+            ? slugify(req.body.handle)
+            : slugify(req.body.title);
 
-        const handle = slugify(body.title);
-
-        const exists = await Article.findOne({ handle });
+        const exists = await Article.findOne({
+            handle
+        });
 
         if (exists) {
 
@@ -115,60 +108,52 @@ exports.createArticle = async (req, res) => {
 
         const article = await Article.create({
 
-            title: body.title,
+            title: req.body.title,
 
             handle,
 
-            excerpt: body.excerpt,
+            excerpt: req.body.excerpt,
 
-            content: body.content,
+            content: req.body.content,
 
-            image: body.image || {},
+            image: req.body.image,
 
-            blog: body.blog,
+            blog: req.body.blog,
 
-            seoTitle: body.seoTitle,
+            seoTitle: req.body.metaTitle,
 
-            seoDescription: body.seoDescription,
+            seoDescription: req.body.metaDescription,
 
-            seoKeywords: body.seoKeywords,
+            publishedAt: new Date(),
 
-            publishedAt: body.publishedAt || new Date(),
-
-            status: true
+            status:
+                req.body.status === "active" ||
+                req.body.status === true
 
         });
 
         await Blog.findByIdAndUpdate(
-
-            body.blog,
-
+            req.body.blog,
             {
                 $push: {
                     articles: article._id
                 }
             }
-
         );
 
-        res.json({
+        return res.json({
 
             status: true,
-
             message: "Article Created",
-
             data: article
 
         });
 
     } catch (err) {
 
-        res.status(500).json({
-
+        return res.status(500).json({
             status: false,
-
             message: err.message
-
         });
 
     }
@@ -180,78 +165,78 @@ exports.createArticle = async (req, res) => {
 // Update Article
 // ===============================
 exports.updateArticle = async (req, res) => {
+
     try {
 
-        const { id } = req.params;
-        const body = req.body;
-
-        const article = await Article.findById(id);
+        const article = await Article.findById(req.params.id);
 
         if (!article) {
+
             return res.status(404).json({
                 status: false,
                 message: "Article not found"
             });
+
         }
 
-        const handle = slugify(body.title);
+        const handle = req.body.handle
+            ? slugify(req.body.handle)
+            : slugify(req.body.title);
 
         const duplicate = await Article.findOne({
+
             handle,
-            _id: { $ne: id }
+
+            _id: {
+                $ne: article._id
+            }
+
         });
 
         if (duplicate) {
+
             return res.status(400).json({
+
                 status: false,
                 message: "Article already exists"
-            });
-        }
 
-        // Category changed
-        if (article.blog.toString() !== body.blog) {
-
-            await Blog.findByIdAndUpdate(article.blog, {
-                $pull: {
-                    articles: article._id
-                }
-            });
-
-            await Blog.findByIdAndUpdate(body.blog, {
-                $addToSet: {
-                    articles: article._id
-                }
             });
 
         }
 
-        article.title = body.title;
+        article.title = req.body.title;
         article.handle = handle;
-        article.excerpt = body.excerpt;
-        article.content = body.content;
-        article.image = body.image || {};
-        article.blog = body.blog;
-        article.seoTitle = body.seoTitle;
-        article.seoDescription = body.seoDescription;
-        article.seoKeywords = body.seoKeywords;
-        article.publishedAt = body.publishedAt;
+        article.excerpt = req.body.excerpt;
+        article.content = req.body.content;
+        article.image = req.body.image;
+        article.blog = req.body.blog;
+        article.seoTitle = req.body.metaTitle;
+        article.seoDescription = req.body.metaDescription;
+        article.status =
+            req.body.status === "active" ||
+            req.body.status === true;
 
         await article.save();
 
         return res.json({
+
             status: true,
-            message: "Article Updated",
+            message: "Updated Successfully",
             data: article
+
         });
 
     } catch (err) {
 
         return res.status(500).json({
+
             status: false,
             message: err.message
+
         });
 
     }
+
 };
 
 
@@ -262,9 +247,7 @@ exports.deleteArticle = async (req, res) => {
 
     try {
 
-        const { id } = req.params;
-
-        const article = await Article.findById(id);
+        const article = await Article.findById(req.params.id);
 
         if (!article) {
 
@@ -275,24 +258,31 @@ exports.deleteArticle = async (req, res) => {
 
         }
 
-        await Blog.findByIdAndUpdate(article.blog, {
-            $pull: {
-                articles: article._id
+        await Blog.findByIdAndUpdate(
+            article.blog,
+            {
+                $pull: {
+                    articles: article._id
+                }
             }
-        });
+        );
 
-        await Article.findByIdAndDelete(id);
+        await article.deleteOne();
 
         return res.json({
+
             status: true,
-            message: "Article Deleted Successfully"
+            message: "Deleted Successfully"
+
         });
 
     } catch (err) {
 
         return res.status(500).json({
+
             status: false,
             message: err.message
+
         });
 
     }
@@ -309,15 +299,6 @@ exports.changeStatus = async (req, res) => {
 
         const article = await Article.findById(req.params.id);
 
-        if (!article) {
-
-            return res.status(404).json({
-                status: false,
-                message: "Article not found"
-            });
-
-        }
-
         article.status = !article.status;
 
         await article.save();
@@ -325,10 +306,7 @@ exports.changeStatus = async (req, res) => {
         return res.json({
 
             status: true,
-
-            message: "Status Updated",
-
-            data: article
+            message: "Status Updated"
 
         });
 
@@ -337,7 +315,6 @@ exports.changeStatus = async (req, res) => {
         return res.status(500).json({
 
             status: false,
-
             message: err.message
 
         });

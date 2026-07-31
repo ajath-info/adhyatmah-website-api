@@ -78,17 +78,19 @@ exports.createBlog = async (req, res) => {
         }
 
         const blog = await Blog.create({
-
             title,
-
             description,
-
             handle,
 
             image: req.body.image || {},
 
-            status: true
+            metaTitle: req.body.metaTitle || "",
 
+            metaDescription: req.body.metaDescription || "",
+
+            status:
+                req.body.status === "active" ||
+                req.body.status === true
         });
 
         return res.json({
@@ -117,86 +119,65 @@ exports.createBlog = async (req, res) => {
 
 
 exports.updateBlog = async (req, res) => {
-
     try {
-
-        const { id } = req.params;
-
+        const { slug } = req.params;
         const { title, description } = req.body;
 
-        const handle = slugify(title);
+        const currentBlog = await Blog.findOne({ handle: slug });
+
+        if (!currentBlog) {
+            return res.status(404).json({
+                status: false,
+                message: "Blog Category not found"
+            });
+        }
+
+        const handle = req.body.handle
+            ? slugify(req.body.handle)
+            : slugify(title);
 
         const duplicate = await Blog.findOne({
-
             handle,
-
-            _id: {
-
-                $ne: id
-
-            }
-
+            _id: { $ne: currentBlog._id }
         });
 
         if (duplicate) {
-
             return res.status(400).json({
-
                 status: false,
-
                 message: "Category already exists"
-
             });
-
         }
 
         const blog = await Blog.findByIdAndUpdate(
-
-            id,
-
+            currentBlog._id,
             {
-
                 title,
-
-                description,
-
                 handle,
-
-                image: req.body.image
-
+                description,
+                image: req.body.image,
+                metaTitle: req.body.metaTitle,
+                metaDescription: req.body.metaDescription,
+                status: req.body.status === "active" || req.body.status === true
             },
-
-            {
-
-                new: true
-
-            }
-
+            { new: true, runValidators: true }
         );
 
         return res.json({
-
             status: true,
-
-            message: "Updated",
-
-            data: blog
-
+            message: "Updated Successfully",
+            data: {
+                ...blog.toObject(),
+                slug: blog.handle
+            }
         });
-
     } catch (err) {
-
         return res.status(500).json({
-
             status: false,
-
             message: err.message
-
         });
-
     }
-
 };
+
 
 
 exports.deleteBlog = async (req, res) => {

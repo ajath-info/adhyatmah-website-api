@@ -31,7 +31,7 @@ router.post(
 
 // Single
 router.get(
-    "/admin/blogs/:id",
+    "/admin/blogs/:slug",
     verifyToken,
     getAdmin,
     BlogController.getBlog
@@ -39,7 +39,7 @@ router.get(
 
 // Update
 router.put(
-    "/admin/blogs/:id",
+    "/admin/blogs/:slug",
     verifyToken,
     getAdmin,
     BlogController.updateBlog
@@ -47,7 +47,7 @@ router.put(
 
 // Delete
 router.delete(
-    "/admin/blogs/:id",
+    "/admin/blogs/:slug",
     verifyToken,
     getAdmin,
     BlogController.deleteBlog
@@ -55,7 +55,7 @@ router.delete(
 
 // Status
 router.patch(
-    "/admin/blogs/status/:id",
+    "/admin/blogs/status/:slug",
     verifyToken,
     getAdmin,
     BlogController.changeStatus

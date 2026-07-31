@@ -6,10 +6,11 @@ import Image from 'next/image';
 import useMediaQuery from '@mui/material/useMediaQuery';
 import Skeleton from '@mui/material/Skeleton';
 
-export default function BlurImage({ src, alt, width, height, fill, layout, static: isStatic, ...props }) {
+export default function BlurImage({ src, alt, width, height, fill, layout, objectFit, style, static: isStatic, ...props }) {
   const isDesktop = useMediaQuery('(min-width:600px)');
   const [loading, setLoading] = React.useState(true);
 
+  // Support old `layout="fill"` callers too, but always render the modern API
   const useFillLayout = fill || layout === 'fill';
 
   return (
@@ -32,9 +33,10 @@ export default function BlurImage({ src, alt, width, height, fill, layout, stati
         alt={alt}
         width={useFillLayout ? undefined : width}
         height={useFillLayout ? undefined : height}
-        layout={useFillLayout ? 'fill' : undefined}
+        fill={useFillLayout || undefined}
         onLoad={() => setLoading(false)}
         sizes={isDesktop ? '14vw' : '50vw'}
+        style={{ ...(objectFit && { objectFit }), ...style }}
         {...props}
       />
     </>

@@ -204,7 +204,7 @@ const getUnifiedHomeData = async (req, res) => {
             path: "services",
             select: "poojaType description duration price",
           })
-          .limit(4),
+          .limit(5),
 
         // 4. Reviews/Testimonials (limited to 8)
         Review.aggregate([
@@ -231,19 +231,19 @@ const getUnifiedHomeData = async (req, res) => {
       about: vendor.about ?? null,
       services: vendor.services
         ? vendor.services.map((service) => ({
-            id: service._id.toString(),
-            poojaType: service.poojaType,
-            description: service.description,
-            duration: service.duration,
-            price: service.price,
-          }))
+          id: service._id.toString(),
+          poojaType: service.poojaType,
+          description: service.description,
+          duration: service.duration,
+          price: service.price,
+        }))
         : [],
       image: vendor.cover ?? null,
       address: vendor.address ?? null,
       language: vendor.language ?? null,
-	  gotra: vendor.gotra ?? null,
+      gotra: vendor.gotra ?? null,
       experience: vendor.experience ?? null,
-	  city: vendor.city ?? null,
+      city: vendor.city ?? null,
     }));
 
     // Get products for each category and nest them inside

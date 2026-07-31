@@ -12,6 +12,19 @@ async function configureCloudinary() {
 
   const cloud = settings.general.cloudinary;
 
+  if (
+    !cloud.cloudName ||
+    cloud.cloudName === "********" ||
+    !cloud.apiKey ||
+    cloud.apiKey === "********" ||
+    !cloud.apiSecret ||
+    cloud.apiSecret === "********"
+  ) {
+    throw new Error(
+      "Cloudinary credentials are invalid (masked/missing). Re-enter Cloud Name, API Key and API Secret in Admin → Settings → General."
+    );
+  }
+
   cloudinary.config({
     cloud_name: cloud.cloudName,
     api_key: cloud.apiKey,

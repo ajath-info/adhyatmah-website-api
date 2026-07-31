@@ -2,12 +2,22 @@ import { Stack, Box, Typography } from '@mui/material';
 
 // Components
 import Hero from 'src/components/_main/home/hero';
+import ServiceIcons from '@/components/_main/home/service-icons';
 import TopBanners from '@/components/_main/home/banners';
 import CategoriesWithProducts from '@/components/_main/home/categories-with-products';
 import Vendors from '@/components/_main/home/shops';
 import PoojaServices from '@/components/_main/home/pooja-services';
 import Testimonials from 'src/components/_main/home/testimonials';
-import SubscriptionModal from 'src/components/_main/home/subscription';
+import HowItWorks from '@/components/_main/home/how-it-works';
+import SpiritualEcommerce from '@/components/_main/home/spiritual-ecommerce';
+import LatestBlogs from '@/components/_main/home/latest-blogs';
+import SeoIntro from '@/components/_main/home/seo-intro';
+import WhyTrust from '@/components/_main/home/why-trust';
+import FaqSection from '@/components/_main/home/faq-section';
+import AppBanner from '@/components/_main/home/app-banner';
+// Client-component wrapper that lazy-loads the modal with ssr:false —
+// see components/_main/home/subscription/lazy.js
+import SubscriptionModal from '@/components/_main/home/subscription/lazy';
 import WhyUs from '@/components/_main/home/why-us';
 import Categories from '@/components/_main/home/categories';
 import WhyChooseUs from '@/components/_main/home/why-choose-us';
@@ -21,8 +31,10 @@ export const revalidate = 60;
 // This overrides the dynamic title/description from src/app/layout.js for the homepage route only.
 export async function generateMetadata() {
   return {
+    // title: 'Book Pandit Online | Adhyatmah',
     title: 'Book Pandit Online for Puja & Rituals | Adhyatmah',
     description:
+      // 'Book verified pandits for puja, havan, griha pravesh and Hindu rituals across India with Adhyatmah.',
       'Book verified pandits online for puja, havan, griha pravesh and satyanarayan katha across India. Trusted, authentic rituals at home.',
     alternates: {
       canonical: 'https://www.adhyatmah.com/',
@@ -75,24 +87,21 @@ const PageContainer = ({ children }) => (
 );
 
 export default async function IndexPage() {
-  const response = await fetch(`${baseUrl}/api/home/unified`, {
-    next: { revalidate: 60 },
-  });
+  const [response, categoriesList] = await Promise.all([
+    fetch(`${baseUrl}/api/home/unified`, { next: { revalidate: 60 } }),
+    fetch(`${baseUrl}/api/home/categories`, { next: { revalidate: 60 } }),
+  ]);
 
   if (!response.ok) {
     throw new Error('Failed to fetch homepage data');
   }
 
-  const { data } = await response.json();
-  const { banners, categories, vendors, reviews } = data;
-
-  const categoriesList = await fetch(`${baseUrl}/api/home/categories`, {
-    next: { revalidate: 60 },
-  });
-
   if (!categoriesList.ok) {
     throw new Error('Failed to fetch categories data');
   }
+
+  const { data } = await response.json();
+  const { banners, categories, vendors, reviews } = data;
 
   const categoriesListJson = await categoriesList.json();
 
@@ -124,15 +133,18 @@ export default async function IndexPage() {
       views: 1200,
       image: { url: '/images/poojaas/bhoomi-neev-puja.png' }
     },
-    // {
-    //   id: '19',
-    //   name: 'Hanuman Janmotsav Puja',
-    //   price: 5100,
-    //   originalPrice: 5901,
-    //   duration: '2-3 Hrs',
-    //   views: 1800,
-    //   image: { url: '/images/poojaas/hanuman-janmotsav.png' }
-    // },
+    {
+      id: "5",
+      name: "Griha Pravesh Puja",
+      price: 5100,
+      originalPrice: 5901,
+      duration: "3-4 Hrs",
+      views: 3000,
+      image: {
+        url: '/images/poojaas/griha-pravesh.png',
+      },
+    },
+
     {
       id: '3',
       name: 'Mool Puja',
@@ -155,7 +167,6 @@ export default async function IndexPage() {
         dangerouslySetInnerHTML={{ __html: JSON.stringify(serviceSchema) }}
       />
 
-      {/* Hero carousel first */}
       <Hero data={vendors || []} banners={banners || {}} />
 
       {/* SEO Fix: Visible, styled H1 for the homepage. Only one H1 allowed on this page. */}
@@ -171,7 +182,6 @@ export default async function IndexPage() {
             }}
           >
 
-            {/* Eyebrow badge with diya icon — brand orange #fb8b05 */}
             <Stack
               direction="row"
               alignItems="center"
@@ -207,7 +217,6 @@ export default async function IndexPage() {
               </Typography>
             </Stack>
 
-            {/* Two-tone headline — uses the site's default font */}
             <Typography
               component="h1"
               sx={{
@@ -245,30 +254,34 @@ export default async function IndexPage() {
 
       <PageContainer>
         <Stack gap={5}>
+          <SeoIntro />
 
-          <TopBanners banners={banners} />
+          <ServiceIcons />
 
+          <WhyChooseUs />
+          {/* 
           <Categories
             data={categoriesListJson?.data || []}
             isHome
-          />
+          /> */}
 
           <Vendors data={vendors || []} />
 
           <PoojaServices services={dummyServices} />
 
-
-          <WhyChooseUs />
-
+          <HowItWorks />
 
           <FestivalBanner
             image="/images/festival.png"
-            title="Special Puja !"
+            title="Popular Pujas !"
             subtitle="Limited Slots Available"
             buttonText="Book Now"
-            buttonLink="https://adhyatmah.com/online-puja-services"
+            buttonLink="/popular-puja"
           />
 
+          <SpiritualEcommerce categories={categoriesListJson?.data || []} />
+
+          {/* <WhyChooseUs /> */}
 
           <CategoriesWithProducts
             data={categories || []}
@@ -277,12 +290,29 @@ export default async function IndexPage() {
         </Stack>
       </PageContainer>
 
+      <PageContainer>
+        <WhyUs />
+      </PageContainer>
+
       {Boolean(reviews?.length) && (
         <Testimonials data={reviews} />
       )}
 
+
       <PageContainer>
-        <WhyUs />
+        <WhyTrust />
+      </PageContainer>
+
+      <PageContainer>
+        <LatestBlogs />
+      </PageContainer>
+
+      <PageContainer>
+        <FaqSection />
+      </PageContainer>
+
+      <PageContainer>
+        <AppBanner />
       </PageContainer>
 
       <SubscriptionModal />

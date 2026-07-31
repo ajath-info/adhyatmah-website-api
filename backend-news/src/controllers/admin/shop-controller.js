@@ -167,6 +167,44 @@ const updateOneShopByAdmin = async (req, res) => {
     }
 
     const { status, ...others } = req.body;
+    const previousStatus = shop.status;
+
+    // Keep the vendor's User account in sync with personal/spiritual fields
+    // edited here, since the admin "Vendor Details" page reads these from
+    // the User document (not the Shop document).
+    if (shop.vendor) {
+      const userUpdate = {};
+      if (others.firstName !== undefined) userUpdate.firstName = others.firstName;
+      if (others.lastName !== undefined) userUpdate.lastName = others.lastName;
+      if (others.phone !== undefined) userUpdate.phone = others.phone;
+      if (others.email !== undefined) userUpdate.email = others.email;
+      if (others.gender) userUpdate.gender = others.gender;
+      if (others.dateOfBirth !== undefined) userUpdate.dateOfBirth = others.dateOfBirth;
+      if (others.designation !== undefined) {
+        userUpdate.about = Array.isArray(others.designation) ? others.designation.join(', ') : others.designation;
+      }
+      if (others.experience !== undefined) userUpdate.experience = others.experience;
+      if (others.language !== undefined) userUpdate.language = others.language;
+      if (others.gotra !== undefined) userUpdate.gotra = others.gotra;
+      if (others.pravar !== undefined) userUpdate.pravar = others.pravar;
+      if (others.veda !== undefined) userUpdate.veda = others.veda;
+      if (others.shakha !== undefined) userUpdate.shakha = others.shakha;
+      if (others.pankti !== undefined) userUpdate.pankti = others.pankti;
+      if (others.sutra !== undefined) userUpdate.sutra = others.sutra;
+      if (others.aadharNumber !== undefined) userUpdate.aadhar = others.aadharNumber;
+      if (others.pincode !== undefined) userUpdate.zip = others.pincode;
+      if (others.referralCode !== undefined) userUpdate.referred_by = others.referralCode;
+      if (others.address?.streetAddress !== undefined) userUpdate.address = others.address.streetAddress;
+      if (others.address?.city !== undefined) userUpdate.city = others.address.city;
+      if (others.address?.state !== undefined) userUpdate.state = others.address.state;
+      if (others.address?.country !== undefined) userUpdate.country = others.address.country;
+
+      if (Object.keys(userUpdate).length > 0) {
+        await User.findByIdAndUpdate(shop.vendor, userUpdate, {
+          runValidators: true,
+        });
+      }
+    }
 
     const updateShop = await Shop.findOneAndUpdate(
       {
@@ -184,16 +222,20 @@ const updateOneShopByAdmin = async (req, res) => {
     );
 
     const vendor = await User.findById(updateShop.vendor);
+    const vendorName = [vendor?.firstName, vendor?.lastName].filter(Boolean).join(' ') || 'there';
 
-    // Email body content
-    let htmlContent;
-    if (status === "approved") {
-      htmlContent = `<p>Hello ${vendor.name},</p><p>Your shop <b>${updateShop.name}</b> is now <span style="color:green">approved</span>.</p>`;
-    } else {
-      htmlContent = `<p>Hello ${vendor.name},</p><p>Your shop <b>${updateShop.name}</b> is <span style="color:red">not approved</span>.</p>`;
+    // Only notify the vendor when the approval status actually changed —
+    // not on every profile edit (e.g. updating Gotra, Veda, etc.).
+    if (status !== undefined && status !== previousStatus && vendor?.email) {
+      let htmlContent;
+      if (status === 'approved') {
+        htmlContent = `<p>Hello ${vendorName},</p><p>Your shop <b>${updateShop.name}</b> is now <span style="color:green">approved</span>.</p>`;
+      } else {
+        htmlContent = `<p>Hello ${vendorName},</p><p>Your shop <b>${updateShop.name}</b> is <span style="color:red">not approved</span>.</p>`;
+      }
+
+      await sendEmail(vendor.email, 'Shop Status Update', htmlContent);
     }
-
-    await sendEmail(vendor.email, "Shop Status Update", htmlContent);
 
     return res.status(200).json({ success: true, message: "Updated Shop" });
   } catch (error) {

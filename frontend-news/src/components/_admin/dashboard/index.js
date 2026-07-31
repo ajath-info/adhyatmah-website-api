@@ -104,7 +104,7 @@ export default function Dashboard({ isVendor }) {
           />
         </Grid>
 
-        {/* Total Pandits -> Users page filtered to vendor role */}
+        {/* Total Pandits -> dedicated Vendors page */}
         {!isVendor && (
           <Grid size={{ xs: 12, sm: isVendor ? 12 : 6, md: 4 }}>
             <DashboardCard
@@ -113,7 +113,7 @@ export default function Dashboard({ isVendor }) {
               value={totalVendors}
               icon={<GrWorkshop size={24} />}
               isLoading={isLoading}
-              onClick={() => router.push('/admin/users?role=vendor')}
+              onClick={() => router.push('/admin/vendors')}
             />
           </Grid>
         )}

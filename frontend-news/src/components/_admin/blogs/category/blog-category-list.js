@@ -12,126 +12,126 @@ import Table from 'src/components/table/table';
 import BlogCategoryRow from 'src/components/table/rows/blog-category';
 
 const TABLE_HEAD = [
-  {
-    id: 'title',
-    label: 'Category'
-  },
-  {
-    id: 'description',
-    label: 'Description'
-  },
-  {
-    id: 'status',
-    label: 'Status'
-  },
-  {
-    id: 'createdAt',
-    label: 'Created'
-  },
-  {
-    id: '',
-    label: 'Actions'
-  }
+    {
+        id: 'title',
+        label: 'Category'
+    },
+    {
+        id: 'description',
+        label: 'Description'
+    },
+    {
+        id: 'status',
+        label: 'Status'
+    },
+    {
+        id: 'createdAt',
+        label: 'Created'
+    },
+    {
+        id: '',
+        label: 'Actions'
+    }
 ];
 
 export default function BlogCategoryList() {
 
-  const searchParams = useSearchParams();
+    const searchParams = useSearchParams();
 
-  const pageParam = searchParams.get('page');
+    const pageParam = searchParams.get('page');
 
-  const searchParam = searchParams.get('search');
+    const searchParam = searchParams.get('search');
 
-  const [open, setOpen] = useState(false);
+    const [open, setOpen] = useState(false);
 
-  const [id, setId] = useState(null);
+    const [id, setId] = useState(null);
 
-  const [apiCall, setApiCall] = useState(false);
+    const [apiCall, setApiCall] = useState(false);
 
-  const { data, isPending: isLoading } = useQuery({
+    const { data, isPending: isLoading } = useQuery({
 
-    queryKey: [
-      'blog-categories',
-      apiCall,
-      pageParam,
-      searchParam
-    ],
+        queryKey: [
+            'blog-categories',
+            apiCall,
+            pageParam,
+            searchParam
+        ],
 
-    queryFn: () =>
-      api.getBlogsByAdmin(
-        +pageParam || 1,
-        searchParam || ''
-      )
+        queryFn: () =>
+            api.getBlogsByAdmin(
+                +pageParam || 1,
+                searchParam || ''
+            )
 
-  });
+    });
 
-  const handleClickOpen = (id) => () => {
+    const handleClickOpen = (id) => () => {
 
-    setId(id);
+        setId(id);
 
-    setOpen(true);
+        setOpen(true);
 
-  };
+    };
 
-  const handleClose = () => {
+    const handleClose = () => {
 
-    setOpen(false);
+        setOpen(false);
 
-  };
+    };
 
-  return (
-    <>
+    return (
+        <>
 
-      <Dialog
-        open={open}
-        onClose={handleClose}
-        maxWidth="xs"
-      >
+            <Dialog
+                open={open}
+                onClose={handleClose}
+                maxWidth="xs"
+            >
 
-        <DeleteDialog
-          id={id}
-          apicall={setApiCall}
-          onClose={handleClose}
-          endPoint="deleteBlogByAdmin"
-          type="Blog Category deleted"
-          deleteMessage="Are you sure you want to delete this blog category?"
-        />
+                <DeleteDialog
+                    id={id}
+                    apicall={setApiCall}
+                    onClose={handleClose}
+                    endPoint="deleteBlogByAdmin"
+                    type="Blog Category deleted"
+                    deleteMessage="Are you sure you want to delete this blog category?"
+                />
 
-      </Dialog>
+            </Dialog>
 
-      <Table
-        headData={TABLE_HEAD}
-        data={data}
-        row={BlogCategoryRow}
-        isLoading={isLoading}
-        handleClickOpen={handleClickOpen}
-        isSearch
-        filters={[STATUS_FILTER]}
-      />
+            <Table
+                headData={TABLE_HEAD}
+                data={data}
+                row={BlogCategoryRow}
+                isLoading={isLoading}
+                handleClickOpen={handleClickOpen}
+                isSearch
+                filters={[STATUS_FILTER]}
+            />
 
-    </>
-  );
+        </>
+    );
 
 }
 
 const STATUS_FILTER = {
 
-  name: 'Status',
+    name: 'Status',
 
-  param: 'status',
+    param: 'status',
 
-  data: [
+    data: [
 
-    {
-      name: 'Active',
-      slug: 'active'
-    },
+        {
+            name: 'Active',
+            slug: 'active'
+        },
 
-    {
-      name: 'Inactive',
-      slug: 'inactive'
-    }
+        {
+            name: 'Inactive',
+            slug: 'inactive'
+        }
 
-  ]
+    ]
 
 };

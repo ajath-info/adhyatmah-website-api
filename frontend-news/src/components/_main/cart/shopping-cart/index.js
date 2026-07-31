@@ -19,6 +19,7 @@ import CartItemsList from '@/components/lists/cart-items';
 // Styled
 import RootStyled from './styled';
 import EmptyCart from '@/illustrations/empty-cart';
+import { syncUpdateCart, syncRemoveCart } from '@/services';
 
 ShoppingCart.propTypes = {
   loading: PropTypes.bool.isRequired
@@ -36,18 +37,40 @@ export default function ShoppingCart({ loading }) {
 
   const isEmptyCart = cart.length === 0;
   const handleDeleteCart = (productId) => {
+    const item = cart.find((p) => p.sku === productId);
     dispatch(deleteCart(productId));
     setCount((prev) => prev + 1);
+    if (item?.pid) {
+      syncRemoveCart(item.pid).catch(() => {});
+    }
   };
 
   const handleIncreaseQuantity = (productId) => {
+    const item = cart.find((p) => p.sku === productId);
     dispatch(increaseQuantity(productId));
     setCount((prev) => prev + 1);
+    if (item?.pid) {
+      syncUpdateCart(item.pid, (item.quantity || 0) + 1).catch(() => {});
+    }
   };
 
   const handleDecreaseQuantity = (productId) => {
+    const item = cart.find((p) => p.sku === productId);
     dispatch(decreaseQuantity(productId));
     setCount((prev) => prev + 1);
+    if (item?.pid) {
+      syncUpdateCart(item.pid, (item.quantity || 1) - 1).catch(() => {});
+    }
+  };
+
+  const handleClearCart = () => {
+    const itemsToRemove = [...cart];
+    dispatch(resetCart());
+    itemsToRemove.forEach((item) => {
+      if (item?.pid) {
+        syncRemoveCart(item.pid).catch(() => {});
+      }
+    });
   };
   const formik = useFormik({
     enableReinitialize: true,
@@ -106,7 +129,7 @@ export default function ShoppingCart({ loading }) {
               </Button>
               <Button
                 color="error"
-                onClick={() => dispatch(resetCart())}
+                onClick={handleClearCart}
                 startIcon={<MdOutlineShoppingCart />}
                 disabled={isEmptyCart}
               >

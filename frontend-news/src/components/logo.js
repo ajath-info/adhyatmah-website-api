@@ -5,13 +5,13 @@ import PropTypes from 'prop-types';
 import { Box, useTheme } from '@mui/material';
 import Image from 'next/image';
 
-const Logo = ({ branding }) => {
+const Logo = ({ branding, width = 150, height = 60 }) => {
   const theme = useTheme();
   const isDarkMode = theme.palette.mode === 'dark';
   // src={isDarkMode?darkekt:}
   return (
     <Link href="/" style={{ textDecoration: 'none' }}>
-      <Box sx={{ position: 'relative', width: 150, height: 60 }}>
+      <Box sx={{ position: 'relative', width, height }}>
         <Image
           src={
             isDarkMode

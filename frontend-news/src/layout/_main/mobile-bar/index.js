@@ -137,7 +137,7 @@ export default function MobileBar() {
 
   return (
     <RootStyled>
-      <Box className="appbar-wrapper">
+      {/* <Box className="appbar-wrapper">
         {links.map((v, i) => (
           <Button
             variant={index === i ? 'contained' : 'text'}
@@ -159,7 +159,7 @@ export default function MobileBar() {
             {v.name}
           </Button>
         ))}
-      </Box>
+      </Box> */}
     </RootStyled>
   );
 }

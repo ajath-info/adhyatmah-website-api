@@ -29,6 +29,7 @@ import { FiExternalLink } from 'react-icons/fi';
 import VariantSelection from '../variant-selection';
 import SocialShare from '../social-share';
 import Incrementer from '@/components/incrementer';
+import { syncAddToCart } from '@/services';
 
 ProductDetailsSumary.propTypes = {
   product: PropTypes.object.isRequired,
@@ -80,6 +81,8 @@ export default function ProductDetailsSumary({ ...props }) {
   const onAddCart = (param) => {
     toast.success('Added to cart');
     dispatch(addCart(param));
+    // Best-effort sync to the account cart so the same item shows up on the app too
+    syncAddToCart(param.pid, param.quantity).catch(() => {});
   };
   const formik = useFormik({
     enableReinitialize: true,

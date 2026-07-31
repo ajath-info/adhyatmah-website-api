@@ -4,18 +4,18 @@ import React, { useEffect, useState } from 'react';
 import PropTypes from 'prop-types';
 import useEmblaCarousel from 'embla-carousel-react';
 
-import { Box, Paper, IconButton, useMediaQuery, Button, Stack } from '@mui/material';
-import { IoArrowForward, IoArrowBackOutline } from 'react-icons/io5';
+import { Box, Paper, useMediaQuery, Button, Stack } from '@mui/material';
+import { IoArrowForward } from 'react-icons/io5';
 
 import ProductCard from 'src/components/cards/product';
 
-function ProductsCarousel({ data, isLoading, query }) {
+function ProductsCarousel({ data, isLoading, query, desktopSlides = 4 }) {
   const isLarge = useMediaQuery('(min-width:1200px)');
   const isDesktop = useMediaQuery('(min-width:900px)');
   const isTablet = useMediaQuery('(min-width:600px)');
   const isMobile = useMediaQuery('(max-width:600px)');
 
-  const slidesToShow = isLarge ? 4 : isDesktop ? 3 : isTablet ? 2 : isMobile ? 2 : 4;
+  const slidesToShow = isLarge ? desktopSlides : isDesktop ? 3 : isTablet ? 2 : isMobile ? 2 : desktopSlides;
   const [emblaRef, emblaApi] = useEmblaCarousel({
     loop: false,
     align: 'start',
@@ -66,60 +66,7 @@ function ProductsCarousel({ data, isLoading, query }) {
         <Box sx={{ display: 'flex' }}>{renderSlides()}</Box>
       </Box>
 
-      <Stack direction="row" justifyContent={query ? 'space-between' : 'center'} alignItems="center" mt={3}>
-        <Box
-          sx={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: 1,
-            position: 'relative'
-          }}
-        >
-          {/* Left Arrow */}
-          <IconButton
-            size="small"
-            onClick={scrollPrev}
-            disabled={!canScrollPrev}
-            sx={{
-              minHeight: '32px',
-              height: '32px',
-              width: '32px',
-              boxShadow: 'none'
-            }}
-          >
-            <IoArrowBackOutline />
-          </IconButton>
-
-          {/* Dots */}
-          {emblaApi?.scrollSnapList().map((_, index) => (
-            <Box
-              key={index}
-              onClick={() => emblaApi?.scrollTo(index)}
-              sx={{
-                width: 18,
-                height: 18,
-                borderRadius: '50%',
-                backgroundColor: emblaApi.selectedScrollSnap() === index ? 'primary.main' : 'grey.400',
-                cursor: 'pointer'
-              }}
-            />
-          ))}
-
-          {/* Right Arrow */}
-          <IconButton
-            size="small"
-            onClick={scrollNext}
-            disabled={!canScrollNext}
-            sx={{
-              minHeight: '32px',
-              height: '32px',
-              width: '32px',
-              boxShadow: 'none'
-            }}
-          >
-            <IoArrowForward />
-          </IconButton>
-        </Box>
+      <Stack direction="row" justifyContent="center" alignItems="center" mt={3}>
         {query && (
           <Button
             variant="outlined"
@@ -139,7 +86,6 @@ function ProductsCarousel({ data, isLoading, query }) {
             View All
           </Button>
         )}
-        <Box></Box>
       </Stack>
     </Paper>
   );

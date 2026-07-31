@@ -15,6 +15,8 @@ import { MdOutlineWorkOutline } from 'react-icons/md';
 import { AiOutlineUser } from 'react-icons/ai';
 
 const createVendorSlug = (vendor) => {
+  if (vendor?.slug) return vendor.slug;
+
   const firstName = vendor?.firstName || '';
   const lastName = vendor?.lastName || '';
   const fullName = `${firstName}-${lastName}`;
@@ -257,9 +259,9 @@ export default function VendorCard({
         {/* ── TOP ORANGE BAR ── */}
         <Box
           sx={{
-            height: 120,
+            height: 92,
             background: '#f5891a',
-            borderRadius: '0 0 50% 50% / 0 0 38px 38px',
+            borderRadius: '0 0 50% 50% / 0 0 30px 30px',
             position: 'relative',
             overflow: 'visible'
           }}
@@ -338,17 +340,17 @@ export default function VendorCard({
         </Box>
 
         {/* ── AVATAR ── */}
-        <Box sx={{ display: 'flex', justifyContent: 'center', mt: '-52px', position: 'relative', zIndex: 20 }}>
+        <Box sx={{ display: 'flex', justifyContent: 'center', mt: '-40px', position: 'relative', zIndex: 20 }}>
           {isLoading ? (
-            <Skeleton variant="circular" width={104} height={104} />
+            <Skeleton variant="circular" width={80} height={80} />
           ) : (
             <Box
               onClick={handleAvatarClick}
               sx={{
-                width: 104,
-                height: 104,
+                width: 80,
+                height: 80,
                 borderRadius: '50%',
-                border: '4px solid #fff',
+                border: '3px solid #fff',
                 overflow: 'hidden',
                 boxShadow: '0 4px 16px rgba(0,0,0,0.15)',
                 background: '#e8e0d8',
@@ -366,8 +368,8 @@ export default function VendorCard({
               <Image
                 alt="vendor"
                 src={vendor?.image?.url || DefaultImage}
-                width={104}
-                height={104}
+                width={80}
+                height={80}
                 style={{
                   objectFit: 'cover',
                   transition: 'transform 0.3s ease',
@@ -398,16 +400,16 @@ export default function VendorCard({
         </Box>
 
         {/* ── BODY ── */}
-        <Box sx={{ px: 2.5, pb: 3.5, textAlign: 'center' }}>
+        <Box sx={{ px: 1.75, pb: 2.5, textAlign: 'center' }}>
 
           {/* NAME */}
           <Typography
             {...(!isLoading && { component: Link, href: baseUrl + createVendorSlug(vendor) })}
             sx={{
-              fontSize: 18,
+              fontSize: 15,
               fontWeight: 700,
               color: '#2d1a0e',
-              mt: 1.5,
+              mt: 1,
               display: 'block',
               cursor: 'pointer',
               textDecoration: 'none',
@@ -426,12 +428,12 @@ export default function VendorCard({
               background: '#fff3e0',
               border: '1.5px solid #ffcc80',
               color: '#e65100',
-              fontSize: 11,
+              fontSize: 10,
               fontWeight: 600,
-              px: 2.2,
-              py: 0.6,
+              px: 1.6,
+              py: 0.4,
               borderRadius: '8px',
-              letterSpacing: 0.5
+              letterSpacing: 0.4
             }}
           >
             {vendor?.about || 'Pandit Ji'}
@@ -459,12 +461,12 @@ export default function VendorCard({
                     <Box sx={{ color: '#6b5a4a', display: 'flex', alignItems: 'center' }}>
                       {item.icon}
                     </Box>
-                    <Typography sx={{ fontSize: 13, fontWeight: 500, color: '#6b5a4a' }}>
+                    <Typography sx={{ fontSize: 11.5, fontWeight: 500, color: '#6b5a4a' }}>
                       {item.label}
                     </Typography>
                   </Stack>
                   {idx < metaItems.length - 1 && (
-                    <Typography sx={{ color: '#c8a98d', fontSize: 16, lineHeight: 1 }}>|</Typography>
+                    <Typography sx={{ color: '#c8a98d', fontSize: 14, lineHeight: 1 }}>|</Typography>
                   )}
                 </React.Fragment>
               ))
@@ -484,11 +486,12 @@ export default function VendorCard({
                     size="small"
                     sx={{
                       borderRadius: '50px',
-                      fontSize: 13,
+                      fontSize: 11.5,
                       background: 'transparent',
                       border: '1.5px solid #f59e0b',
                       color: '#1a1208',
-                      px: 0.5,
+                      px: 0.3,
+                      height: 26,
                       '&:hover': { background: '#f59e0b', color: '#fff' },
                       transition: 'background .2s, color .2s'
                     }}
@@ -556,14 +559,16 @@ export default function VendorCard({
                     borderRadius: '50px',
                     textTransform: 'none',
                     borderColor: '#f59e0b',
-                    borderWidth: 2,
+                    borderWidth: 1.5,
                     color: '#fb8b05',
                     fontWeight: 600,
-                    fontSize: 13,
-                    py: 1.2,
+                    fontSize: 11.5,
+                    px: 1,
+                    py: 0.9,
+                    minWidth: 0,
                     '&:hover': {
                       borderColor: '#f59e0b',
-                      borderWidth: 2,
+                      borderWidth: 1.5,
                       background: '#fff3d6',
                       transform: 'translateY(-1px)'
                     }
@@ -575,15 +580,17 @@ export default function VendorCard({
                 <Button
                   fullWidth
                   variant="contained"
-                  startIcon={<AiOutlineUser />}
+                  startIcon={<AiOutlineUser size={14} />}
                   onClick={() => router.push(baseUrl + createVendorSlug(vendor))}
                   sx={{
                     borderRadius: '50px',
                     textTransform: 'none',
                     background: '#f5891a',
                     fontWeight: 700,
-                    fontSize: 13,
-                    py: 1.2,
+                    fontSize: 11.5,
+                    px: 1,
+                    py: 0.9,
+                    minWidth: 0,
                     boxShadow: '0 4px 16px rgba(245,158,11,0.35)',
                     '&:hover': {
                       background: '#e08a00',

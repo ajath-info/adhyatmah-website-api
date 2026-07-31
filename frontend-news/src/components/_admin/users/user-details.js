@@ -1,105 +1,88 @@
 'use client';
+
 import { useState } from 'react';
-import { useSearchParams } from 'next/navigation';
 import PropTypes from 'prop-types';
 
-// mui
 import { Tabs, Tab, Box } from '@mui/material';
 
-// components
-import Table from 'src/components/table/table';
-import OrderList from '@/components/table/rows/order';
-import ProfileCover from '@/components/_main/profile/profile-cover';
+import AdminUserProfileCard from './admin-user-profile-card';
+import VendorProfileDetails from './vendor-profile-details';
+import UserBookingHistory from './user-booking-history';
 import PoojaServicesTab from './pooja-services-tab';
-import BookingDetailsTab from './booking-details-tab';
 
-// api
 import * as api from 'src/services';
 import { useQuery } from '@tanstack/react-query';
 
 UserProfile.propTypes = { id: PropTypes.string.isRequired };
 
-const TABLE_HEAD = [
-  { id: 'name', label: 'Product' },
-  { id: 'total', label: 'total' },
-  { id: 'inventoryType', label: 'Status' },
-  { id: 'price', label: 'Price' },
-  { id: 'quantity', label: 'Quantity' },
-  { id: 'date', label: 'Date' },
-  { id: '', label: 'Actions' }
-];
-
-function TabPanel(props) {
-  const { children, value, index, ...other } = props;
+function TabPanel({ children, value, index }) {
   return (
     <div
       role="tabpanel"
       hidden={value !== index}
-      id={`simple-tabpanel-${index}`}
-      aria-labelledby={`simple-tab-${index}`}
-      {...other}
+      id={`vendor-tabpanel-${index}`}
+      aria-labelledby={`vendor-tab-${index}`}
     >
-      {value === index && <Box sx={{ pt: 3 }}>{children}</Box>}
+      <Box sx={{ pt: 3 }}>{children}</Box>
     </div>
   );
 }
 
+TabPanel.propTypes = {
+  children: PropTypes.node,
+  value: PropTypes.number.isRequired,
+  index: PropTypes.number.isRequired
+};
+
 export default function UserProfile({ id }) {
-  const searchParams = useSearchParams();
-  const pageParam = searchParams.get('page');
   const [tabValue, setTabValue] = useState(0);
 
   const { data, isPending: isLoading } = useQuery({
-    queryKey: ['user-details', id, pageParam],
-    queryFn: () => api.getUserByAdmin(`${id}?page=${pageParam || 1}`),
+    queryKey: ['user-details', id],
+    queryFn: () => api.getUserByAdmin(id),
     enabled: !!id,
     retry: false
   });
 
-  // const isVendor = data?.user?.role === 'vendor' || data?.user?.isPandit;
-  const isVendor =
-    data?.user?.role === 'vendor' ||
-    data?.user?.role === 'pandit' ||
-    data?.user?.isPandit === true ||
-    !!data?.user?.services?.length;
-
-
-  const handleTabChange = (event, newValue) => {
-    setTabValue(newValue);
-  };
-
   const user = data?.user || null;
-  const orders = data?.orders || null;
-  const tableData = { data: orders, count: data?.count };
+  const isVendor = user?.role === 'vendor';
 
   return (
     <div>
-      <ProfileCover data={user} isLoading={isLoading} />
+      <AdminUserProfileCard user={user} isLoading={isLoading} />
 
-      {!isVendor ? (
-        <Box sx={{ mt: 3 }}>
-          <Table headData={TABLE_HEAD} data={tableData} isLoading={isLoading} row={OrderList} isUser />
-        </Box>
-      ) : (
+      {isVendor ? (
         <Box sx={{ width: '100%', mt: 3 }}>
           <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
             <Tabs
               value={tabValue}
-              onChange={handleTabChange}
+              onChange={(_, newValue) => setTabValue(newValue)}
               aria-label="vendor details tabs"
               textColor="primary"
               indicatorColor="primary"
+              variant="scrollable"
+              scrollButtons="auto"
+              allowScrollButtonsMobile
             >
-              <Tab label="Pooja Services" />
-              <Tab label="Booking Details" />
+              <Tab label="Vendor Details" id="vendor-tab-0" aria-controls="vendor-tabpanel-0" />
+              <Tab label="Pooja Services" id="vendor-tab-1" aria-controls="vendor-tabpanel-1" />
+              <Tab label="Booking History" id="vendor-tab-2" aria-controls="vendor-tabpanel-2" />
             </Tabs>
           </Box>
+
           <TabPanel value={tabValue} index={0}>
-            <PoojaServicesTab vendorId={id} />
+            <VendorProfileDetails user={user} isLoading={isLoading} embedded />
           </TabPanel>
           <TabPanel value={tabValue} index={1}>
-            <BookingDetailsTab vendorId={id} />
+            <PoojaServicesTab vendorId={id} />
           </TabPanel>
+          <TabPanel value={tabValue} index={2}>
+            <UserBookingHistory userId={id} isVendorView embedded />
+          </TabPanel>
+        </Box>
+      ) : (
+        <Box sx={{ mt: 3 }}>
+          <UserBookingHistory userId={id} isVendorView={false} />
         </Box>
       )}
     </div>

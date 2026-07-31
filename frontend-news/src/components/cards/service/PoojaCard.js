@@ -7,10 +7,10 @@ import { FiEye } from 'react-icons/fi';
 import { MdAccessTime } from 'react-icons/md';
 import { getPricingInfo } from '@/utils/pricing-utils';
 
-export default function PoojaCard({ service, isLoading, singleAction = false, actionLabel = 'View Details & Book', actionUrl = '' }) {
+export default function PoojaCard({ service, isLoading, singleAction = false, actionLabel = 'View Details & Book', actionUrl = '', compact = false }) {
     const router = useRouter();
     const serviceName = service?.name || '';
-    const serviceListingUrl = `/services/${service?.id}?name=${encodeURIComponent(serviceName)}`;
+    const serviceListingUrl = `/offline-puja-services/${service?.id}?name=${encodeURIComponent(serviceName)}`;
     const targetUrl = actionUrl || serviceListingUrl;
     const imageUrl = service?.image?.url || service?.imageUrl || service?.thumbnail || '';
 
@@ -29,6 +29,20 @@ export default function PoojaCard({ service, isLoading, singleAction = false, ac
     });
     const { salePrice, regularPrice, discountPercent, shouldShow } = pricingInfo;
 
+    // ── Compact sizing (used when 5 cards need to fit per row) ──
+    const imageHeight = compact ? 168 : 230;
+    const titleFontSize = compact ? 16 : 20;
+    const badgeFontSize = compact ? 11 : 12;
+    const priceFontSize = compact ? 14 : 16;
+    const originalPriceFontSize = compact ? 12 : 13;
+    const durationFontSize = compact ? 11 : 12;
+    const buttonFontSize = compact ? 12.5 : 14;
+    const buttonPaddingY = compact ? 0.9 : 1.2;
+    const bodyPaddingX = compact ? '10px' : '12px';
+    const buttonsPaddingX = compact ? '12px' : '16px';
+    const buttonsPaddingBottom = compact ? '12px' : '16px';
+    const buttonsSpacing = compact ? 0.8 : 1.2;
+
     return (
         <Card sx={{
             width: '100%',
@@ -45,9 +59,9 @@ export default function PoojaCard({ service, isLoading, singleAction = false, ac
         }}>
 
             {/* ── IMAGE ── */}
-            <Box sx={{ position: 'relative', width: '100%', height: 230, overflow: 'hidden' }}>
+            <Box sx={{ position: 'relative', width: '100%', height: imageHeight, overflow: 'hidden' }}>
                 {isLoading
-                    ? <Skeleton variant="rectangular" width="100%" height={230} />
+                    ? <Skeleton variant="rectangular" width="100%" height={imageHeight} />
                     : (
                         <Box sx={{
                             width: '100%', height: '100%',
@@ -69,12 +83,12 @@ export default function PoojaCard({ service, isLoading, singleAction = false, ac
             </Box>
 
             {/* ── BODY ── */}
-            <Box sx={{ px: '12px', pt: '10px', pb: '1px' }}>
+            <Box sx={{ px: bodyPaddingX, pt: '10px', pb: '1px' }}>
 
                 {/* TITLE + VIEWS BADGE */}
                 <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ mb: 1 }}>
                     <Typography sx={{
-                        fontSize: 20, fontWeight: 700, color: '#2d1a06', lineHeight: 1.3
+                        fontSize: titleFontSize, fontWeight: 700, color: '#2d1a06', lineHeight: 1.3
                     }}>
                         {isLoading ? <Skeleton width={140} /> : service?.name || 'Pooja Service'}
                     </Typography>
@@ -83,12 +97,12 @@ export default function PoojaCard({ service, isLoading, singleAction = false, ac
                         <Stack direction="row" alignItems="center" spacing={0.5} sx={{
                             background: '#fb8b05',
                             borderRadius: '20px',
-                            px: 1.2, py: 0.5,
+                            px: compact ? 1 : 1.2, py: compact ? 0.4 : 0.5,
                             mr: 1,
                             flexShrink: 0
                         }}>
-                            <FiEye size={14} color="#fff" />
-                            <Typography sx={{ fontSize: 12, fontWeight: 600, color: '#fff', lineHeight: 1 }}>
+                            <FiEye size={compact ? 12 : 14} color="#fff" />
+                            <Typography sx={{ fontSize: badgeFontSize, fontWeight: 600, color: '#fff', lineHeight: 1 }}>
                                 {views}
                             </Typography>
                         </Stack>
@@ -101,11 +115,11 @@ export default function PoojaCard({ service, isLoading, singleAction = false, ac
                         ? <Skeleton width={120} />
                         : (
                             <Stack direction="row" alignItems="baseline" spacing={1}>
-                                <Typography sx={{ fontSize: 16, fontWeight: 700, color: '#1a1a1a' }}>
+                                <Typography sx={{ fontSize: priceFontSize, fontWeight: 700, color: '#1a1a1a' }}>
                                     ₹{salePrice.toLocaleString('en-IN')}
                                 </Typography>
                                 {shouldShow && (
-                                    <Typography sx={{ fontSize: 13, color: '#aaa', textDecoration: 'line-through' }}>
+                                    <Typography sx={{ fontSize: originalPriceFontSize, color: '#aaa', textDecoration: 'line-through' }}>
                                         ₹{regularPrice.toLocaleString('en-IN')}
                                     </Typography>
                                 )}
@@ -118,11 +132,11 @@ export default function PoojaCard({ service, isLoading, singleAction = false, ac
                             background: '#fff3e0',
                             border: '1.5px solid #fbc97a',
                             borderRadius: '20px',
-                            px: 1.2, py: 0.4,
+                            px: compact ? 1 : 1.2, py: 0.4,
                             flexShrink: 0
                         }}>
-                            <MdAccessTime size={13} color="#fb8b05" />
-                            <Typography sx={{ fontSize: 12, fontWeight: 600, color: '#b86000', lineHeight: 1 }}>
+                            <MdAccessTime size={compact ? 12 : 13} color="#fb8b05" />
+                            <Typography sx={{ fontSize: durationFontSize, fontWeight: 600, color: '#b86000', lineHeight: 1 }}>
                                 {service?.duration || '3 – 4 hrs'}
                             </Typography>
                         </Stack>
@@ -131,7 +145,7 @@ export default function PoojaCard({ service, isLoading, singleAction = false, ac
             </Box>
 
             {/* ── BUTTONS ── */}
-            <Stack direction="row" spacing={1.2} sx={{ px: '16px', pb: '16px', pt: '5px' }}>
+            <Stack direction="row" spacing={buttonsSpacing} sx={{ px: buttonsPaddingX, pb: buttonsPaddingBottom, pt: '5px' }}>
                 {isLoading
                     ? <Skeleton width="100%" height={46} sx={{ borderRadius: '50px' }} />
                     : singleAction
@@ -146,8 +160,8 @@ export default function PoojaCard({ service, isLoading, singleAction = false, ac
                                     background: '#fb8b05',
                                     color: '#fff',
                                     fontWeight: 700,
-                                    fontSize: 14,
-                                    py: 1.2,
+                                    fontSize: buttonFontSize,
+                                    py: buttonPaddingY,
                                     boxShadow: 'none',
                                     '&:hover': {
                                         background: '#fb8b05',
@@ -171,8 +185,8 @@ export default function PoojaCard({ service, isLoading, singleAction = false, ac
                                         border: '2px solid #fb8b05',
                                         color: '#fb8b05',
                                         fontWeight: 700,
-                                        fontSize: 14,
-                                        py: 1.2,
+                                        fontSize: buttonFontSize,
+                                        py: buttonPaddingY,
                                         background: 'transparent',
                                         '&:hover': {
                                             border: '2px solid #fb8b05',
@@ -193,8 +207,8 @@ export default function PoojaCard({ service, isLoading, singleAction = false, ac
                                         background: '#fb8b05',
                                         color: '#fff',
                                         fontWeight: 700,
-                                        fontSize: 14,
-                                        py: 1.2,
+                                        fontSize: buttonFontSize,
+                                        py: buttonPaddingY,
                                         boxShadow: 'none',
                                         '&:hover': {
                                             background: '#fb8b05',

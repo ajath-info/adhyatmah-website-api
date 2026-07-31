@@ -21,6 +21,8 @@ export default function NoDataFoundIllustration({ ...props }) {
       <img
         src="/upcoming.png"
         alt="Upcoming Illustration"
+        loading="lazy"
+        decoding="async"
         style={{
           width: '700px',
           maxWidth: '700px',

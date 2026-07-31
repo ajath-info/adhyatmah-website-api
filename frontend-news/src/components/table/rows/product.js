@@ -165,6 +165,8 @@ export default function ProductRow({ isLoading, row, handleClickOpen, isVendor }
         ) : (
           <Stack direction="row" justifyContent="flex-end">
             <Tooltip title="Preview">
+              {/* <Link target="_blank" href={`/product/${row.slug}`}>
+                <IconButton> */}
               {row.slug ? (
                 <Link target="_blank" href={`/product/${row.slug}`}>
                   <IconButton>
@@ -175,6 +177,7 @@ export default function ProductRow({ isLoading, row, handleClickOpen, isVendor }
                 <IconButton disabled>
                   <IoEye />
                 </IconButton>
+                //  </Link>
               )}
             </Tooltip>
             <Tooltip title="Edit">

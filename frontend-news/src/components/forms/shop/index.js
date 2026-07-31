@@ -15,30 +15,35 @@ import {
   FormControl,
   Typography,
   Select,
-  TextField
+  TextField,
+  Box
 } from '@mui/material';
 
 import { Form, FormikProvider, useFormik } from 'formik';
 import { useRouter } from '@bprogress/next';
-import { useDispatch } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import { useMutation } from '@tanstack/react-query';
 import toast from 'react-hot-toast';
 
 import ShopDetailsForm from '@/components/forms/shop/shop-details';
-import { updateUserRole } from '@/redux/slices/user';
+import PanditDetailsForm from '@/components/forms/shop/pandit-details';
+import { signIn, updateUserRole } from '@/redux/slices/user';
 import * as api from 'src/services';
 import IdentityVerificationForm from '@/components/forms/shop/identity-verification';
 import FinancialDetailsForm from '@/components/forms/shop/financial-details';
 import { useUploadSingleFile } from '@/hooks/use-upload-file';
-import { shopSettingsSchema } from '@/validations';
+import { setCookie } from '@/hooks/use-cookies';
+import { panditProfileSchema, shopSettingsSchema } from '@/validations';
 
 const STATUS_OPTIONS = ['pending', 'approved', 'in review', 'action required', 'cancel', 'closed'];
 export default function ShopForm({ isShopLoading, shop, type }) {
   const router = useRouter();
   const dispatch = useDispatch();
+  const { isAuthenticated } = useSelector((state) => state.user);
   const isCreatingShop = type === 'create-shop';
   const isVendor = type === 'vendor';
   const isAdmin = type === 'admin';
+  const isGuestCreatingPandit = isCreatingShop && !isAuthenticated;
   const [state, setstate] = useState({
     logoLoading: false,
     governmentIdLoading: false,
@@ -50,12 +55,23 @@ export default function ShopForm({ isShopLoading, shop, type }) {
   });
 
   const { mutate, isPending: isLoading } = useMutation({
-    mutationFn: isAdmin ? api.updateShopByAdmin : isVendor ? api.updateShopByVendor : api.addShopByUser,
+    mutationFn: isAdmin
+      ? api.updateShopByAdmin
+      : isVendor
+        ? api.updateShopByVendor
+        : isGuestCreatingPandit
+          ? api.createPanditProfileAsGuest
+          : api.addShopByUser,
     retry: false,
-    onSuccess: () => {
+    onSuccess: async (data) => {
       if (isCreatingShop) {
-        toast.success('Pandit profile is under review!');
-        dispatch(updateUserRole());
+        if (isGuestCreatingPandit && data?.token && data?.user) {
+          dispatch(signIn({ ...data.user, role: 'vendor', isVerified: true }));
+          await setCookie('token', data.token);
+        } else {
+          dispatch(updateUserRole());
+        }
+        toast.success('Pandit profile created successfully!');
         router.push('/vendor/dashboard');
       } else if (isAdmin) {
         toast.success('Pandit profile updated!');
@@ -65,7 +81,7 @@ export default function ShopForm({ isShopLoading, shop, type }) {
       }
     },
     onError: (error) => {
-      toast.error(error?.response?.data?.message || 'Something went wrong!');
+      toast.error(error?.response?.data?.message || error?.message || 'Something went wrong!');
     }
   });
   // ✅ use mutateAsync for delete
@@ -81,7 +97,7 @@ export default function ShopForm({ isShopLoading, shop, type }) {
       const { field } = variables; // ✅ comes from mutate({..., field})
       const split = field.split('.');
 
-      // delete previous if exists
+      // delete previous if exists (best-effort — guests may not have auth for delete)
       let prevId;
       if (split.length > 1) {
         prevId = values[split[0]]?.[split[1]]?._id;
@@ -90,7 +106,11 @@ export default function ShopForm({ isShopLoading, shop, type }) {
       }
 
       if (prevId) {
-        await deleteMutate(prevId);
+        try {
+          await deleteMutate(prevId);
+        } catch (err) {
+          console.warn('Failed to delete previous image:', err);
+        }
       }
 
       setFieldValue(field, { _id: data.public_id, url: data.secure_url });
@@ -106,6 +126,11 @@ export default function ShopForm({ isShopLoading, shop, type }) {
       const { field } = variables;
       const split = field.split('.');
 
+      // Clear temporary local preview if Cloudinary upload failed
+      if (field === 'logo' && values?.logo && !values.logo._id) {
+        setFieldValue('logo', null);
+      }
+
       setstate((prev) => ({
         ...prev,
         [`${split.length > 1 ? split[1] : split[0]}Loading`]: false
@@ -119,17 +144,28 @@ export default function ShopForm({ isShopLoading, shop, type }) {
     Object.assign(file, { preview: URL.createObjectURL(file) });
 
     const split = field.split('.');
+    const loadingKey = `${split.length > 1 ? split[1] : split[0]}Loading`;
+
+    // Show local preview immediately while Cloudinary upload runs
+    if (field === 'logo') {
+      setFieldValue('logo', { _id: null, url: file.preview });
+    }
+
+    setstate((prev) => ({
+      ...prev,
+      [loadingKey]: 1
+    }));
+
     uploadMutate({
       file,
       config: {
         onUploadProgress: (progressEvent) => {
           const { loaded, total } = progressEvent;
-          const percentage = Math.floor((loaded * 100) / total);
+          const percentage = Math.max(1, Math.floor((loaded * 100) / total));
 
-          // ✅ use functional update so we don’t reset state accidentally
           setstate((prev) => ({
             ...prev,
-            [`${split.length > 1 ? split[1] : split[0]}Loading`]: percentage
+            [loadingKey]: percentage
           }));
         }
       },
@@ -139,31 +175,86 @@ export default function ShopForm({ isShopLoading, shop, type }) {
 
   const formik = useFormik({
     initialValues: {
-      logo: isCreatingShop ? null : shop?.logo,
-      name: isCreatingShop ? '' : (shop?.name ?? ''),
-      slug: isCreatingShop ? '' : (shop?.slug ?? ''),
-      metaTitle: isCreatingShop ? '' : (shop?.metaTitle ?? ''),
-      description: isCreatingShop ? '' : (shop?.description ?? ''),
-      metaDescription: isCreatingShop ? '' : (shop?.metaDescription ?? ''),
-      registrationNumber: isCreatingShop ? '' : (shop?.registrationNumber ?? ''),
-      address: {
-        country: isCreatingShop ? '' : (shop?.address?.country ?? ''),
-        city: isCreatingShop ? '' : (shop?.address?.city ?? ''),
-        state: isCreatingShop ? '' : (shop?.address?.state ?? ''),
-        streetAddress: isCreatingShop ? '' : (shop?.address?.streetAddress ?? '')
-      },
-      contactPerson: isCreatingShop ? '' : (shop?.contactPerson ?? ''),
-      shopEmail: isCreatingShop ? '' : (shop?.shopEmail ?? ''),
-      shopPhone: isCreatingShop ? '' : (shop?.shopPhone ?? ''),
-      website: isCreatingShop ? '' : (shop?.website ?? ''),
+      ...(isCreatingShop
+        ? {
+            logo: null,
+            designation: [],
+            firstName: '',
+            lastName: '',
+            phone: '',
+            email: '',
+            password: '',
+            dateOfBirth: '',
+            gender: '',
+            gotra: '',
+            pravar: '',
+            veda: '',
+            shakha: '',
+            pankti: '',
+            sutra: '',
+            aadharNumber: '',
+            services: [],
+            language: [],
+            experience: '',
+            address: {
+              streetAddress: '',
+              country: 'India',
+              state: '',
+              city: ''
+            },
+            pincode: '',
+            referralCode: ''
+          }
+        : {
+            logo: shop?.logo,
+            name: shop?.name ?? '',
+            slug: shop?.slug ?? '',
+            metaTitle: shop?.metaTitle ?? '',
+            description: shop?.description ?? '',
+            metaDescription: shop?.metaDescription ?? '',
+            registrationNumber: shop?.registrationNumber ?? '',
+            address: {
+              country: shop?.address?.country ?? '',
+              city: shop?.address?.city ?? '',
+              state: shop?.address?.state ?? '',
+              streetAddress: shop?.address?.streetAddress ?? ''
+            },
+            contactPerson: shop?.contactPerson ?? '',
+            shopEmail: shop?.shopEmail ?? '',
+            shopPhone: shop?.shopPhone ?? '',
+            website: shop?.website ?? '',
+            taxIdentificationNumber: shop?.taxIdentificationNumber ?? '',
+            vatRegistrationNumber: shop?.vatRegistrationNumber ?? '',
+            identityVerification: {
+              governmentId: shop?.identityVerification?.governmentId ?? null,
+              proofOfAddress: shop?.identityVerification?.proofOfAddress ?? null
+            },
 
-      taxIdentificationNumber: isCreatingShop ? '' : (shop?.taxIdentificationNumber ?? ''),
-      vatRegistrationNumber: isCreatingShop ? '' : (shop?.vatRegistrationNumber ?? ''),
-
-      identityVerification: {
-        governmentId: isCreatingShop ? null : (shop?.identityVerification?.governmentId ?? null),
-        proofOfAddress: isCreatingShop ? null : (shop?.identityVerification?.proofOfAddress ?? null)
-      },
+            // Pandit sign-up / personal details (editable by admin & vendor)
+            designation: Array.isArray(shop?.designation)
+              ? shop.designation
+              : shop?.designation
+                ? [shop.designation]
+                : [],
+            firstName: shop?.firstName ?? '',
+            lastName: shop?.lastName ?? '',
+            phone: shop?.phone ?? '',
+            email: shop?.email ?? '',
+            dateOfBirth: shop?.dateOfBirth ? String(shop.dateOfBirth).slice(0, 10) : '',
+            gender: shop?.gender ?? '',
+            gotra: shop?.gotra ?? '',
+            pravar: shop?.pravar ?? '',
+            veda: shop?.veda ?? '',
+            shakha: shop?.shakha ?? '',
+            pankti: shop?.pankti ?? '',
+            sutra: shop?.sutra ?? '',
+            aadharNumber: shop?.aadharNumber ?? '',
+            services: shop?.services ?? [],
+            language: shop?.language ?? [],
+            experience: shop?.experience ?? '',
+            pincode: shop?.pincode ?? '',
+            referralCode: shop?.referralCode ?? ''
+          }),
       financialDetails: isVendor
         ? {
             paymentMethod: shop?.financialDetails?.paymentMethod ?? 'paypal',
@@ -191,7 +282,7 @@ export default function ShopForm({ isShopLoading, shop, type }) {
       })
     },
     enableReinitialize: true,
-    validationSchema: shopSettingsSchema,
+    validationSchema: isCreatingShop ? panditProfileSchema : shopSettingsSchema(isVendor),
     onSubmit: async (values) => {
       const { ...rest } = values;
 
@@ -224,6 +315,39 @@ export default function ShopForm({ isShopLoading, shop, type }) {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [values.status]);
+
+  if (isCreatingShop) {
+    return (
+      <FormikProvider value={formik}>
+        <Form noValidate autoComplete="off" onSubmit={handleSubmit}>
+          <Card>
+            <CardHeader
+              title={<>{isShopLoading ? <Skeleton variant="text" height={28} width={240} /> : 'Pandit details'}</>}
+            />
+            <CardContent>
+              <Stack gap={3}>
+                <ShopDetailsForm
+                  isLoading={isShopLoading}
+                  handleDrop={handleDrop}
+                  handleNameChange={handleNameChange}
+                  state={state}
+                  formik={formik}
+                  photoOnly
+                />
+                <PanditDetailsForm isLoading={isShopLoading} formik={formik} />
+                <Box sx={{ display: 'flex', justifyContent: 'center', pt: 2 }}>
+                  <Button type="submit" variant="contained" size="large" loading={isLoading} sx={{ minWidth: 280 }}>
+                    Create Pandit Profile
+                  </Button>
+                </Box>
+              </Stack>
+            </CardContent>
+          </Card>
+        </Form>
+      </FormikProvider>
+    );
+  }
+
   return (
     <FormikProvider value={formik}>
       <Form noValidate autoComplete="off" onSubmit={handleSubmit}>
@@ -239,13 +363,24 @@ export default function ShopForm({ isShopLoading, shop, type }) {
               />
 
               <CardContent>
-                <ShopDetailsForm
-                  isLoading={isShopLoading}
-                  handleDrop={handleDrop}
-                  handleNameChange={handleNameChange}
-                  state={state}
-                  formik={formik}
-                />
+                <Stack gap={3}>
+                  <ShopDetailsForm
+                    isLoading={isShopLoading}
+                    handleDrop={handleDrop}
+                    handleNameChange={handleNameChange}
+                    state={state}
+                    formik={formik}
+                  />
+                </Stack>
+              </CardContent>
+            </Card>
+
+            <Card sx={{ mt: 3 }}>
+              <CardHeader
+                title={<>{isShopLoading ? <Skeleton variant="text" height={28} width={240} /> : 'Pandit Details'}</>}
+              />
+              <CardContent>
+                <PanditDetailsForm isLoading={isShopLoading} formik={formik} showPassword={false} />
               </CardContent>
             </Card>
           </Grid>
@@ -351,7 +486,7 @@ export default function ShopForm({ isShopLoading, shop, type }) {
                 </Card>
               )}
               <Button type="submit" variant="contained" fullWidth size="large" loading={isLoading}>
-                {isCreatingShop ? 'Create Pandit Profile' : 'Update Pandit Profile'}
+                Update Pandit Profile
               </Button>
             </Stack>
           </Grid>

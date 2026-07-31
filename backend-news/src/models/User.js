@@ -137,7 +137,7 @@ const UserSchema = new mongoose.Schema(
     pankti: {
       type: String,
     },
-	shakha: {
+    shakha: {
       type: String,
     },
     pravar: {
@@ -151,9 +151,9 @@ const UserSchema = new mongoose.Schema(
       default: false,
     },
     otp: {
-  type: String,
-  default: null
-},
+      type: String,
+      default: null
+    },
     lastOtpSentAt: {
       type: Date,
     },
@@ -175,7 +175,7 @@ const UserSchema = new mongoose.Schema(
         "kannada",
         "malayalam",
         "others",
-	],
+      ],
       default: [],
     },
     experience: {
@@ -197,17 +197,17 @@ const UserSchema = new mongoose.Schema(
       relationship: { type: String },
     },
     aadhar: {
-      type: String, 
+      type: String,
     },
-	referral_code: {
-  type: String,
-  unique: true,
-  sparse: true,
-},
-	  referred_by: {
-  type: String,
-    default: "",
-},
+    referral_code: {
+      type: String,
+      unique: true,
+      sparse: true,
+    },
+    referred_by: {
+      type: String,
+      default: "",
+    },
     preferences: {
       type: mongoose.Schema.Types.Mixed,
     },

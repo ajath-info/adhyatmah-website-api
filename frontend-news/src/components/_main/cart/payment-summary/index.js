@@ -66,7 +66,7 @@ export default function PaymentSummary({ loading, cart }) {
           </Typography>
         </Stack>
         <Box sx={{ position: 'relative', width: '100%', height: 26, mt: 2 }}>
-          <Image src={paymentImg} alt="payment" fill objectFit="contain" />
+          <Image src={paymentImg} alt="payment" fill style={{ objectFit: 'contain' }} />
         </Box>
         <Box mt={2}>
           <Button

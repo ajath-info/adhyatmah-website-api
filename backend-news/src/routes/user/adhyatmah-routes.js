@@ -29,7 +29,7 @@ const upload = multer({
       cb(new Error('Only image files are allowed!'), false);
     }
   }
-}); 
+});
 
 // Create customer with optional Aadhaar image upload (field name: "aadhar")
 router.post("/createCustomer", upload.single('aadhar'), adhyatmahController.createCustomer);
@@ -44,7 +44,7 @@ router.post("/login-mobile", adhyatmahController.loginWithMobile);
 router.post("/verify-mobile-otp", adhyatmahController.verifyMobileOtp);
 router.post("/resend-mobile-otp", adhyatmahController.resendMobileOtp);
 router.post("/login", adhyatmahController.customerLogin);
-router.post("/logout", verifyToken,  adhyatmahController.logout);
+router.post("/logout", verifyToken, adhyatmahController.logout);
 router.post("/forget-password", adhyatmahController.forgetPassword);
 router.post("/reset-password", adhyatmahController.resetPassword);
 router.get("/getHomepageCollections", adhyatmahController.getHomepageCollections);
@@ -103,6 +103,5 @@ router.get("/getAllLanguages", adhyatmahController.getAllLanguages);
 router.get("/getCategory", adhyatmahController.getCategory);
 router.get("/generateReferralCodes", adhyatmahController.generateReferralCodesForOldUsers);
 router.get("/generateReferredBy", adhyatmahController.addReferredByForOldUsers);
-
 
 module.exports = router;

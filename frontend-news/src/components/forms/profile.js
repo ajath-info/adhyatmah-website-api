@@ -20,7 +20,6 @@ import {
 import PhoneInputField from 'src/components/phone-input-field';
 // component
 import UploadAvatar from '@/components/upload/upload-avatar';
-import countries from 'src/data/countries.json';
 // api
 import * as api from 'src/services';
 // formik
@@ -98,12 +97,17 @@ export default function GeneralProfileForm({ user, isLoading }) {
       address: user?.address || '',
       city: user?.city || '',
       state: user?.state || '',
-      country: user?.country || 'Andorra',
+      country: user?.country || 'India',
       zip: user?.zip || '',
       gotra: user?.gotra || '',
+      pravar: user?.pravar || '',
       veda: user?.veda || '',
       pankti: user?.pankti || '',
       shakha: user?.shakha || '',
+      sutra: user?.sutra || '',
+      dateOfBirth: user?.dateOfBirth ? user.dateOfBirth.substring(0, 10) : '',
+      aadhar: user?.aadhar || '',
+      experience: user?.experience || '',
       language: user?.language || []
     },
 
@@ -293,22 +297,7 @@ export default function GeneralProfileForm({ user, isLoading }) {
                     {isLoading ? (
                       <Skeleton variant="rounded" height={56} />
                     ) : (
-                      <TextField
-                        id="country"
-                        select
-                        fullWidth
-                        placeholder="Country"
-                        {...getFieldProps('country')}
-                        SelectProps={{ native: true }}
-                        error={Boolean(touched.country && errors.country)}
-                        helperText={touched.country && errors.country}
-                      >
-                        {countries.map((option) => (
-                          <option key={option.code} value={option.label}>
-                            {option.label}
-                          </option>
-                        ))}
-                      </TextField>
+                      <TextField id="country" fullWidth value="India" disabled />
                     )}
                   </Stack>
                   {/* City, State, Zip */}
@@ -380,7 +369,7 @@ export default function GeneralProfileForm({ user, isLoading }) {
                   {/* Vendor-specific fields */}
                   {user?.role === 'vendor' && (
                     <>
-                      {/* Gotra, Veda */}
+                      {/* Gotra, Pravar */}
                       <Stack direction={{ xs: 'column', md: 'row' }} spacing={2}>
                         {/* Gotra */}
                         <Stack spacing={0.5} width={1}>
@@ -400,6 +389,27 @@ export default function GeneralProfileForm({ user, isLoading }) {
                           )}
                         </Stack>
 
+                        {/* Pravar */}
+                        <Stack spacing={0.5} width={1}>
+                          <Typography variant="overline" color="text.primary">
+                            {isLoading ? <Skeleton variant="text" width={120} /> : 'Pravar'}
+                          </Typography>
+                          {isLoading ? (
+                            <Skeleton variant="rounded" height={56} />
+                          ) : (
+                            <TextField
+                              id="pravar"
+                              fullWidth
+                              {...getFieldProps('pravar')}
+                              error={Boolean(touched.pravar && errors.pravar)}
+                              helperText={touched.pravar && errors.pravar}
+                            />
+                          )}
+                        </Stack>
+                      </Stack>
+
+                      {/* Veda, Shakha */}
+                      <Stack direction={{ xs: 'column', md: 'row' }} spacing={2}>
                         {/* Veda */}
                         <Stack spacing={0.5} width={1}>
                           <Typography variant="overline" color="text.primary">
@@ -414,27 +424,6 @@ export default function GeneralProfileForm({ user, isLoading }) {
                               {...getFieldProps('veda')}
                               error={Boolean(touched.veda && errors.veda)}
                               helperText={touched.veda && errors.veda}
-                            />
-                          )}
-                        </Stack>
-                      </Stack>
-
-                      {/* Pankti, Shakha */}
-                      <Stack direction={{ xs: 'column', md: 'row' }} spacing={2}>
-                        {/* Pankti */}
-                        <Stack spacing={0.5} width={1}>
-                          <Typography variant="overline" color="text.primary">
-                            {isLoading ? <Skeleton variant="text" width={120} /> : 'Pankti'}
-                          </Typography>
-                          {isLoading ? (
-                            <Skeleton variant="rounded" height={56} />
-                          ) : (
-                            <TextField
-                              id="pankti"
-                              fullWidth
-                              {...getFieldProps('pankti')}
-                              error={Boolean(touched.pankti && errors.pankti)}
-                              helperText={touched.pankti && errors.pankti}
                             />
                           )}
                         </Stack>
@@ -458,8 +447,27 @@ export default function GeneralProfileForm({ user, isLoading }) {
                         </Stack>
                       </Stack>
 
-                      {/* Sutra */}
+                      {/* Pankti, Sutra */}
                       <Stack direction={{ xs: 'column', md: 'row' }} spacing={2}>
+                        {/* Pankti */}
+                        <Stack spacing={0.5} width={1}>
+                          <Typography variant="overline" color="text.primary">
+                            {isLoading ? <Skeleton variant="text" width={120} /> : 'Pankti'}
+                          </Typography>
+                          {isLoading ? (
+                            <Skeleton variant="rounded" height={56} />
+                          ) : (
+                            <TextField
+                              id="pankti"
+                              fullWidth
+                              {...getFieldProps('pankti')}
+                              error={Boolean(touched.pankti && errors.pankti)}
+                              helperText={touched.pankti && errors.pankti}
+                            />
+                          )}
+                        </Stack>
+
+                        {/* Sutra */}
                         <Stack spacing={0.5} width={1}>
                           <Typography variant="overline" color="text.primary">
                             {isLoading ? <Skeleton variant="text" width={120} /> : 'Sutra'}
@@ -473,6 +481,67 @@ export default function GeneralProfileForm({ user, isLoading }) {
                               {...getFieldProps('sutra')}
                               error={Boolean(touched.sutra && errors.sutra)}
                               helperText={touched.sutra && errors.sutra}
+                            />
+                          )}
+                        </Stack>
+                      </Stack>
+
+                      {/* Date of Birth, Aadhaar Number */}
+                      <Stack direction={{ xs: 'column', md: 'row' }} spacing={2}>
+                        {/* Date of Birth */}
+                        <Stack spacing={0.5} width={1}>
+                          <Typography variant="overline" color="text.primary">
+                            {isLoading ? <Skeleton variant="text" width={120} /> : 'DOB'}
+                          </Typography>
+                          {isLoading ? (
+                            <Skeleton variant="rounded" height={56} />
+                          ) : (
+                            <TextField
+                              id="dateOfBirth"
+                              type="date"
+                              fullWidth
+                              InputLabelProps={{ shrink: true }}
+                              {...getFieldProps('dateOfBirth')}
+                              error={Boolean(touched.dateOfBirth && errors.dateOfBirth)}
+                              helperText={touched.dateOfBirth && errors.dateOfBirth}
+                            />
+                          )}
+                        </Stack>
+
+                        {/* Aadhaar Number */}
+                        <Stack spacing={0.5} width={1}>
+                          <Typography variant="overline" color="text.primary">
+                            {isLoading ? <Skeleton variant="text" width={120} /> : 'Aadhaar Number'}
+                          </Typography>
+                          {isLoading ? (
+                            <Skeleton variant="rounded" height={56} />
+                          ) : (
+                            <TextField
+                              id="aadhar"
+                              fullWidth
+                              {...getFieldProps('aadhar')}
+                              error={Boolean(touched.aadhar && errors.aadhar)}
+                              helperText={touched.aadhar && errors.aadhar}
+                            />
+                          )}
+                        </Stack>
+                      </Stack>
+
+                      {/* Total Experience */}
+                      <Stack direction={{ xs: 'column', md: 'row' }} spacing={2}>
+                        <Stack spacing={0.5} width={1}>
+                          <Typography variant="overline" color="text.primary">
+                            {isLoading ? <Skeleton variant="text" width={120} /> : 'Total Experience'}
+                          </Typography>
+                          {isLoading ? (
+                            <Skeleton variant="rounded" height={56} />
+                          ) : (
+                            <TextField
+                              id="experience"
+                              fullWidth
+                              {...getFieldProps('experience')}
+                              error={Boolean(touched.experience && errors.experience)}
+                              helperText={touched.experience && errors.experience}
                             />
                           )}
                         </Stack>

@@ -1,7 +1,6 @@
 'use client';
 import React from 'react';
 import { useRouter } from '@bprogress/next';
-import { useSearchParams } from 'next/navigation';
 import { toast } from 'react-hot-toast';
 import OtpInput from 'react-otp-input';
 import Countdown from 'react-countdown';
@@ -9,7 +8,8 @@ import { useSelector, useDispatch } from 'react-redux';
 // api
 import * as api from 'src/services';
 import { useMutation } from '@tanstack/react-query';
-import { verifyUser } from 'src/redux/slices/user';
+import { setLogout } from 'src/redux/slices/user';
+import { deleteCookie } from '@/hooks/use-cookies';
 // mui
 import { Box, Card, Stack, Container, Button, Typography } from '@mui/material';
 import { useTheme } from '@mui/material/styles';
@@ -59,8 +59,6 @@ export default function VerifyOTPForm() {
   const theme = useTheme();
 
   const dispatch = useDispatch();
-  const searchParam = useSearchParams();
-  const redirect = searchParam.get('redirect');
   const { user } = useSelector((state) => state.user);
   const [loading, setLoading] = React.useState(false);
   const [resendLoading, setResendLoading] = React.useState(false);
@@ -68,13 +66,17 @@ export default function VerifyOTPForm() {
   const [complete, setComplete] = React.useState(false);
   const [countdownDate, setCountdownDate] = React.useState(Date.now() + 60000); // Add this state
 
-  // Check if user is already verified
+  // Check if user is already verified — send them to login
   React.useEffect(() => {
     if (user?.isVerified) {
       toast.success('Your email is already verified!');
-      router.push(redirect || '/');
+      (async () => {
+        dispatch(setLogout());
+        await deleteCookie('token');
+        router.push('/auth/sign-in');
+      })();
     }
-  }, [user?.isVerified, router, redirect]);
+  }, [user?.isVerified, router, dispatch]);
 
   const onOtpChange = (value) => {
     setOtp(value);
@@ -84,9 +86,10 @@ export default function VerifyOTPForm() {
     mutationFn: api.verifyOTP,
     retry: false,
     onSuccess: async () => {
-      dispatch(verifyUser());
-      toast.success('OTP Verified');
-      router.push(redirect || '/');
+      toast.success('Email verified successfully! Please login.');
+      dispatch(setLogout());
+      await deleteCookie('token');
+      router.push('/auth/sign-in');
     },
     onError: (err) => {
       toast.error(err.response?.data?.message || 'Invalid OTP.');
@@ -107,9 +110,11 @@ export default function VerifyOTPForm() {
     onError: (err) => {
       const errorMessage = err.response?.data?.message || 'Failed to resend OTP';
       if (errorMessage.includes('Already Verified')) {
-        toast.success('Your email is already verified! Redirecting...');
-        setTimeout(() => {
-          router.push(redirect || '/');
+        toast.success('Your email is already verified! Please login.');
+        setTimeout(async () => {
+          dispatch(setLogout());
+          await deleteCookie('token');
+          router.push('/auth/sign-in');
         }, 2000);
       } else {
         toast.error(errorMessage);

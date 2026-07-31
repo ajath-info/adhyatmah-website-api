@@ -57,7 +57,7 @@ export default function PoojaServicesTab({ vendorId }) {
     return (
       <Box sx={{ p: 3, textAlign: 'center' }}>
         <Typography color="error" mb={2}>
-          Puja services load nahi ho sake.
+        Puja services are currently unavailable.
         </Typography>
         <Button variant="contained" color="primary" onClick={() => refetch()}>
           Retry

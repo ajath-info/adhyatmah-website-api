@@ -143,11 +143,17 @@ const createCustomer = async (req, res) => {
 
     const referralCode = await generateUniqueReferralCode();
 
+    const gender =
+      typeof request.gender === "string"
+        ? request.gender.trim().toLowerCase()
+        : undefined;
+
     /* =====================
        PREPARE USER DATA
     ===================== */
     const userData = {
       ...request,
+      gender,
       deviceType: deviceTypeValue,
       deviceToken: deviceTokenValue,
       role: roleValue,
@@ -310,39 +316,39 @@ const getAboutList = async (req, res) => {
           id: 1,
           name: "आचार्य",
         },
-		{
+        {
           id: 2,
           name: "पंडित",
         },
-		{
+        {
           id: 3,
           name: "पुरोहित",
         },
-		{
+        {
           id: 4,
           name: "पुजारी",
         },
-		{
+        {
           id: 5,
           name: "शास्त्री",
         },
-		{
+        {
           id: 6,
           name: "ज्योतिषाचार्य",
         },
-		{
+        {
           id: 7,
           name: "वेदाचार्य",
         },
-		{
+        {
           id: 8,
           name: "कथा वाचक",
         },
-		{
+        {
           id: 9,
           name: "यज्ञाचार्य",
         },
-		{
+        {
           id: 10,
           name: "धर्माचार्य",
         },
@@ -372,23 +378,23 @@ const getExperienceList = async (req, res) => {
           id: 1,
           name: "5",
         },
-		{
+        {
           id: 2,
           name: "10",
         },
-		{
+        {
           id: 3,
           name: "15",
         },
-		{
+        {
           id: 4,
           name: "20",
         },
-		{
+        {
           id: 5,
           name: "25",
         },
-		{
+        {
           id: 6,
           name: "30",
         },
@@ -3237,8 +3243,11 @@ const getUserProfile = async (req, res) => {
       });
     }
 
-    // Get user basic info
-    const user = await User.findById(userId).select("-password -otp");
+    // Get user basic info (cart.productId populated so the cart added from the
+    // website is also returned to the app for the same logged-in user)
+    const user = await User.findById(userId)
+      .select("-password -otp")
+      .populate("cart.productId");
 
     if (!user) {
       return res.status(404).json({
@@ -3267,9 +3276,14 @@ const getUserProfile = async (req, res) => {
       _id: { $in: user.wishlist || [] },
     }).select("name slug images price salePrice stockQuantity");
 
-    // Get cart products (assuming cart is stored in user model or separate cart model)
-    // For now, we'll return empty cart array - you can implement cart logic as needed
-    const cartProducts = [];
+    // Get cart products from the user's actual cart (kept in sync between
+    // website and app since both read/write the same user.cart in the DB)
+    const cartProducts = (user.cart || [])
+      .filter((item) => item.productId) // skip items whose product was deleted
+      .map((item) => ({
+        ...item.productId.toObject(),
+        quantity: item.quantity,
+      }));
 
     // Format bookings
     const formattedBookings = bookings.map((booking) => ({
@@ -4102,8 +4116,11 @@ const updateUserProfile = async (req, res) => {
       }
       updateData.email = email;
     }
+    if (gender !== undefined) {
+      const normalizedGender = String(gender).trim().toLowerCase();
+      updateData.gender = normalizedGender;
+    }
     if (phone !== undefined) updateData.phone = phone;
-    if (gender !== undefined) updateData.gender = gender;
     if (gotra !== undefined) updateData.gotra = gotra;
     if (veda !== undefined) updateData.veda = veda;
     if (pankti !== undefined) updateData.pankti = pankti;
@@ -4454,7 +4471,10 @@ const updateCustomerProfile = async (req, res) => {
       setData.email = email;
     }
 
-    if (gender !== undefined) setData.gender = gender;
+    if (gender !== undefined) {
+      const normalizedGender = String(gender).trim().toLowerCase();
+      setData.gender = normalizedGender;
+    }
     if (phone !== undefined) setData.phone = phone;
     if (about !== undefined) setData.about = about;
     if (gotra !== undefined) setData.gotra = gotra;
@@ -5031,6 +5051,7 @@ const getIndianStates = async (req, res) => {
       "Assam",
       "Bihar",
       "Chhattisgarh",
+      "Delhi",
       "Goa",
       "Gujarat",
       "Haryana",
@@ -5973,9 +5994,9 @@ const initializePayment = async (req, res) => {
     }
 
     // Add shipping and tax
-    const shipping = 10;
-    const tax = cartTotal * 0.09;
-    const totalAmount = cartTotal + shipping + tax;
+    const shipping = 0;
+    const tax = 0;
+    const totalAmount = cartTotal;
 
     // Get settings (Stripe + Razorpay may be present)
     const settings = await Settings.findOne({});
@@ -6532,10 +6553,9 @@ const verifyPayment = async (req, res) => {
         cartTotal += price * cartItem.quantity;
       }
 
-      const shipping = 10;
-      const taxRaw = cartTotal * 0.09;
-      const tax = Number(taxRaw.toFixed(2));
-      const totalAmount = cartTotal + shipping + tax;
+      const shipping = 0;
+      const tax = 0;
+      const totalAmount = cartTotal;
       //const orderNumber = Math.floor(Math.random() * 9000) + 1000;
       const orderNumber = generateOrderNo("R");
 
@@ -7552,111 +7572,53 @@ const removeFromWishlist = async (req, res) => {
 /* Get blogs */
 const getBlogs = async (req, res) => {
   try {
-    // Clear existing blogs and articles to ensure fresh data
-    await Blog.deleteMany({});
-    await Article.deleteMany({});
 
-    // Create sample blog with articles
-    // Create sample blog
-    const sampleBlog = new Blog({
-      title: "News",
-      handle: "news",
-      articles: [],
-    });
+    const blogs = await Blog.find({ status: true })
+      .populate({
+        path: "articles",
+        match: { status: true },
+        select: "title handle excerpt content publishedAt image",
+        options: { sort: { publishedAt: -1 }, limit: 4 },
+      })
+      .sort({ createdAt: -1 });
 
-    // Create sample articles
-    const sampleArticles = [
-      {
-        title: "Elegant Brass Moon Crystal Diya",
-        handle: "elegant-brass-moon-crystal-diya",
-        excerpt: "",
-        content:
-          "Illuminate your space with this crescent moon-shaped brass diya, adorned with sparkling crystals for festive glow",
-        publishedAt: new Date("2025-06-18T05:52:36Z"),
-        image: {
-          url: "https://cdn.shopify.com/s/files/1/0764/0822/6027/articles/blog02.jpg?v=1750226001",
-          altText: null,
+
+    if (!blogs.length) {
+      return res.status(200).json({
+        error: false,
+        code: 200,
+        status: 1,
+        message: "Blogs fetched successfully",
+        payload: {
+          blogs: [],
         },
-        blog: sampleBlog._id,
-      },
-      {
-        title: "Traditional Brass Hanging Peacock Diya",
-        handle: "traditional-brass-hanging-peacock-diya",
-        excerpt: "",
-        content:
-          "Intricately designed with a majestic peacock motif, this diya not only illuminates your home but also elevates your décor with its regal presence. Made from pure brass, it symbolizes prosperity, purity, and divine energy.",
-        publishedAt: new Date("2025-06-18T05:54:31Z"),
-        image: {
-          url: "https://cdn.shopify.com/s/files/1/0764/0822/6027/articles/blog01.jpg?v=1750226171",
-          altText: null,
-        },
-        blog: sampleBlog._id,
-      },
-      {
-        title: "Embossed Shankh Morkiran Brass Diya",
-        handle: "embossed-shankh-morkiran-brass-diya",
-        excerpt: "",
-        content:
-          "Symbolizing purity, blessings, and auspicious beginnings, the sacred Shankh design enhances the diya's spiritual significance, making it ideal for daily rituals, temple décor, or festive occasions.",
-        publishedAt: new Date("2025-06-18T05:56:53Z"),
-        image: {
-          url: "https://cdn.shopify.com/s/files/1/0764/0822/6027/articles/blog03.jpg?v=1750226233",
-          altText: null,
-        },
-        blog: sampleBlog._id,
-      },
-      {
-        title: "Pure Brass Akhand Payali Diya",
-        handle: "pure-brass-akhand-payali-diya",
-        excerpt: "",
-        content:
-          "Crafted from high-quality, heavy-duty brass, this diya features a deep bowl and traditional Payali design, ensuring long-lasting flame ideal for Akhand Jyoti during poojas, festivals, and spiritual rituals. The zoomed-in detailing reveals fine engravings and the smooth golden finish that reflects skilled Indian craftsmanship.",
-        publishedAt: new Date("2025-06-18T05:59:26Z"),
-        image: {
-          url: "https://cdn.shopify.com/s/files/1/0764/0822/6027/articles/blog06.jpg?v=1750226369",
-          altText: null,
-        },
-        blog: sampleBlog._id,
-      },
-    ];
+      });
+    }
 
-    // Save articles first
-    const createdArticles = await Article.insertMany(sampleArticles);
-
-    // Update blog with article IDs
-    sampleBlog.articles = createdArticles.map((article) => article._id);
-    await sampleBlog.save();
-
-    // Fetch the blog with populated articles
-    const blogs = await Blog.find().populate({
-      path: "articles",
-      select: "title handle excerpt content publishedAt image",
-      options: { sort: { publishedAt: -1 }, limit: 4 },
-    });
-
-    // Format to match Shopify response structure (single blog, not array)
-    const blog = blogs[0]; // Take the first blog
-    const formattedBlog = {
+    // Format to match existing Shopify-style response structure
+    const formattedBlogs = blogs.map((blog) => ({
       id: blog._id,
       title: blog.title,
       handle: blog.handle,
       articles: {
-        edges: blog.articles.map((article) => ({
+        edges: (blog.articles || []).map((article) => ({
           node: {
             id: article._id,
             title: article.title,
             handle: article.handle,
             excerpt: article.excerpt || "",
             content: article.content,
-            publishedAt: article.publishedAt.toISOString(),
+            publishedAt: article.publishedAt
+              ? article.publishedAt.toISOString()
+              : null,
             image: {
-              url: article.image.url,
-              altText: article.image.altText || null,
+              url: article.image?.url || "",
+              altText: article.image?.altText || null,
             },
           },
         })),
       },
-    };
+    }));
 
     return res.status(200).json({
       error: false,
@@ -7664,7 +7626,7 @@ const getBlogs = async (req, res) => {
       status: 1,
       message: "Blogs fetched successfully",
       payload: {
-        blogs: [formattedBlog], // Wrap in array to match reference API
+        blogs: formattedBlogs,
       },
     });
   } catch (error) {

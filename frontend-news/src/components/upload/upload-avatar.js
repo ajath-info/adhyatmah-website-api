@@ -62,9 +62,10 @@ UploadAvatar.propTypes = {
 };
 
 export default function UploadAvatar({ ...props }) {
-  const { error, file, caption, sx, title, ...other } = props;
+  const { error, file, caption, sx, title, loading, ...other } = props;
   const { getRootProps, getInputProps, isDragActive, isDragReject, fileRejections } = useDropzone({
     multiple: false,
+    disabled: Boolean(loading),
     ...other
   });
 
@@ -126,12 +127,15 @@ export default function UploadAvatar({ ...props }) {
             className="placeholder"
             sx={{
               gap: 1,
-              ...(file && { opacity: 0, color: 'common.white', bgcolor: 'grey.900', '&:hover': { opacity: 0.72 } })
+              ...(file && { opacity: 0, color: 'common.white', bgcolor: 'grey.900', '&:hover': { opacity: 0.72 } }),
+              ...(loading && { opacity: 0.85, zIndex: 9, color: 'common.white', bgcolor: 'grey.900' })
             }}
           >
             <MdOutlineAddPhotoAlternate />
 
-            <Typography variant="caption">{file ? 'Update photo' : title || 'Upload photo'}</Typography>
+            <Typography variant="caption">
+              {loading ? 'Uploading...' : file ? 'Update photo' : title || 'Upload photo'}
+            </Typography>
           </PlaceholderStyle>
         </DropZoneStyle>
       </RootStyle>

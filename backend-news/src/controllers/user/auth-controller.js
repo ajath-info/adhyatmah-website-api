@@ -34,6 +34,7 @@ const signUp = async (req, res) => {
       deviceType: request.deviceType || request.devicetype || request.device_type,
       deviceToken: request.deviceToken || request.devicetoken || request.device_token,
       otp,
+      status: "inactive",
       role: UserCount ? request.role || "user" : "super-admin",
     });
 
@@ -51,7 +52,19 @@ const signUp = async (req, res) => {
     htmlContent = htmlContent.replace(/{{otpCode}}/g, otp);
     htmlContent = htmlContent.replace(/usingyourmail@gmail\.com/g, user.email);
 
-    await sendEmail(user.email, "Verify your email", htmlContent);
+    // If OTP email fails, roll back the user so nothing is left in DB
+    try {
+      await sendEmail(user.email, "Verify your email", htmlContent);
+    } catch (emailError) {
+      await User.findByIdAndDelete(user._id);
+      return res.status(400).json({
+        success: false,
+        message:
+          emailError.message ||
+          "Failed to send verification email. Please try again later.",
+      });
+    }
+
     res.status(201).json({
       success: true,
       message: "Created User Successfully",
@@ -336,6 +349,7 @@ const verifyOtp = async (req, res) => {
 
     if (otp === user.otp) {
       user.isVerified = true;
+      user.status = "active";
       await user.save();
       return res
         .status(200)

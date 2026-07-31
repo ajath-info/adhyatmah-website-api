@@ -7,92 +7,92 @@ import * as api from "src/services";
 
 import { blogCategorySchema } from "@/validations";
 
-export default function useBlogCategory(currentCategory){
+export default function useBlogCategory(currentCategory) {
 
-const router=useRouter();
+    const router = useRouter();
 
-const mutationFn=currentCategory
-?api.updateBlogByAdmin
-:api.addBlogByAdmin;
+    const mutationFn = currentCategory
+        ? api.updateBlogByAdmin
+        : api.addBlogByAdmin;
 
-const mutation=useMutation({
+    const mutation = useMutation({
 
-mutationFn,
+        mutationFn,
 
-retry:false,
+        retry: false,
 
-onSuccess:(data)=>{
+        onSuccess: (data) => {
 
-toast.success(data.message);
+            toast.success(data.message);
 
-router.push("/admin/blog-categories");
+            router.push("/admin/blog-categories");
 
-},
+        },
 
-onError:(error)=>{
+        onError: (error) => {
 
-toast.error(
+            toast.error(
 
-error?.response?.data?.message ||
+                error?.response?.data?.message ||
 
-"Something went wrong"
+                "Something went wrong"
 
-);
+            );
 
-}
+        }
 
-});
+    });
 
-const formik=useFormik({
+    const formik = useFormik({
 
-initialValues:{
+        initialValues: {
 
-title:currentCategory?.title || "",
+            title: currentCategory?.title || "",
 
-handle:currentCategory?.handle || "",
+            handle: currentCategory?.handle || "",
 
-description:currentCategory?.description || "",
+            description: currentCategory?.description || "",
 
-image:currentCategory?.image || null,
+            image: currentCategory?.image || null,
 
-metaTitle:currentCategory?.metaTitle || "",
+            metaTitle: currentCategory?.metaTitle || "",
 
-metaDescription:currentCategory?.metaDescription || "",
+            metaDescription: currentCategory?.metaDescription || "",
 
-status:currentCategory?.status
-?"active"
-:"inactive"
+            status: currentCategory?.status
+                ? "active"
+                : "inactive"
 
-},
+        },
 
-enableReinitialize:true,
+        enableReinitialize: true,
 
-validationSchema:blogCategorySchema,
+        validationSchema: blogCategorySchema,
 
-onSubmit:(values)=>{
+        onSubmit: (values) => {
 
-mutation.mutate({
+            mutation.mutate({
 
-...values,
+                ...values,
 
-...(currentCategory && {
+                ...(currentCategory && {
 
-currentSlug:currentCategory.handle
+                    currentSlug: currentCategory.handle
 
-})
+                })
 
-});
+            });
 
-}
+        }
 
-});
+    });
 
-return{
+    return {
 
-formik,
+        formik,
 
-mutation
+        mutation
 
-};
+    };
 
 }

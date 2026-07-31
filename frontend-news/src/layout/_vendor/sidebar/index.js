@@ -51,7 +51,7 @@ export const navlinks = [
 
   {
     id: 3,
-    title: 'Booking Services',
+    title: 'Bookings',
     slug: 'orders',
     icon: <BsCart3 />,
     isSearch: true

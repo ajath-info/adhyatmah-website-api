@@ -3,7 +3,7 @@ import { store } from '@/redux'; // if using redux
 import { setLogout } from '@/redux/slices/user';
 import toast from 'react-hot-toast';
 
-function getToken() {
+export function getToken() {
   const cname = 'token';
   if (typeof window !== 'undefined') {
     let name = cname + '=';

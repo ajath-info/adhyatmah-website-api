@@ -39,8 +39,8 @@ export default async function RootLayout({ children }) {
       <Navbar />
       <ActionBar />
       {children}
-      <Toolbar sx={{ display: { xs: 'block', md: 'none' } }} />
       <Footer />
+      <Toolbar sx={{ display: { xs: 'block', md: 'none' } }} />
     </>
   );
 }

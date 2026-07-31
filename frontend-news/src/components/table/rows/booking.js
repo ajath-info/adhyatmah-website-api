@@ -220,7 +220,7 @@ export default function BookingRow({ isLoading, row, handleClickOpen, isVendor, 
                   <IoEye />
                 </IconButton>
               </Tooltip>
-              <Tooltip title="Update Status">
+              <Tooltip title={isVendor ? 'Update Status' : 'Reassign Pandit'}>
                 <IconButton
                   onClick={() => handleClickOpen(row?._id)}
                   size="small"

@@ -112,6 +112,7 @@ const LOCAL_SERVICE_IMAGE_BY_NAME = UPDATED_SERVICE_IMAGE_URLS.reduce((acc, imag
 }, {});
 
 const createVendorSlug = (vendor) => {
+  if (vendor?.slug) return vendor.slug;
   const fullName = [vendor?.firstName || '', vendor?.lastName || ''].join(' ');
   let slug = fullName
     .toLowerCase()
@@ -121,7 +122,8 @@ const createVendorSlug = (vendor) => {
     .replace(/\s+/g, '-')
     .replace(/-+/g, '-')
     .replace(/^-|-$/g, '');
-  if (!slug) slug = `pandit-${vendor?._id}`;
+  // if (!slug) slug = `pandit-${vendor?._id}`;
+  if (!slug) slug = `pandit-${vendor?.id || vendor?._id}`;
   return slug;
 };
 
@@ -412,11 +414,20 @@ function SeoContentCard({ vendor, slug }) {
   );
 }
 
+const decodeSlugParam = (value) => {
+  if (typeof value !== 'string') return value;
+  try {
+    return decodeURIComponent(value).trim();
+  } catch (error) {
+    return value.trim();
+  }
+};
+
 // ─── Main Page ─────────────────────────────────────────────────────────────────
 export default function VendorDetailPage() {
   const params = useParams();
   const router = useRouter();
-  const slug = params.slug;
+  const slug = decodeSlugParam(params.slug);
 
   // ── Image zoom state ──
   const [zoomOpen, setZoomOpen] = useState(false);
@@ -626,7 +637,7 @@ export default function VendorDetailPage() {
                     Pandit Ji Details
                   </Typography>
 
-                  {vendor.gotra && (
+                  {/* {vendor.gotra && (
                     <Box
                       sx={{
                         background: '#EEEDFE',
@@ -644,6 +655,25 @@ export default function VendorDetailPage() {
                         Gotra
                       </Typography>
                       <Typography variant="h6" sx={{ color: '#26215C', fontWeight: 500 }}>
+                        {vendor.gotra}
+                      </Typography>
+                    </Box>
+                  )} */}
+
+                  {vendor.gotra && (
+                    <Box
+                      sx={{
+                        bgcolor: 'action.hover',
+                        borderRadius: 2,
+                        px: 1.5,
+                        py: 1,
+                        mb: 2,
+                      }}
+                    >
+                      <Typography variant="caption" color="text.secondary">
+                        Gotra
+                      </Typography>
+                      <Typography variant="body2" fontWeight={500}>
                         {vendor.gotra}
                       </Typography>
                     </Box>

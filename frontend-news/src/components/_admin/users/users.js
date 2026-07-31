@@ -25,11 +25,11 @@ const TABLE_HEAD = [
   { id: '', label: 'Actions' }
 ];
 
-export default function AdminProducts() {
+export default function AdminProducts({ forcedRole } = {}) {
   const searchParams = useSearchParams();
   const pageParam = searchParams.get('page');
   const searchParam = searchParams.get('search');
-  const roleParam = searchParams.get('role');
+  const roleParam = forcedRole || searchParams.get('role');
   const [count, setCount] = useState(0);
 
   const { data, isPending: isLoading } = useQuery({
@@ -83,7 +83,8 @@ export default function AdminProducts() {
         setStatusId={setStatusId}
         id={setId}
         isSearch
-        filters={[{ ...USER_ROLE_FILTERS }]}
+        basePath={forcedRole === 'vendor' ? '/admin/vendors' : '/admin/users'}
+        filters={forcedRole ? undefined : [{ ...USER_ROLE_FILTERS }]}
       />
     </div>
   );
@@ -95,10 +96,6 @@ const USER_ROLE_FILTERS = {
     {
       name: 'Users',
       slug: 'user'
-    },
-    {
-      name: 'Vendors',
-      slug: 'vendor'
     },
     {
       name: 'Admins',

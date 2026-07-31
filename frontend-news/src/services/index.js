@@ -1,4 +1,5 @@
 import http from './http';
+import { getToken } from './http';
 import axios from 'axios';
 export const signUp = async (payload) => {
   const { data } = await http.post(`/auth/sign-up`, payload);
@@ -171,6 +172,54 @@ export const deleteBooking = async (id) => {
   const { data } = await http.delete(`/admin/bookings/${id}`);
   return data;
 };
+
+export const updateBookingByAdmin = async ({ id, ...payload }) => {
+  const { data } = await http.put(`/admin/bookings/${id}`, payload);
+  return data;
+};
+
+export const getActivePanditsByAdmin = async () => {
+  const { data } = await http.get(`/admin/bookings/pandits/active`);
+  return data;
+};
+
+export const getCustomerBookingsByAdmin = async (customerId) => {
+  const { data } = await http.get(`/admin/bookings/by-customer/${customerId}`);
+  return data;
+};
+
+const filterBookingsByOwner = (bookings, userId, ownerField) =>
+  bookings.filter((booking) => {
+    const ref = booking?.[ownerField];
+    const refId = ref?._id || ref?.id || ref;
+    return refId && String(refId) === String(userId);
+  });
+
+export const getAdminUserBookings = async (userId, asVendor = false) => {
+  try {
+    const url = asVendor
+      ? `/admin/bookings/by-vendor/${userId}`
+      : `/admin/bookings/by-customer/${userId}`;
+    const { data: response } = await http.get(url);
+
+    if (response?.success !== false) {
+      return {
+        success: true,
+        data: Array.isArray(response?.data) ? response.data : []
+      };
+    }
+  } catch (error) {
+    // Fall back to the admin bookings feed used on /admin/bookings.
+  }
+
+  const allBookingsResponse = await getUserBookings('all');
+  const allBookings = allBookingsResponse?.payload?.bookings || [];
+
+  return {
+    success: true,
+    data: filterBookingsByOwner(allBookings, userId, asVendor ? 'vendor' : 'customer')
+  };
+};
 export const updateOrderStatus = async ({ id, ...payload }) => {
   const { data } = await http.put(`/admin/orders/${id}`, payload);
   return data;
@@ -202,6 +251,10 @@ export const updateUserRoleByAdmin = async (id) => {
 };
 export const updateUserStatusByAdmin = async (id) => {
   const { data: response } = await http.post(`/admin/users/status/${id}`);
+  return response;
+};
+export const updateUserDetailsByAdmin = async ({ id, ...payload }) => {
+  const { data: response } = await http.put(`/admin/users/${id}`, payload);
   return response;
 };
 
@@ -579,6 +632,35 @@ export const updateWishlist = async (pid) => {
   const { data } = await http.post(`/wishlist`, { pid });
   return data;
 };
+// Keeps the server-side cart (user.cart) in sync with the website cart so the
+// same logged-in user also sees their cart on the app. These calls are best
+// effort and don't affect the website's own cart UI/flow.
+export const syncAddToCart = async (variantId, quantity) => {
+  const accessToken = getToken();
+  if (!accessToken) return;
+  const { data } = await http.post(`/createCart`, { accessToken, variantId, quantity });
+  return data;
+};
+export const syncUpdateCart = async (variantId, quantity) => {
+  const accessToken = getToken();
+  if (!accessToken) return;
+  const { data } = await http.post(`/updateCart`, { accessToken, variantId, quantity });
+  return data;
+};
+export const syncRemoveCart = async (variantId) => {
+  const accessToken = getToken();
+  if (!accessToken) return;
+  const { data } = await http.post(`/removeCart`, { accessToken, variantId });
+  return data;
+};
+
+// Fetches the user's real cart from the DB, so cart changes made on the app
+// (add or remove) also reflect on the website for the same logged-in user.
+export const getSyncedCart = async () => {
+  const { data } = await http.get(`/cart-sync`);
+  return data;
+};
+
 export const getCompareProducts = async (products) => {
   const { data } = await http.post(`/compare/products`, { products });
   return data;
@@ -664,6 +746,16 @@ export const getHomepagePoojaServicesKit = async (serviceId) => {
   return data;
 };
 
+export const getHomepagePoojaServicesAll = async (params = 'page=1&limit=100') => {
+  const { data } = await http.get(`/getHomepagePoojaServicesAll?${params}`);
+  return data;
+};
+
+export const getAllLanguages = async () => {
+  const { data } = await http.get('/getAllLanguages');
+  return data;
+};
+
 export const createBooking = async (bookingData) => {
   const { data } = await http.post(`/createBooking`, bookingData);
   return data;
@@ -701,6 +793,57 @@ export const addShopByUser = async (payload) => {
   });
 
   return data;
+};
+
+/** Guest "Become a Pandit" flow: sign up → create shop → vendor dashboard */
+export const createPanditProfileAsGuest = async (payload) => {
+  const { firstName, lastName, email, password, phone, gender } = payload;
+
+  let token;
+  let user;
+
+  try {
+    const { data: signUpData } = await http.post(`/auth/sign-up`, {
+      firstName,
+      lastName,
+      email,
+      password,
+      phone,
+      gender: gender || 'male'
+    });
+    token = signUpData?.token;
+    user = signUpData?.user;
+  } catch (signUpError) {
+    // Recover if a previous attempt created the user but shop create failed
+    const msg = signUpError?.response?.data?.message || '';
+    if (!String(msg).toLowerCase().includes('already exists')) {
+      throw signUpError;
+    }
+    const { data: signInData } = await http.post(`/auth/sign-in`, { email, password });
+    token = signInData?.token;
+    user = signInData?.user;
+  }
+
+  if (!token) {
+    throw new Error('Failed to create account');
+  }
+
+  // Avoid sending empty registrationNumber which triggers Mongo unique-null conflicts
+  const { registrationNumber, ...shopPayload } = payload;
+  const body = { ...shopPayload };
+  if (registrationNumber && String(registrationNumber).trim()) {
+    body.registrationNumber = String(registrationNumber).trim();
+  }
+
+  const { data: shopData } = await http.post(`/shops`, body, {
+    headers: { Authorization: `Bearer ${token}` }
+  });
+
+  return {
+    ...shopData,
+    token,
+    user: { ...user, role: 'vendor', isVerified: true }
+  };
 };
 
 export const getStripePublishableKey = async () => {
@@ -856,8 +999,29 @@ export const updateBrandingSettingsByAdmin = async (payload) => {
 };
 
 export const uploadFile = async (formData, config, cloudName) => {
-  // const { data } = await axios.post(`https://api.cloudinary.com/v1_1/${cloudName}/image/upload`, formData, config);
-  const { data } = await axios.post(`https://api.cloudinary.com/v1_1/dmtkuwoaf/image/upload`, formData, config);
+  const cloud =
+    cloudName && cloudName !== '********' && cloudName !== 'demo-cloud'
+      ? cloudName
+      : 'dmtkuwoaf';
+  const { data } = await axios.post(
+    `https://api.cloudinary.com/v1_1/${cloud}/image/upload`,
+    formData,
+    config
+  );
+  return data;
+};
+
+/** Backend signed upload (no Cloudinary upload_preset required) */
+export const uploadImageToServer = async (file, config = {}) => {
+  const formData = new FormData();
+  formData.append('file', file);
+  const { data } = await http.post(`/upload-image`, formData, {
+    ...config,
+    headers: {
+      ...(config?.headers || {}),
+      'Content-Type': 'multipart/form-data'
+    }
+  });
   return data;
 };
 
@@ -959,5 +1123,20 @@ export const changeArticleStatusByAdmin = async (id) => {
   const { data } = await http.patch(
     `/admin/articles/status/${id}`
   );
+  return data;
+};
+
+export const getLatestArticles = async (limit = 5) => {
+  const { data } = await http.get(`/articles/latest?limit=${limit}`);
+  return data;
+};
+
+export const getArticles = async (query = '') => {
+  const { data } = await http.get(`/articles${query}`);
+  return data;
+};
+
+export const getArticleByHandle = async (handle) => {
+  const { data } = await http.get(`/articles/${handle}`);
   return data;
 };

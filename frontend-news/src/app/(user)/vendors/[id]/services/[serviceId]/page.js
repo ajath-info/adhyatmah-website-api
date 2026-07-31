@@ -257,7 +257,8 @@ export default function VendorServiceBookingPage() {
   );
 
   return (
-    <Container maxWidth="xl">
+    // <Container maxWidth="xl">
+    <Container maxWidth="xl" sx={{ pb: { xs: 4, md: 6 } }}>
       <Stack gap={3}>
         <HeaderBreadcrumbs
           heading={service.poojaType}

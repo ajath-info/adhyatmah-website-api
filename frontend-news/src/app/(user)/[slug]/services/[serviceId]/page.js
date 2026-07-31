@@ -53,6 +53,7 @@ import {
 const MAX_KIT_LIMIT = 5;
 
 const createVendorSlug = (vendor) => {
+  if (vendor?.slug) return vendor.slug;
   const fullName = [vendor?.firstName || '', vendor?.lastName || ''].join(' ');
   let slug = fullName
     .toLowerCase()
@@ -66,12 +67,21 @@ const createVendorSlug = (vendor) => {
   return slug;
 };
 
+const decodeSlugParam = (value) => {
+  if (typeof value !== 'string') return value;
+  try {
+    return decodeURIComponent(value).trim();
+  } catch (error) {
+    return value.trim();
+  }
+};
+
 export default function VendorServiceBookingPage() {
   const params = useParams();
   const router = useRouter();
   const { isAuthenticated } = useSelector(({ user }) => user);
 
-  const slug = params.slug;
+  const slug = decodeSlugParam(params.slug);
   const serviceId = params.serviceId;
 
   const [paymentDialogOpen, setPaymentDialogOpen] = useState(false);
@@ -336,7 +346,8 @@ export default function VendorServiceBookingPage() {
   );
 
   return (
-    <Container maxWidth="xl">
+    // <Container maxWidth="xl">
+    <Container maxWidth="xl" sx={{ pb: { xs: 4, md: 6 } }}>
       <Stack gap={3}>
         <HeaderBreadcrumbs
           heading={service.poojaType}

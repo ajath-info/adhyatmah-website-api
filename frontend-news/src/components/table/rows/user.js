@@ -45,7 +45,8 @@ UserRow.propTypes = {
     createdAt: PropTypes.instanceOf(Date).isRequired
   }).isRequired,
   setId: PropTypes.func.isRequired,
-  setStatusId: PropTypes.func.isRequired
+  setStatusId: PropTypes.func.isRequired,
+  basePath: PropTypes.string
 };
 
 const ThumbImgStyle = styled(Box)(({ theme }) => ({
@@ -57,7 +58,7 @@ const ThumbImgStyle = styled(Box)(({ theme }) => ({
   position: 'relative',
   overflow: 'hidden'
 }));
-export default function UserRow({ isLoading, row, setId, setStatusId }) {
+export default function UserRow({ isLoading, row, setId, setStatusId, basePath = '/admin/users' }) {
   const router = useRouter();
 
   // Status badge component
@@ -127,7 +128,7 @@ export default function UserRow({ isLoading, row, setId, setStatusId }) {
           ) : (
             <>
               {row.role === 'vendor' ? null : row.role === 'super-admin' ? (
-                <IconButton disabled onClick={() => router.push(`/admin/users/${row?._id}`)}>
+                <IconButton disabled onClick={() => router.push(`${basePath}/${row?._id}`)}>
                   <FaUserCheck />
                 </IconButton>
               ) : (
@@ -147,14 +148,14 @@ export default function UserRow({ isLoading, row, setId, setStatusId }) {
                   onClick={() => {
                     setStatusId(row._id);
                   }}
-                  color={row?.status === 'active' ? 'warning' : 'success'}
+                  color={row?.status === 'active' ? 'warning' : 'error'}
                 >
                   <HiSwitchHorizontal />
                 </IconButton>
               </Tooltip>
 
               <Tooltip title="Preview">
-                <IconButton onClick={() => router.push(`/admin/users/${row?._id}`)}>
+                <IconButton onClick={() => router.push(`${basePath}/${row?._id}`)}>
                   <FiEye />
                 </IconButton>
               </Tooltip>

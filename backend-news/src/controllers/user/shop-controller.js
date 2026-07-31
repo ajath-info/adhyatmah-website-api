@@ -2,6 +2,77 @@ const Shop = require("../../models/Shop");
 const User = require("../../models/User");
 const Product = require("../../models/Product");
 const Review = require("../../models/Review");
+const Service = require("../../models/Service");
+const { allServices } = require("../../data/allServices");
+
+/**
+ * Create Service documents for a vendor from selected catalog names (or objects),
+ * and return { serviceIds, serviceNames } for User / Shop linkage.
+ */
+async function syncVendorServicesFromSelection(vendorId, selectedServices) {
+  if (!Array.isArray(selectedServices) || selectedServices.length === 0) {
+    return { serviceIds: [], serviceNames: [] };
+  }
+
+  const serviceIds = [];
+  const serviceNames = [];
+  const seen = new Set();
+
+  for (const selected of selectedServices) {
+    const rawName =
+      typeof selected === "string"
+        ? selected
+        : selected?.name || selected?.poojaType || "";
+    const name = String(rawName || "").trim();
+    if (!name) continue;
+
+    const catalog = allServices.find(
+      (s) => s.name.toLowerCase() === name.toLowerCase()
+    );
+    const poojaType = catalog?.name || name;
+    if (seen.has(poojaType.toLowerCase())) continue;
+    seen.add(poojaType.toLowerCase());
+
+    const price = Number(catalog?.price) || 2100;
+    const duration = catalog?.duration || "2-3 Hrs";
+    const description = `${poojaType} performed with proper Vedic rituals and traditional guidance.`;
+
+    let service = await Service.findOne({
+      poojaType,
+      vendor: vendorId,
+    });
+
+    if (service) {
+      service.description = description;
+      service.duration = duration;
+      service.price = price;
+      await service.save();
+    } else {
+      try {
+        service = await Service.create({
+          poojaType,
+          description,
+          duration,
+          price,
+          vendor: vendorId,
+        });
+      } catch (err) {
+        if (err.code === 11000) {
+          service = await Service.findOne({ poojaType, vendor: vendorId });
+        } else {
+          throw err;
+        }
+      }
+    }
+
+    if (service?._id) {
+      serviceIds.push(service._id);
+      serviceNames.push(poojaType);
+    }
+  }
+
+  return { serviceIds, serviceNames };
+}
 
 async function calculateShopRating(shopId) {
   const products = await Product.find({ shop: shopId }).select("_id");
@@ -89,19 +160,149 @@ const getAllShops = async (req, res) => {
 /*     Create Shop by User    */
 const createShopByUser = async (req, res) => {
   try {
-    const { logo, ...others } = req.body;
-    const createdShop = await Shop.create({
+    const { logo, password, registrationNumber, ...others } = req.body;
+
+    const fullName =
+      [others.firstName, others.lastName].filter(Boolean).join(" ") ||
+      others.name ||
+      "Pandit Profile";
+
+    let baseSlug = fullName
+      .toLowerCase()
+      .replace(/[^a-zA-Z0-9\s]+/g, "")
+      .replace(/\s+/g, "-");
+    let slug = baseSlug;
+    let suffix = 1;
+    while (await Shop.findOne({ slug })) {
+      slug = `${baseSlug}-${suffix}`;
+      suffix += 1;
+    }
+
+    const user = await User.findById(req.userData._id.toString()).select("+password");
+    if (user) {
+      if (others.firstName) user.firstName = others.firstName;
+      if (others.lastName) user.lastName = others.lastName;
+      if (others.phone) user.phone = others.phone;
+      if (others.email) user.email = others.email;
+      if (others.gender) user.gender = others.gender;
+      if (others.gotra !== undefined) user.gotra = others.gotra;
+      if (others.pravar !== undefined) user.pravar = others.pravar;
+      if (others.veda !== undefined) user.veda = others.veda;
+      if (others.shakha !== undefined) user.shakha = others.shakha;
+      if (others.pankti !== undefined) user.pankti = others.pankti;
+      if (others.sutra !== undefined) user.sutra = others.sutra;
+      if (others.designation) {
+        user.about = Array.isArray(others.designation) ? others.designation.join(', ') : others.designation;
+      }
+      if (others.experience !== undefined) user.experience = others.experience;
+      if (others.language) user.language = others.language;
+      if (others.aadharNumber !== undefined) user.aadhar = others.aadharNumber;
+      if (others.address?.streetAddress !== undefined) user.address = others.address.streetAddress;
+      if (others.address?.city !== undefined) user.city = others.address.city;
+      if (others.address?.state !== undefined) user.state = others.address.state;
+      if (others.address?.country !== undefined) user.country = others.address.country;
+      if (others.pincode !== undefined) user.zip = others.pincode;
+      if (others.referralCode) user.referred_by = others.referralCode;
+      if (others.dateOfBirth) user.dateOfBirth = others.dateOfBirth;
+      if (password) user.password = password;
+      if (logo?.url) user.image = logo.url;
+      // Allow vendor dashboard access immediately after pandit profile creation
+      user.isVerified = true;
+      await user.save();
+    }
+
+    // Never persist empty/null registrationNumber — unique index treats null as a duplicate
+    const shopPayload = {
       vendor: req.userData._id.toString(),
       ...others,
-      logo: {
-        ...logo,
-      },
-
+      name: others.name || fullName,
+      slug,
+      metaTitle: others.metaTitle || fullName,
+      description: others.description || `Pandit profile of ${fullName}`,
+      metaDescription:
+        others.metaDescription || `Pandit profile of ${fullName}`,
+      shopEmail: others.shopEmail || others.email,
+      shopPhone: others.shopPhone || others.phone,
+      logo: logo?.url
+        ? {
+            ...logo,
+          }
+        : undefined,
       status: "pending",
-    });
-    await User.findByIdAndUpdate(req.userData._id.toString(), {
+    };
+
+    delete shopPayload.registrationNumber;
+    delete shopPayload.password;
+    delete shopPayload.aadharNumber;
+    delete shopPayload.pincode;
+    delete shopPayload.referralCode;
+
+    // Empty string is not a valid gender enum — omit or normalize
+    const normalizedGender = String(others.gender || "")
+      .trim()
+      .toLowerCase();
+    if (["male", "female", "other"].includes(normalizedGender)) {
+      shopPayload.gender = normalizedGender;
+    } else {
+      delete shopPayload.gender;
+    }
+
+    if (registrationNumber && String(registrationNumber).trim()) {
+      shopPayload.registrationNumber = String(registrationNumber).trim();
+    }
+
+    let createdShop;
+    try {
+      createdShop = await Shop.create(shopPayload);
+    } catch (createError) {
+      // Repair legacy non-sparse unique index that rejects multiple null registrationNumbers
+      if (
+        createError?.code === 11000 &&
+        String(createError.message || "").includes("registrationNumber")
+      ) {
+        await Shop.updateMany(
+          {
+            $or: [
+              { registrationNumber: null },
+              { registrationNumber: "" },
+              { registrationNumber: { $exists: false } },
+            ],
+          },
+          { $unset: { registrationNumber: 1 } }
+        );
+        try {
+          await Shop.collection.dropIndex("registrationNumber_1");
+        } catch (_) {
+          /* index may already be gone */
+        }
+        await Shop.collection.createIndex(
+          { registrationNumber: 1 },
+          { unique: true, sparse: true }
+        );
+        createdShop = await Shop.create(shopPayload);
+      } else {
+        throw createError;
+      }
+    }
+
+    const vendorId = req.userData._id.toString();
+    const { serviceIds, serviceNames } = await syncVendorServicesFromSelection(
+      vendorId,
+      others.services
+    );
+
+    // Persist normalized names on Shop; ObjectId refs belong on User.services
+    if (serviceNames.length > 0) {
+      await Shop.findByIdAndUpdate(createdShop._id, {
+        services: serviceNames,
+      });
+    }
+
+    await User.findByIdAndUpdate(vendorId, {
       shop: createdShop._id.toString(),
       role: "vendor",
+      isVerified: true,
+      ...(serviceIds.length > 0 ? { services: serviceIds } : {}),
     });
 
     return res.status(201).json({

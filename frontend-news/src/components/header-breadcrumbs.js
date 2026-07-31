@@ -1,4 +1,3 @@
-//
 'use client';
 import { isString, last } from 'lodash';
 import PropTypes from 'prop-types';
@@ -252,3 +251,5 @@ HeaderBreadcrumbs.propTypes = {
   admin: PropTypes.bool,
   isUser: PropTypes.bool
 };
+
+

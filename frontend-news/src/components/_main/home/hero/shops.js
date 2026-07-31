@@ -48,7 +48,7 @@ function ParentItem({ vendor, isLast }) {
             border: (theme) => `solid 1px ${theme.palette.divider}`
           }}
         >
-          <Image src={vendor?.image?.url || '/images/default-avatar.png'} alt={`${vendor?.firstName} ${vendor?.lastName}`} layout="fill" objectFit="cover" size="30vw" />
+          <Image src={vendor?.image?.url || '/images/default-avatar.png'} alt={`${vendor?.firstName} ${vendor?.lastName}`} fill style={{ objectFit: 'cover' }} sizes="30vw" />
         </Box>
         <Typography variant="body1" color="text.primary" fontWeight={500}>
           {vendor?.firstName} {vendor?.lastName}
@@ -88,7 +88,7 @@ export default function HeroVendors({ data, ...other }) {
         variant="contained"
         fullWidth
         component={Link}
-        href="/shops"
+        href="/book-pandit-online"
         endIcon={<FaAngleRight size={14} />}
         sx={{
           border: 'none !important',

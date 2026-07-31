@@ -42,6 +42,11 @@ const updateUser = async (req, res) => {
     if (updateData.email === "" || updateData.email === null) {
       delete updateData.email;
     }
+    // An empty string cannot be cast to Date — drop it so an unfilled DOB
+    // field doesn't fail validation/casting on save.
+    if (updateData.dateOfBirth === "" || updateData.dateOfBirth === null) {
+      delete updateData.dateOfBirth;
+    }
 
     const updatedUser = await User.findByIdAndUpdate(req.userData._id, updateData, {
       new: true,

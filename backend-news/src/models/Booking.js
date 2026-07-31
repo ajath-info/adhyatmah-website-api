@@ -148,7 +148,7 @@ const BookingSchema =
         type: String,
 
         enum: [
-		  "payment_pending",
+          "payment_pending",
           "pending",
           "ongoing",
           "upcoming",

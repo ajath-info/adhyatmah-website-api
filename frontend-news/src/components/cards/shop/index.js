@@ -51,8 +51,8 @@ export default function ShopCard({ shop, isLoading }) {
                 <Image
                   alt="shop"
                   src={shop?.logo?.url}
-                  layout="fill"
-                  objectFit="cover"
+                  fill
+                  style={{ objectFit: 'cover' }}
                   draggable="false"
                   quality={5}
                   sizes={'50vw'}

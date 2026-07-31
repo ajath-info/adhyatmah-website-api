@@ -1415,12 +1415,12 @@ const getPanditList = async (req, res) => {
           : [],
 
         image:
-		vendor?.cover?.url
-			? vendor.cover
-			: {
-				_id: "img_1",
-				url: "https://www.adhyatmah.com/images/Pandit.png",
-		},
+          vendor?.cover?.url
+            ? vendor.cover
+            : {
+              _id: "img_1",
+              url: "https://www.adhyatmah.com/images/Pandit.png",
+            },
         address: vendor.address ?? null,
         city: vendor.city ?? null,
         country: vendor.country ?? null,
@@ -1434,17 +1434,17 @@ const getPanditList = async (req, res) => {
         sutra: vendor.sutra ?? null,
         pravar: vendor.pravar ?? null,
         experience: vendor.experience ?? null,
-		seoContent: VENDOR_SEO_CONTENT[vendorSlug]
-		  ? {
-			  ...VENDOR_SEO_CONTENT[vendorSlug],
-			  details: {
-				...VENDOR_SEO_CONTENT[vendorSlug]?.details,
-				experience: vendor.experience
-				  ? `${vendor.experience}+ Years`
-				  : VENDOR_SEO_CONTENT[vendorSlug]?.details?.experience,
-			  },
-			}
-		  : null,
+        seoContent: VENDOR_SEO_CONTENT[vendorSlug]
+          ? {
+            ...VENDOR_SEO_CONTENT[vendorSlug],
+            details: {
+              ...VENDOR_SEO_CONTENT[vendorSlug]?.details,
+              experience: vendor.experience
+                ? `${vendor.experience}+ Years`
+                : VENDOR_SEO_CONTENT[vendorSlug]?.details?.experience,
+            },
+          }
+          : null,
       };
     });
 
@@ -1815,11 +1815,11 @@ const getBookingById = async (req, res) => {
       )
       .populate(
         "pujaSamagri.pujaKit",
-        "name"
+        "name price"
       )
       .populate(
         "pujaSamagri.instantKit",
-        "name"
+        "name price"
       );
 
     if (!booking) {
@@ -1834,12 +1834,20 @@ const getBookingById = async (req, res) => {
     const pujaSamagri = {
       pujaKit:
         booking?.pujaSamagri?.pujaKit?.map(
-          (kit) => kit?.name
+          (kit) => ({
+            id: kit?._id,
+            name: kit?.name,
+            price: kit?.price,
+          })
         ) || [],
 
       instantKit:
         booking?.pujaSamagri?.instantKit?.map(
-          (kit) => kit?.name
+          (kit) => ({
+            id: kit?._id,
+            name: kit?.name,
+            price: kit?.price,
+          })
         ) || [],
     };
 

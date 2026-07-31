@@ -1,6 +1,7 @@
 import * as Yup from 'yup';
 import { isValidPhoneNumber } from 'react-phone-number-input';
 import blogCategorySchema from './blog-category';
+import articleSchema from './article';
 
 const variantSchema = Yup.object().shape({
   name: Yup.string().required('Variant name is required'),
@@ -294,7 +295,7 @@ const changePasswordSchema = Yup.object().shape({
 const shopSettingsSchema = (isVendor) =>
   Yup.object().shape({
     slug: Yup.string().required('Slug is required'),
-    logo: Yup.object().required('Logo is required'),
+    // logo: Yup.object().required('Logo is required'),
 
     name: Yup.string().required('Shop name is required'),
     metaTitle: Yup.string().max(100, 'Meta title cannot exceed 100 characters').required('Meta title is required'),
@@ -323,6 +324,31 @@ const shopSettingsSchema = (isVendor) =>
       proofOfAddress: Yup.object().shape({ url: Yup.string().url('Invalid URL').required('Image url is required') })
     }),
     operationalDetails: Yup.object().shape({ returnPolicy: Yup.string(), handlingTime: Yup.string() }),
+
+    // Pandit personal details (editable by admin & vendor)
+    designation: Yup.array().of(Yup.string()),
+    firstName: Yup.string().trim(),
+    lastName: Yup.string().trim(),
+    phone: Yup.string().test('is-valid-phone', 'Phone number is not valid', (value) => !value || isValidPhoneNumber(value)),
+    email: Yup.string().email('Enter valid email'),
+    dateOfBirth: Yup.string(),
+    gender: Yup.string().oneOf(['', 'male', 'female', 'other'], 'Please select a valid gender'),
+    gotra: Yup.string(),
+    pravar: Yup.string(),
+    veda: Yup.string(),
+    shakha: Yup.string(),
+    pankti: Yup.string(),
+    sutra: Yup.string(),
+    aadharNumber: Yup.string().test(
+      'aadhar',
+      'Aadhar number must be 12 digits',
+      (value) => !value || /^\d{12}$/.test(value)
+    ),
+    services: Yup.array().of(Yup.string()),
+    language: Yup.array().of(Yup.string()),
+    experience: Yup.string(),
+    pincode: Yup.string(),
+    referralCode: Yup.string(),
     ...(isVendor && {
       financialDetails: Yup.object().shape({
         paymentMethod: Yup.string().oneOf(['paypal', 'bank']).required('Payment method is required'),
@@ -364,6 +390,44 @@ const shopSettingsSchema = (isVendor) =>
     })
   });
 
+const panditProfileSchema = Yup.object().shape({
+  // logo: Yup.object().required('Logo is required'),
+  designation: Yup.array().of(Yup.string()).min(1, 'Designation is required').required('Designation is required'),
+  firstName: Yup.string().trim().required('First name is required'),
+  lastName: Yup.string().trim().required('Last name is required'),
+  phone: Yup.string()
+    .required('Phone number is required')
+    .test('is-valid-phone', 'Phone number is not valid', (value) => isValidPhoneNumber(value || '')),
+  email: Yup.string().email('Enter valid email').required('Email is required'),
+  password: Yup.string().required('Password is required').min(8, 'Password should be 8 characters or longer.'),
+  dateOfBirth: Yup.string(),
+  gender: Yup.string()
+    .oneOf(['male', 'female', 'other'], 'Please select a valid gender')
+    .required('Gender is required'),
+  gotra: Yup.string(),
+  pravar: Yup.string(),
+  veda: Yup.string(),
+  shakha: Yup.string(),
+  pankti: Yup.string(),
+  sutra: Yup.string(),
+  aadharNumber: Yup.string().test(
+    'aadhar',
+    'Aadhar number must be 12 digits',
+    (value) => !value || /^\d{12}$/.test(value)
+  ),
+  services: Yup.array().of(Yup.string()),
+  language: Yup.array().of(Yup.string()),
+  experience: Yup.string(),
+  address: Yup.object().shape({
+    streetAddress: Yup.string(),
+    country: Yup.string(),
+    state: Yup.string(),
+    city: Yup.string()
+  }),
+  pincode: Yup.string(),
+  referralCode: Yup.string()
+});
+
 const attributeSchema = Yup.object().shape({
   name: Yup.string().required('Attribute name is required'),
   values: Yup.array().of(Yup.string().trim().required('Value is required')).min(1, 'At least one value is required')
@@ -371,7 +435,7 @@ const attributeSchema = Yup.object().shape({
 
 const brandSchema = Yup.object().shape({
   name: Yup.string().required('Brand name is required'),
-  logo: Yup.mixed().required('Logo is required'),
+  // logo: Yup.mixed().required('Logo is required'),
   slug: Yup.string().required('Slug is required'),
   description: Yup.string().required('Description is required'),
   metaTitle: Yup.string().required('Meta title is required'),
@@ -441,9 +505,14 @@ const profileSchema = Yup.object().shape({
     .test('is-valid-phone', 'Phone number is not valid', (value) => isValidPhoneNumber(value || '')),
   gender: Yup.string().required('Gender required'),
   gotra: Yup.string(),
+  pravar: Yup.string(),
   veda: Yup.string(),
   pankti: Yup.string(),
   shakha: Yup.string(),
+  sutra: Yup.string(),
+  dateOfBirth: Yup.string(),
+  aadhar: Yup.string(),
+  experience: Yup.string(),
   language: Yup.array().of(Yup.string())
 });
 
@@ -524,10 +593,10 @@ export {
   brandingSettingsSchema,
   changePasswordSchema,
   shopSettingsSchema,
+  panditProfileSchema,
   attributeSchema,
   brandSchema,
   categorySchema,
-  blogCategorySchema,
   subCategorySchema,
   childCategorySchema,
   contactUsSchema,
@@ -541,5 +610,7 @@ export {
   signUpSchema,
   checkoutSchema,
   editPaymentSchema,
+  blogCategorySchema,
+  articleSchema,
   accountDeletionSchema
 };

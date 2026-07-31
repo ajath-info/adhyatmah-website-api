@@ -9,10 +9,10 @@ import {
     GiPartyPopper, GiOpenBook, GiBasket
 } from 'react-icons/gi';
 import {
-    FaHome, FaUsers, FaHandsHelping, FaQuestionCircle
+    FaHome, FaUsers, FaHandsHelping
 } from 'react-icons/fa';
 import {
-    BsCheckCircleFill, BsBoxSeam, BsLightningFill, BsStarFill
+    BsCheckCircleFill, BsBoxSeam, BsLightningFill, BsStarFill, BsChatSquareTextFill
 } from 'react-icons/bs';
 
 const ORANGE = '#E87722';
@@ -48,7 +48,11 @@ function ProductHighlights({ highlights = [] }) {
 
     return (
         <Box sx={{ bgcolor: '#FDF0E6', borderRadius: 2, p: 2.5, border: '1px solid #F0DDD0' }}>
-            <Stack direction="row" flexWrap="wrap" gap={1.5}>
+            <Box sx={{
+                display: 'grid',
+                gridTemplateColumns: { xs: '1fr', sm: 'repeat(2, 1fr)', md: 'repeat(4, 1fr)' },
+                gap: 1.5
+            }}>
                 {items.map((item) => (
                     <Chip
                         key={item}
@@ -60,11 +64,14 @@ function ProductHighlights({ highlights = [] }) {
                             color: '#5C3D2E',
                             fontWeight: 600,
                             fontSize: 13,
+                            justifyContent: 'flex-start',
+                            height: 'auto',
+                            py: 0.5,
                             '& .MuiChip-icon': { color: ORANGE }
                         }}
                     />
                 ))}
-            </Stack>
+            </Box>
         </Box>
     );
 }
@@ -83,18 +90,20 @@ function WhyChooseKit({ points = [] }) {
     return (
         <Box>
             <SectionHeading icon={BsStarFill} title="Why Choose This Kit?" />
-            <Grid container spacing={2}>
+            <Box sx={{
+                display: 'grid',
+                gridTemplateColumns: { xs: '1fr', sm: 'repeat(2, 1fr)' },
+                gap: 2
+            }}>
                 {items.map((point, i) => (
-                    <Grid item xs={12} sm={6} key={i}>
-                        <Stack direction="row" spacing={1.5} alignItems="flex-start">
-                            <BsCheckCircleFill size={16} color={ORANGE} style={{ marginTop: 3, flexShrink: 0 }} />
-                            <Typography sx={{ fontSize: 14, color: '#5C3D2E', lineHeight: 1.6 }}>
-                                {point}
-                            </Typography>
-                        </Stack>
-                    </Grid>
+                    <Stack direction="row" spacing={1.5} alignItems="flex-start" key={i}>
+                        <BsCheckCircleFill size={16} color={ORANGE} style={{ marginTop: 3, flexShrink: 0 }} />
+                        <Typography sx={{ fontSize: 14, color: '#5C3D2E', lineHeight: 1.6 }}>
+                            {point}
+                        </Typography>
+                    </Stack>
                 ))}
-            </Grid>
+            </Box>
         </Box>
     );
 }
@@ -214,7 +223,7 @@ function FAQSection({ faqs = [] }) {
 
     return (
         <Box>
-            <SectionHeading icon={FaQuestionCircle} title="Frequently Asked Questions" />
+            <SectionHeading icon={BsChatSquareTextFill} title="Frequently Asked Questions" />
             <Stack spacing={1}>
                 {items.map((faq, i) => (
                     <Accordion
@@ -262,7 +271,7 @@ export default function ProductSEOContent({
 }) {
     return (
         <Box sx={{ bgcolor: '#FDF0E6', borderRadius: 3, p: { xs: 2.5, md: 4 }, mt: 3 }}>
-            <Stack spacing={4} divider={<Divider sx={{ borderColor: '#F0DDD0' }} />}>
+            <Stack spacing={{ xs: 4, md: 6 }} divider={<Divider sx={{ borderColor: '#F0DDD0' }} />}>
                 {/* 1. Product Highlights */}
                 <Box>
                     <SectionHeading icon={BsBoxSeam} title="Product Highlights" />

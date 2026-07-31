@@ -218,8 +218,58 @@ const updateGeneralSettings = async (req, res) => {
   try {
     const body = req.body;
     const id = req.params.id;
+
+    const existing = await Settings.findById(id).lean();
+    if (!existing) {
+      return res.status(404).json({
+        success: false,
+        error: "Settings not found",
+      });
+    }
+
+    const isMasked = (val) =>
+      !val || val === "********" || val === "null" || val === "undefined";
+
+    const mergeSecretGroup = (incoming = {}, previous = {}, secretKeys = []) => {
+      const merged = { ...previous, ...incoming };
+      secretKeys.forEach((key) => {
+        if (isMasked(incoming[key])) {
+          merged[key] = previous[key];
+        }
+      });
+      return merged;
+    };
+
+    const previousGeneral = existing.general || {};
+    const nextGeneral = {
+      ...previousGeneral,
+      ...body,
+      smtp: mergeSecretGroup(body.smtp, previousGeneral.smtp, [
+        "host",
+        "user",
+        "password",
+        "fromEmail",
+      ]),
+      paypal: mergeSecretGroup(body.paypal, previousGeneral.paypal, ["clientId"]),
+      stripe: mergeSecretGroup(body.stripe, previousGeneral.stripe, [
+        "publishableKey",
+        "secretKey",
+      ]),
+      cloudinary: mergeSecretGroup(body.cloudinary, previousGeneral.cloudinary, [
+        "cloudName",
+        "apiKey",
+        "apiSecret",
+        "preset",
+      ]),
+      razorpay: mergeSecretGroup(body.razorpay, previousGeneral.razorpay, [
+        "keyId",
+        "keySecret",
+        "webhookSecret",
+      ]),
+    };
+
     await Settings.findByIdAndUpdate(id, {
-      general: { ...body },
+      general: nextGeneral,
     });
 
     return res.status(200).json({

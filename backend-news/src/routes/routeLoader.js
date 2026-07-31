@@ -20,10 +20,11 @@ const adminOrderRoutes = require("./admin/order-routes");
 const adminServiceRoutes = require("./admin/service-routes");
 const adminBookingRoutes = require("./admin/booking-routes");
 const adminBlogRoutes = require("./admin/blogRoutes");
-const adminArticleRoutes = require("./admin/article-routes");
+const articleRoutes = require("./admin/articleRoutes");
 
 //////////////// user routes ////////////////////////
 const userAttributeRoutes = require("./user/attribute-routes");
+const userArticleRoutes = require("./user/articleRoutes");
 const authRoutes = require("./user/auth-routes");
 const adhyatmahRoutes = require("./user/adhyatmah-routes");
 const bookingRoutes = require("./user/booking-routes");
@@ -38,12 +39,14 @@ const userChildCategoryRoutes = require("./user/child-category-routes");
 const userCouponCodeRoutes = require("./user/coupon-code-routes");
 const userCurrencyRoutes = require("./user/currency-routes");
 const delete_fileRoutes = require("./user/file-delete-routes");
+const upload_fileRoutes = require("./user/file-upload-routes");
 const userNewsletterRoutes = require("./user/newsletter-routes");
 const searchRoutes = require("./user/search-routes");
 const payment = require("./user/payment-intents-routes");
 const userProductRoutes = require("./user/product-routes");
 const userRoutes = require("./user/user-routes");
 const wishlistRoutes = require("./user/wishlist-routes");
+const cartSyncRoutes = require("./user/cart-sync-routes");
 const userShopRoutes = require("./user/shop-routes");
 const userReviewRoutes = require("./user/review-routes");
 const userSubCategoryRoutes = require("./user/sub-category-routes");
@@ -63,7 +66,6 @@ const vendorPaymentRoutes = require("./vendor/payment-routes");
 const vendorOrderRoutes = require("./vendor/order-routes");
 const vendorRevenueRoutes = require("./vendor/revenue-routes");
 const CourierRoutes = require("./vendor/courier-routes");
-
 const router = express.Router();
 
 //////////////// admin routes //////////////////////
@@ -87,9 +89,11 @@ router.use("/api", adminPolicyRoutes);
 router.use("/api", adminServiceRoutes);
 router.use("/api", adminBookingRoutes);
 router.use("/api", adminBlogRoutes);
-router.use("/api", adminArticleRoutes);
+router.use("/api", articleRoutes);
+
 //////////////// user routes ////////////////////////
 router.use("/api", userAttributeRoutes);
+router.use("/api", userArticleRoutes);
 router.use("/api", authRoutes);
 router.use("/api", adhyatmahRoutes);
 router.use("/api", bookingRoutes);
@@ -105,11 +109,13 @@ router.use("/api", userCouponCodeRoutes);
 router.use("/api", userCurrencyRoutes);
 router.use("/api", userNewsletterRoutes);
 router.use("/api", delete_fileRoutes);
+router.use("/api", upload_fileRoutes);
 router.use("/api", searchRoutes);
 router.use("/api", payment);
 router.use("/api", userProductRoutes);
 router.use("/api", userRoutes);
 router.use("/api", wishlistRoutes);
+router.use("/api", cartSyncRoutes);
 router.use("/api", userShopRoutes);
 router.use("/api", userReviewRoutes);
 router.use("/api", userSubCategoryRoutes);

@@ -68,6 +68,8 @@ export default async function RootLayout({ children }) {
               url: 'https://www.adhyatmah.com',
               logo: branding?.logoLight?.url || branding?.logoDark?.url || branding?.favicon?.url || '',
               sameAs: [
+                // 'https://www.facebook.com/adhyatamh/',
+                // 'https://www.instagram.com/adhyatmah',
                 'https://facebook.com/profile.php?id=61584256664893',
                 'https://x.com/Adhyatmah15579',
                 'https://instagram.com/adhyatmah',

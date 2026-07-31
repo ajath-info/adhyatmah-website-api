@@ -81,10 +81,12 @@ const RootStyled = styled(Stack)(({ theme }) => ({
 
 BookingDetails.propTypes = {
   data: PropTypes.object,
-  isLoading: PropTypes.bool.isRequired
+  isLoading: PropTypes.bool.isRequired,
+  hideVendorDetails: PropTypes.bool,
+  hidePaymentMethod: PropTypes.bool
 };
 
-export default function BookingDetails({ data, isLoading }) {
+export default function BookingDetails({ data, isLoading, hideVendorDetails, hidePaymentMethod }) {
   const customer = data?.customer || {};
   const vendor = data?.vendor || {};
 
@@ -142,120 +144,124 @@ export default function BookingDetails({ data, isLoading }) {
         </CardContent>
       </Card>
 
-      <Card className="detail-card">
-        <CardContent className="detail-card-content">
-          <Stack spacing={2} direction="row" justifyContent="flex-start" alignItems="center">
-            {isLoading ? (
-              <>
-                <Skeleton variant="rectangular" width={50} height={50} />
-                <Skeleton variant="text" width={150} />
-              </>
-            ) : (
-              <>
-                <Fab className="detail-card-btn" variant="contained" color="primary">
-                  <IoPersonSharp size={25} />
-                </Fab>
-                <Typography variant="h6">Pandit Details</Typography>
-              </>
-            )}
-          </Stack>
-          <Stack spacing={isLoading ? 0 : 1} mt={3}>
-            {isLoading ? (
-              <>
-                <Skeleton variant="text" width={200} />
-                <Skeleton variant="text" width={200} />
-                <Skeleton variant="text" width={200} />
-              </>
-            ) : (
-              <>
-                <Typography variant="body2">
-                  <strong>Name</strong>: {vendor.firstName && vendor.lastName ? `${vendor.firstName} ${vendor.lastName}` : vendor.firstName || vendor.lastName || 'N/A'}
-                </Typography>
-                <Typography variant="body2">
-                  <strong>Phone</strong>: {vendor.phone || 'N/A'}
-                </Typography>
-                <Typography className="email-heading" variant="body2">
-                  <strong>Email</strong>: {vendor.email || 'N/A'}
-                </Typography>
-                <Typography variant="body2" textTransform="capitalize">
-                  <strong>Languages</strong>: {data?.language?.length ? data.language.join(', ') : (Array.isArray(vendor.language) ? vendor.language.join(', ') : 'Not specified')}
-                </Typography>
-                <Typography variant="body2">
-                  <strong>Address</strong>: {[
-                    vendor.address,
-                    vendor.city,
-                    vendor.state,
-                    vendor.country,
-                    vendor.zip
-                  ].filter(Boolean).join(', ') || 'N/A'}
-                </Typography>
-              </>
-            )}
-          </Stack>
-        </CardContent>
-      </Card>
+      {!hideVendorDetails && (
+        <Card className="detail-card">
+          <CardContent className="detail-card-content">
+            <Stack spacing={2} direction="row" justifyContent="flex-start" alignItems="center">
+              {isLoading ? (
+                <>
+                  <Skeleton variant="rectangular" width={50} height={50} />
+                  <Skeleton variant="text" width={150} />
+                </>
+              ) : (
+                <>
+                  <Fab className="detail-card-btn" variant="contained" color="primary">
+                    <IoPersonSharp size={25} />
+                  </Fab>
+                  <Typography variant="h6">Pandit Details</Typography>
+                </>
+              )}
+            </Stack>
+            <Stack spacing={isLoading ? 0 : 1} mt={3}>
+              {isLoading ? (
+                <>
+                  <Skeleton variant="text" width={200} />
+                  <Skeleton variant="text" width={200} />
+                  <Skeleton variant="text" width={200} />
+                </>
+              ) : (
+                <>
+                  <Typography variant="body2">
+                    <strong>Name</strong>: {vendor.firstName && vendor.lastName ? `${vendor.firstName} ${vendor.lastName}` : vendor.firstName || vendor.lastName || 'N/A'}
+                  </Typography>
+                  <Typography variant="body2">
+                    <strong>Phone</strong>: {vendor.phone || 'N/A'}
+                  </Typography>
+                  <Typography className="email-heading" variant="body2">
+                    <strong>Email</strong>: {vendor.email || 'N/A'}
+                  </Typography>
+                  <Typography variant="body2" textTransform="capitalize">
+                    <strong>Languages</strong>: {data?.language?.length ? data.language.join(', ') : (Array.isArray(vendor.language) ? vendor.language.join(', ') : 'Not specified')}
+                  </Typography>
+                  <Typography variant="body2">
+                    <strong>Address</strong>: {[
+                      vendor.address,
+                      vendor.city,
+                      vendor.state,
+                      vendor.country,
+                      vendor.zip
+                    ].filter(Boolean).join(', ') || 'N/A'}
+                  </Typography>
+                </>
+              )}
+            </Stack>
+          </CardContent>
+        </Card>
+      )}
 
-      <Card className="detail-card">
-        <CardContent className="detail-card-content">
-          <Stack spacing={2} direction="row" justifyContent="flex-start" alignItems="center">
-            {isLoading ? (
-              <>
-                <Skeleton variant="rectangular" width={50} height={50} />
-                <Skeleton variant="text" width={150} />
-              </>
-            ) : (
-              <>
-                <Fab className="detail-card-btn" variant="contained" color="primary">
-                  <HiCurrencyDollar size={40} />
-                </Fab>
-                <Typography variant="h6">Payment Method</Typography>
-              </>
-            )}
-          </Stack>
-          <Stack spacing={isLoading ? 0 : 1} mt={3}>
-            {isLoading ? (
-              <>
-                <Skeleton variant="text" width={200} />
-                <Skeleton variant="text" width={200} />
-                <Skeleton variant="text" width={200} />
-                <Skeleton variant="text" width={200} />
-              </>
-            ) : (
-              <>
-                <Typography variant="body2">
-                  <strong>Booking Number</strong>: {data?.bookingID || (data?._id ? `#${String(data._id).slice(-8)}` : 'N/A')}
-                </Typography>
-                <Typography variant="body2">
-                  <strong>Payment Method</strong>: {data?.paymentMethod || 'Online'}
-                </Typography>
-                <Typography variant="body2">
-                  <strong>Transaction ID</strong>: {data?.transactionId || 'N/A'}
-                </Typography>
-                <Typography variant="body2">
-                  <strong>Notes</strong>: {data?.notes || data?.specialInstructions || 'N/A'}
-                </Typography>
-                <Typography variant="body2">
-                  <strong>Amount</strong>: ₹{Number(data?.paymentAmount || 0).toFixed(2)}
-                </Typography>
-                <Typography variant="body2" textTransform="capitalize">
-                  <strong>Status</strong>: {data?.status}
-                </Typography>
-                <Typography variant="body2">
-                  <strong>Booking Date</strong>:{' '}
-                  {data?.createdAt &&
-                    new Date(data?.createdAt).toLocaleDateString('en-IN', {
-                      year: 'numeric',
-                      month: 'long',
-                      day: 'numeric',
-                      minute: 'numeric',
-                      hour: 'numeric'
-                    })}
-                </Typography>
-              </>
-            )}
-          </Stack>
-        </CardContent>
-      </Card>
+      {!hidePaymentMethod && (
+        <Card className="detail-card">
+          <CardContent className="detail-card-content">
+            <Stack spacing={2} direction="row" justifyContent="flex-start" alignItems="center">
+              {isLoading ? (
+                <>
+                  <Skeleton variant="rectangular" width={50} height={50} />
+                  <Skeleton variant="text" width={150} />
+                </>
+              ) : (
+                <>
+                  <Fab className="detail-card-btn" variant="contained" color="primary">
+                    <HiCurrencyDollar size={40} />
+                  </Fab>
+                  <Typography variant="h6">Payment Method</Typography>
+                </>
+              )}
+            </Stack>
+            <Stack spacing={isLoading ? 0 : 1} mt={3}>
+              {isLoading ? (
+                <>
+                  <Skeleton variant="text" width={200} />
+                  <Skeleton variant="text" width={200} />
+                  <Skeleton variant="text" width={200} />
+                  <Skeleton variant="text" width={200} />
+                </>
+              ) : (
+                <>
+                  <Typography variant="body2">
+                    <strong>Booking Number</strong>: {data?.bookingID || (data?._id ? `#${String(data._id).slice(-8)}` : 'N/A')}
+                  </Typography>
+                  <Typography variant="body2">
+                    <strong>Payment Method</strong>: {data?.paymentMethod || 'Online'}
+                  </Typography>
+                  <Typography variant="body2">
+                    <strong>Transaction ID</strong>: {data?.transactionId || 'N/A'}
+                  </Typography>
+                  <Typography variant="body2">
+                    <strong>Notes</strong>: {data?.notes || data?.specialInstructions || 'N/A'}
+                  </Typography>
+                  <Typography variant="body2">
+                    <strong>Amount</strong>: ₹{Number(data?.paymentAmount || 0).toFixed(2)}
+                  </Typography>
+                  <Typography variant="body2" textTransform="capitalize">
+                    <strong>Status</strong>: {data?.status}
+                  </Typography>
+                  <Typography variant="body2">
+                    <strong>Booking Date</strong>:{' '}
+                    {data?.createdAt &&
+                      new Date(data?.createdAt).toLocaleDateString('en-IN', {
+                        year: 'numeric',
+                        month: 'long',
+                        day: 'numeric',
+                        minute: 'numeric',
+                        hour: 'numeric'
+                      })}
+                  </Typography>
+                </>
+              )}
+            </Stack>
+          </CardContent>
+        </Card>
+      )}
     </RootStyled>
   );
 }

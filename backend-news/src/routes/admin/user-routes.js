@@ -23,5 +23,11 @@ router.post(
   getAdmin,
   admin.updateUserStatusByAdmin
 );
+router.put(
+  "/admin/users/:id",
+  verifyToken,
+  getAdmin,
+  admin.updateUserDetailsByAdmin
+);
 
 module.exports = router;

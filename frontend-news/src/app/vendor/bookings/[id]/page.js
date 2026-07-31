@@ -1,8 +1,9 @@
 'use client';
-import React from 'react';
+import React, { use } from 'react';
 import PropTypes from 'prop-types';
 import { useRouter } from '@bprogress/next';
 // mui
+import { alpha } from '@mui/material/styles';
 import { 
   Card, 
   CardHeader, 
@@ -16,14 +17,13 @@ import {
   Grid,
   Divider
 } from '@mui/material';
+import { IoArrowBackOutline, IoCalendarOutline, IoPricetagOutline, IoCubeOutline, IoTimeOutline } from 'react-icons/io5';
 // components
 import HeaderBreadcrumbs from '@/components/header-breadcrumbs';
+import BookingDetails from '@/components/_admin/bookings/booking-details';
 // api
 import * as api from 'src/services';
 import { useQuery } from '@tanstack/react-query';
-// hooks
-import { useCurrencyFormat } from '@/hooks/use-currency-format';
-import { useSelector } from '@/redux';
 
 const getStatusColor = (status) => {
   switch (status) {
@@ -63,12 +63,10 @@ const getStatusLabel = (status) => {
   }
 };
 
-export default function ViewBooking({ params }) {
+export default function ViewBooking(props) {
   const router = useRouter();
-  const { id } = params;
-  const { currency } = useSelector((state) => state.settings);
-  const fCurrency = useCurrencyFormat('base');
-  
+  const { id } = use(props.params);
+
   const { data, isPending: isLoading } = useQuery({
     queryKey: ['vendor-booking', id],
     queryFn: () => api.getBookingByVendor(id)
@@ -103,198 +101,116 @@ export default function ViewBooking({ params }) {
     );
   }
 
+  const infoItems = [
+    { icon: <IoPricetagOutline size={18} />, label: 'Pooja Type', value: booking?.poojaType },
+    { icon: <IoCubeOutline size={18} />, label: 'Package', value: booking?.package },
+    { icon: <IoTimeOutline size={18} />, label: 'Duration', value: booking?.duration },
+    {
+      icon: <IoCalendarOutline size={18} />,
+      label: 'Date & Time',
+      value: booking?.dateTime ? new Date(booking.dateTime).toLocaleString() : '—'
+    }
+  ];
+
   return (
     <div>
       <HeaderBreadcrumbs
         admin
         heading="Pandit Booking Details"
         links={[
-          {
-            name: 'Dashboard',
-            href: '/vendor/dashboard'
-          },
-          {
-            name: 'Pandit Bookings',
-            href: '/vendor/orders'
-          },
-          {
-            name: 'Pandit Booking Details'
-          }
+          { name: 'Dashboard', href: '/vendor/dashboard' },
+          { name: 'Pandit Bookings', href: '/vendor/orders' },
+          { name: 'Pandit Booking Details' }
         ]}
       />
-      
-      <Grid container spacing={3}>
-        <Grid item xs={12} md={8}>
-          <Card>
-            <CardHeader 
-              title={`Booking #${booking?.bookingID}`}
-              subheader="Service Details"
+
+      <Button
+        variant="outlined"
+        startIcon={<IoArrowBackOutline />}
+        onClick={() => router.push('/vendor/orders')}
+        sx={{ mb: 2 }}
+      >
+        Back to Bookings
+      </Button>
+
+      <Card sx={{ borderRadius: 3, overflow: 'hidden' }}>
+        <Box
+          sx={{
+            px: { xs: 2.5, sm: 4 },
+            py: 3,
+            background: (theme) =>
+              `linear-gradient(135deg, ${theme.palette.primary.main} 0%, ${theme.palette.primary.dark} 100%)`,
+            color: 'common.white'
+          }}
+        >
+          <Stack
+            direction={{ xs: 'column', sm: 'row' }}
+            alignItems={{ xs: 'flex-start', sm: 'center' }}
+            justifyContent="space-between"
+            spacing={1.5}
+          >
+            <Box>
+              <Typography variant="overline" sx={{ opacity: 0.8, letterSpacing: 1 }}>
+                Booking ID
+              </Typography>
+              <Typography variant="h5" fontWeight={700}>
+                {booking?.bookingID}
+              </Typography>
+            </Box>
+            <Chip
+              label={getStatusLabel(booking?.status)}
+              color={getStatusColor(booking?.status)}
+              variant="filled"
+              sx={{ fontWeight: 600, px: 1 }}
             />
-            <CardContent>
-              <Stack spacing={3}>
-                <Box>
-                  <Typography variant="h6" gutterBottom>
-                    Service Information
-                  </Typography>
-                  <Stack spacing={2}>
-                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                      <Typography variant="subtitle2" sx={{ minWidth: 120 }}>
-                        Pooja Type:
-                      </Typography>
-                      <Typography variant="body1">
-                        {booking?.poojaType}
-                      </Typography>
-                    </Box>
-                    
-                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                      <Typography variant="subtitle2" sx={{ minWidth: 120 }}>
-                        Package:
-                      </Typography>
-                      <Typography variant="body1">
-                        {booking?.package}
-                      </Typography>
-                    </Box>
-                    
-                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                      <Typography variant="subtitle2" sx={{ minWidth: 120 }}>
-                        Duration:
-                      </Typography>
-                      <Typography variant="body1">
-                        {booking?.duration}
-                      </Typography>
-                    </Box>
-                    
-                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                      <Typography variant="subtitle2" sx={{ minWidth: 120 }}>
-                        Date & Time:
-                      </Typography>
-                      <Typography variant="body1">
-                        {new Date(booking?.dateTime).toLocaleString()}
-                      </Typography>
-                    </Box>
-                    
-                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                      <Typography variant="subtitle2" sx={{ minWidth: 120 }}>
-                        Status:
-                      </Typography>
-                      <Chip 
-                        label={getStatusLabel(booking?.status)} 
-                        color={getStatusColor(booking?.status)} 
-                        variant="filled"
-                      />
-                    </Box>
-                  </Stack>
-                </Box>
+          </Stack>
+        </Box>
 
-                <Divider />
+        <CardContent sx={{ p: { xs: 2.5, sm: 4 } }}>
+          <Stack spacing={4}>
+            <Box>
+              <Typography variant="subtitle1" fontWeight={700} gutterBottom>
+                Service Information
+              </Typography>
+              <Grid container spacing={2.5} sx={{ mt: 0.5 }}>
+                {infoItems.map((item) => (
+                  <Grid item xs={12} sm={6} key={item.label}>
+                    <Stack direction="row" spacing={1.5} alignItems="flex-start">
+                      <Box
+                        sx={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          width: 36,
+                          height: 36,
+                          borderRadius: '50%',
+                          bgcolor: (theme) => alpha(theme.palette.primary.main, 0.1),
+                          color: 'primary.main',
+                          flexShrink: 0
+                        }}
+                      >
+                        {item.icon}
+                      </Box>
+                      <Box>
+                        <Typography variant="caption" color="text.secondary">
+                          {item.label}
+                        </Typography>
+                        <Typography variant="body1" fontWeight={500}>
+                          {item.value || '—'}
+                        </Typography>
+                      </Box>
+                    </Stack>
+                  </Grid>
+                ))}
+              </Grid>
+            </Box>
 
-                <Box>
-                  <Typography variant="h6" gutterBottom>
-                    Customer Information
-                  </Typography>
-                  <Stack spacing={2}>
-                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                      <Typography variant="subtitle2" sx={{ minWidth: 120 }}>
-                        Name:
-                      </Typography>
-                      <Typography variant="body1">
-                        {booking?.customer?.firstName} {booking?.customer?.lastName}
-                      </Typography>
-                    </Box>
-                    
-                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                      <Typography variant="subtitle2" sx={{ minWidth: 120 }}>
-                        Email:
-                      </Typography>
-                      <Typography variant="body1">
-                        {booking?.customer?.email}
-                      </Typography>
-                    </Box>
-                    
-                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                      <Typography variant="subtitle2" sx={{ minWidth: 120 }}>
-                        Phone:
-                      </Typography>
-                      <Typography variant="body1">
-                        {booking?.customer?.phone || 'Not provided'}
-                      </Typography>
-                    </Box>
-                  </Stack>
-                </Box>
+            <Divider />
 
-                <Divider />
-
-                <Box>
-                  <Typography variant="h6" gutterBottom>
-                    Service Address
-                  </Typography>
-                  <Typography variant="body1">
-                    {booking?.address?.streetAddress}<br />
-                    {booking?.address?.city}, {booking?.address?.state}<br />
-                    {booking?.address?.country} {booking?.address?.zip}
-                  </Typography>
-                </Box>
-
-                <Divider />
-
-                <Box>
-                  <Typography variant="h6" gutterBottom>
-                    Puja Samagri
-                  </Typography>
-                  <Typography variant="body1">
-                    {booking?.pujaSamagri}
-                  </Typography>
-                </Box>
-              </Stack>
-            </CardContent>
-          </Card>
-        </Grid>
-
-        <Grid item xs={12} md={4}>
-          <Card>
-            <CardHeader title="Payment Summary" />
-            <CardContent>
-              <Stack spacing={2}>
-                <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
-                  <Typography variant="subtitle2">Service Amount:</Typography>
-                  <Typography variant="h6" color="primary">
-                    {fCurrency(booking?.paymentAmount, currency)}
-                  </Typography>
-                </Box>
-                
-                <Divider />
-                
-                <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
-                  <Typography variant="subtitle2">Booking ID:</Typography>
-                  <Typography variant="body2">
-                    {booking?.bookingID}
-                  </Typography>
-                </Box>
-                
-                <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
-                  <Typography variant="subtitle2">Created:</Typography>
-                  <Typography variant="body2">
-                    {new Date(booking?.createdAt).toLocaleDateString()}
-                  </Typography>
-                </Box>
-              </Stack>
-            </CardContent>
-          </Card>
-
-          <Card sx={{ mt: 2 }}>
-            <CardContent>
-              <Stack direction="row" spacing={2} justifyContent="center">
-                <Button
-                  variant="outlined"
-                  onClick={() => router.push('/vendor/orders')}
-                >
-                  Back to Pandit Bookings
-                </Button>
-              </Stack>
-            </CardContent>
-          </Card>
-        </Grid>
-      </Grid>
+            <BookingDetails data={booking} isLoading={isLoading} hideVendorDetails hidePaymentMethod />
+          </Stack>
+        </CardContent>
+      </Card>
     </div>
   );
 }
