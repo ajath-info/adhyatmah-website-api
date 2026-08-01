@@ -1,3 +1,4 @@
+import { Suspense } from 'react';
 import React, { useCallback } from 'react';
 import { useSearchParams, usePathname } from 'next/navigation';
 import { useRouter } from '@bprogress/next';
@@ -12,7 +13,7 @@ PaginationRounded.propTypes = {
   })
 };
 
-export default function PaginationRounded({ ...props }) {
+function PaginationRounded({ ...props }) {
   const { data, sx } = props;
   const router = useRouter();
   const pathname = usePathname();
@@ -56,5 +57,15 @@ export default function PaginationRounded({ ...props }) {
         ...sx
       }}
     />
+  );
+}
+
+// Suspense boundary: this component reads useSearchParams(); Next.js requires a
+// <Suspense> wrapper on statically rendered routes (CSR bailout rule).
+export default function PaginationRoundedSuspenseWrapper(props) {
+  return (
+    <Suspense fallback={null}>
+      <PaginationRounded {...props} />
+    </Suspense>
   );
 }

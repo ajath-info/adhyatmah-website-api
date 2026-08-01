@@ -24,7 +24,6 @@ import { MdLockOutline } from 'react-icons/md';
 import { FaRegStar } from 'react-icons/fa';
 import { FiShoppingCart } from 'react-icons/fi';
 import { IoBagCheckOutline } from 'react-icons/io5';
-import { useSearchParams } from 'next/navigation';
 import { FiExternalLink } from 'react-icons/fi';
 import VariantSelection from '../variant-selection';
 import SocialShare from '../social-share';
@@ -43,8 +42,13 @@ ProductDetailsSumary.propTypes = {
 
 export default function ProductDetailsSumary({ ...props }) {
   const { product, totalRating, totalReviews, setSelectedVariant, selectedVariant, isSimpleProduct, isPopup } = props;
-  const searchParams = useSearchParams();
-  const variantParam = searchParams.get('variant') || '';
+  // Read ?variant from window.location instead of useSearchParams() so this component
+  // stays server-rendered (useSearchParams forces a client-side-rendering bailout,
+  // which would hide the whole buy box from Google).
+  const [variantParam, setVariantParam] = useState('');
+  useEffect(() => {
+    setVariantParam(new URLSearchParams(window.location.search).get('variant') || '');
+  }, []);
 
   const cCurrency = useCurrencyConvert();
   const fCurrency = useCurrencyFormat();
@@ -198,7 +202,7 @@ export default function ProductDetailsSumary({ ...props }) {
     setVariantObj(matched);
     if (!isPopup) {
       // ✅ Update URL search params
-      const params = new URLSearchParams(searchParams.toString());
+      const params = new URLSearchParams(window.location.search);
       params.set('variant', splited.join('_'));
       router.replace(`?${params.toString()}`, { scroll: false });
     }

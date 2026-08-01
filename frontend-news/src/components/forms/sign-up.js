@@ -1,4 +1,5 @@
 'use client';
+import { Suspense } from 'react';
 import { useState } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { useRouter } from '@bprogress/next';
@@ -29,7 +30,7 @@ import { FaTransgender } from 'react-icons/fa6';
 import { setCookie } from '@/hooks/use-cookies';
 import PhoneInputField from '../phone-input-field';
 import { signUpSchema } from '@/validations';
-export default function SignUpForm() {
+function SignUpForm() {
   const router = useRouter();
   const searchParam = useSearchParams();
   const redirect = searchParam.get('redirect');
@@ -228,5 +229,15 @@ export default function SignUpForm() {
         </Typography>
       </Form>
     </FormikProvider>
+  );
+}
+
+// Suspense boundary: this component reads useSearchParams(); Next.js requires a
+// <Suspense> wrapper on statically rendered routes (CSR bailout rule).
+export default function SignUpFormSuspenseWrapper(props) {
+  return (
+    <Suspense fallback={null}>
+      <SignUpForm {...props} />
+    </Suspense>
   );
 }

@@ -141,7 +141,7 @@ export default async function RootLayout({ children }) {
         {/* Tawk.to Chat Script */}
         <Script
           id="tawk-to"
-          strategy="afterInteractive"
+          strategy="lazyOnload"
         >
           {`
             var Tawk_API=Tawk_API||{}, Tawk_LoadStart=new Date();
@@ -159,7 +159,7 @@ export default async function RootLayout({ children }) {
         {/* Hidden Google Translate Loader */}
         <div id="google_translate_element" style={{ display: 'none' }}></div>
 
-        <Script id="google-translate-init" strategy="afterInteractive">
+        <Script id="google-translate-init" strategy="lazyOnload">
           {`
 			function googleTranslateElementInit() {
 			  new google.translate.TranslateElement(
@@ -177,9 +177,9 @@ export default async function RootLayout({ children }) {
 
         <Script
           src="//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"
-          strategy="afterInteractive"
+          strategy="lazyOnload"
         />
-        <Script id="hide-google-translate-ui" strategy="afterInteractive">
+        <Script id="hide-google-translate-ui" strategy="lazyOnload">
           {`
   function hideGoogleTranslateUI() {
 

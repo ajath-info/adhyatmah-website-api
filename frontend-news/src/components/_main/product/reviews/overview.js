@@ -92,7 +92,8 @@ export default function ReviewOverview({ ...props }) {
 
           <Stack sx={{ width: 1, mb: 1 }} flexDirection="column-reverse">
             {Array.from(new Array(5)).map((rating, index) => {
-              const match = reviewsSummery.find((v) => v._id === index + 1);
+              // Guard: reviewsSummery is undefined until the reviews query resolves
+              const match = (reviewsSummery || []).find((v) => v._id === index + 1);
 
               return (
                 <ProgressItem key={Math.random()} star={match?.count || 0} name={index + 1} total={totalReviews} />

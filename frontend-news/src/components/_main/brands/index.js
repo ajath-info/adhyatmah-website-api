@@ -1,4 +1,5 @@
 'use client';
+import { Suspense } from 'react';
 import React from 'react';
 import { Typography, Grid, Stack } from '@mui/material';
 import * as api from 'src/services';
@@ -7,7 +8,7 @@ import Pagination from 'src/components/pagination';
 import { useSearchParams } from 'next/navigation';
 import BrandsCard from 'src/components/cards/brand';
 
-export default function BrandsMain() {
+function BrandsMain() {
   const searchParams = useSearchParams();
   const page = searchParams.get('page');
   const { data, isPending: isLoading } = useQuery({
@@ -32,5 +33,15 @@ export default function BrandsMain() {
       )}
       <Pagination data={data} />
     </Stack>
+  );
+}
+
+// Suspense boundary: this component reads useSearchParams(); Next.js requires a
+// <Suspense> wrapper on statically rendered routes (CSR bailout rule).
+export default function BrandsMainSuspenseWrapper(props) {
+  return (
+    <Suspense fallback={null}>
+      <BrandsMain {...props} />
+    </Suspense>
   );
 }

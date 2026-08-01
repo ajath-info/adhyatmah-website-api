@@ -1,4 +1,5 @@
 'use client';
+import { Suspense } from 'react';
 import React from 'react';
 import PropTypes from 'prop-types';
 import { useSearchParams, usePathname } from 'next/navigation';
@@ -36,7 +37,7 @@ const getSearchParams = (searchParams, category, subCategory, childCategory, bra
   return queryString.length ? '?' + queryString : '';
 };
 
-export default function ProductListing({ category, subCategory, childCategory, shop, brand }) {
+function ProductListing({ category, subCategory, childCategory, shop, brand }) {
   const searchParams = useSearchParams();
   const router = useRouter();
   const pathname = usePathname();
@@ -135,3 +136,13 @@ ProductListing.propTypes = {
   brand: PropTypes.object
 };
 
+
+// Suspense boundary: this component reads useSearchParams(); Next.js requires a
+// <Suspense> wrapper on statically rendered routes (CSR bailout rule).
+export default function ProductListingSuspenseWrapper(props) {
+  return (
+    <Suspense fallback={null}>
+      <ProductListing {...props} />
+    </Suspense>
+  );
+}

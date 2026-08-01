@@ -1,4 +1,5 @@
 'use client';
+import { Suspense } from 'react';
 import React from 'react';
 import { useSearchParams } from 'next/navigation';
 import toast from 'react-hot-toast';
@@ -15,7 +16,7 @@ const TABLE_HEAD = [
   { id: 'action', label: 'Actions' }
 ];
 
-export default function EcommerceProductList() {
+function EcommerceProductList() {
   const searchParams = useSearchParams();
   const pageParam = searchParams.get('page');
   const { data, isPending: isLoading } = useQuery({
@@ -33,5 +34,15 @@ export default function EcommerceProductList() {
         onClickCopy={() => toast.success('Copy email')}
       />
     </>
+  );
+}
+
+// Suspense boundary: this component reads useSearchParams(); Next.js requires a
+// <Suspense> wrapper on statically rendered routes (CSR bailout rule).
+export default function EcommerceProductListSuspenseWrapper(props) {
+  return (
+    <Suspense fallback={null}>
+      <EcommerceProductList {...props} />
+    </Suspense>
   );
 }

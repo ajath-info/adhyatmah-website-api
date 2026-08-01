@@ -1,4 +1,5 @@
 'use client';
+import { Suspense } from 'react';
 import { useState } from 'react';
 import { useMutation } from '@tanstack/react-query';
 
@@ -35,7 +36,7 @@ import { IoMdMail } from 'react-icons/io';
 import Link from '@/utils/link';
 import { signInSchema } from '@/validations';
 
-export default function SignInForm() {
+function SignInForm() {
   const { push } = useRouter();
   const dispatch = useDispatch();
 
@@ -150,5 +151,15 @@ export default function SignInForm() {
         </Form>
       </FormikProvider>
     </>
+  );
+}
+
+// Suspense boundary: this component reads useSearchParams(); Next.js requires a
+// <Suspense> wrapper on statically rendered routes (CSR bailout rule).
+export default function SignInFormSuspenseWrapper(props) {
+  return (
+    <Suspense fallback={null}>
+      <SignInForm {...props} />
+    </Suspense>
   );
 }

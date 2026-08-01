@@ -1,4 +1,5 @@
 'use client';
+import { Suspense } from 'react';
 
 import React, { useMemo } from 'react';
 import { useParams, useSearchParams } from 'next/navigation';
@@ -9,7 +10,7 @@ import HeaderBreadcrumbs from '@/components/header-breadcrumbs';
 import VendorCard from 'src/components/cards/vendor';
 import * as api from 'src/services';
 
-export default function PoojaServicePanditsPage() {
+function PoojaServicePanditsPage() {
   const params = useParams();
   const searchParams = useSearchParams();
   const serviceId = params.serviceId;
@@ -97,5 +98,15 @@ export default function PoojaServicePanditsPage() {
         </Box>
       </Stack>
     </Container>
+  );
+}
+
+// Suspense boundary: this component reads useSearchParams(); Next.js requires a
+// <Suspense> wrapper on statically rendered routes (CSR bailout rule).
+export default function PoojaServicePanditsPageSuspenseWrapper(props) {
+  return (
+    <Suspense fallback={null}>
+      <PoojaServicePanditsPage {...props} />
+    </Suspense>
   );
 }

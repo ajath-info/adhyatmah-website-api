@@ -1,4 +1,5 @@
 'use client';
+import { Suspense } from 'react';
 import React, { useState } from 'react';
 import { useSearchParams } from 'next/navigation';
 import PropTypes from 'prop-types';
@@ -44,7 +45,7 @@ const STATUS_FILTER = {
     }
   ]
 };
-export default function AdminProductsMain({ brands, categories, shops, isVendor }) {
+function AdminProductsMain({ brands, categories, shops, isVendor }) {
   const searchParams = useSearchParams();
 
   const [open, setOpen] = useState(false);
@@ -109,3 +110,13 @@ AdminProductsMain.propTypes = {
   categories: PropTypes.array.isRequired,
   isVendor: PropTypes.boolean
 };
+
+// Suspense boundary: this component reads useSearchParams(); Next.js requires a
+// <Suspense> wrapper on statically rendered routes (CSR bailout rule).
+export default function AdminProductsMainSuspenseWrapper(props) {
+  return (
+    <Suspense fallback={null}>
+      <AdminProductsMain {...props} />
+    </Suspense>
+  );
+}

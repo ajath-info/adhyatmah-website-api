@@ -1,3 +1,4 @@
+import { Suspense } from 'react';
 import React, { useEffect, useState, useCallback } from 'react';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
@@ -90,9 +91,19 @@ const BrandMain = ({ brands, path }) => {
   );
 };
 
-export default BrandMain;
+
 
 BrandMain.propTypes = {
   brands: PropTypes.array.isRequired,
   path: PropTypes.string.isRequired
 };
+
+// Suspense boundary: this component reads useSearchParams(); Next.js requires a
+// <Suspense> wrapper on statically rendered routes (CSR bailout rule).
+export default function BrandMainSuspenseWrapper(props) {
+  return (
+    <Suspense fallback={null}>
+      <BrandMain {...props} />
+    </Suspense>
+  );
+}

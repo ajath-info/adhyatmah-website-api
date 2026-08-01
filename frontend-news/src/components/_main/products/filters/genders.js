@@ -1,3 +1,4 @@
+import { Suspense } from 'react';
 import React, { useCallback } from 'react';
 import PropTypes from 'prop-types';
 // mui
@@ -22,7 +23,7 @@ const icons = {
   kids: <FaVenusMars size={20} />,
   others: <IoMdTransgender size={20} />
 };
-export default function GenderMain({ ...props }) {
+function GenderMain({ ...props }) {
   const { genders, path } = props;
   const searchParams = useSearchParams();
 
@@ -139,5 +140,15 @@ export default function GenderMain({ ...props }) {
         ))}
       </Grid>
     </>
+  );
+}
+
+// Suspense boundary: this component reads useSearchParams(); Next.js requires a
+// <Suspense> wrapper on statically rendered routes (CSR bailout rule).
+export default function GenderMainSuspenseWrapper(props) {
+  return (
+    <Suspense fallback={null}>
+      <GenderMain {...props} />
+    </Suspense>
   );
 }

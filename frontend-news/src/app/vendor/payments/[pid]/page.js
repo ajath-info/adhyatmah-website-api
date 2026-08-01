@@ -1,4 +1,5 @@
 'use client';
+import { Suspense } from 'react';
 import React, { use } from 'react';
 import PropTypes from 'prop-types';
 import { useSearchParams } from 'next/navigation';
@@ -36,7 +37,7 @@ const TABLE_HEAD = [
 
 Page.propTypes = { params: PropTypes.object.isRequired };
 
-export default function Page(props) {
+function Page(props) {
   const params = use(props.params);
 
   const { pid } = params;
@@ -98,5 +99,15 @@ export default function Page(props) {
         handleClickOpen={() => console.log('clicked')}
       />
     </Stack>
+  );
+}
+
+// Suspense boundary: this component reads useSearchParams(); Next.js requires a
+// <Suspense> wrapper on statically rendered routes (CSR bailout rule).
+export default function PageSuspenseWrapper(props) {
+  return (
+    <Suspense fallback={null}>
+      <Page {...props} />
+    </Suspense>
   );
 }

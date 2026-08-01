@@ -1,3 +1,4 @@
+import { Suspense } from 'react';
 import React, { useState, useEffect } from 'react';
 import { useRouter } from '@bprogress/next';
 import { useSearchParams } from 'next/navigation';
@@ -44,7 +45,7 @@ CustomTable.propTypes = {
   filters: PropTypes.arr,
   isSearch: PropTypes.bool
 };
-export default function CustomTable({ ...props }) {
+function CustomTable({ ...props }) {
   const { headData, data, isLoading, isSearch, row, filters, ...rest } = props;
   const { replace } = useRouter();
 
@@ -140,5 +141,15 @@ export default function CustomTable({ ...props }) {
         )}
       </>
     </Card>
+  );
+}
+
+// Suspense boundary: this component reads useSearchParams(); Next.js requires a
+// <Suspense> wrapper on statically rendered routes (CSR bailout rule).
+export default function CustomTableSuspenseWrapper(props) {
+  return (
+    <Suspense fallback={null}>
+      <CustomTable {...props} />
+    </Suspense>
   );
 }

@@ -1,3 +1,4 @@
+import { Suspense } from 'react';
 import { useEffect, useState, useCallback } from 'react';
 import PropTypes from 'prop-types';
 import { useRouter } from '@bprogress/next';
@@ -7,7 +8,7 @@ import { FormGroup, FormControlLabel, Checkbox, Grid, Typography, Button, Zoom, 
 
 const label = { inputProps: { 'aria-label': 'Checkbox demo' } };
 
-export default function Size({ ...props }) {
+function Size({ ...props }) {
   const { values, path, keyName } = props;
   const { push } = useRouter();
   const searchParams = useSearchParams();
@@ -127,3 +128,13 @@ Size.propTypes = {
   path: PropTypes.string.isRequired,
   keyName: PropTypes.string.isRequired
 };
+
+// Suspense boundary: this component reads useSearchParams(); Next.js requires a
+// <Suspense> wrapper on statically rendered routes (CSR bailout rule).
+export default function SizeSuspenseWrapper(props) {
+  return (
+    <Suspense fallback={null}>
+      <Size {...props} />
+    </Suspense>
+  );
+}

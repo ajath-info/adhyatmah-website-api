@@ -1,4 +1,5 @@
 'use client';
+import { Suspense } from 'react';
 
 import React, { useEffect, useState } from 'react';
 import { useRouter, usePathname, useSearchParams } from 'next/navigation';
@@ -68,4 +69,14 @@ const FilterChips = () => {
   );
 };
 
-export default FilterChips;
+
+
+// Suspense boundary: this component reads useSearchParams(); Next.js requires a
+// <Suspense> wrapper on statically rendered routes (CSR bailout rule).
+export default function FilterChipsSuspenseWrapper(props) {
+  return (
+    <Suspense fallback={null}>
+      <FilterChips {...props} />
+    </Suspense>
+  );
+}

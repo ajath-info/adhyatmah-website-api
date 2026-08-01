@@ -22,6 +22,7 @@ import WhyUs from '@/components/_main/home/why-us';
 import Categories from '@/components/_main/home/categories';
 import WhyChooseUs from '@/components/_main/home/why-choose-us';
 import FestivalBanner from '@/components/_main/home/festival-banner';
+import HomeSeoContent from '@/components/_main/home/seo-content';
 
 const baseUrl = process.env.NEXT_PUBLIC_API_URL;
 
@@ -71,6 +72,20 @@ const serviceSchema = {
   },
   areaServed: 'India',
   url: 'https://www.adhyatmah.com/shops',
+};
+
+
+// FAQ schema — must mirror the questions actually visible on the page (FaqSection).
+const faqSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'FAQPage',
+  mainEntity: [
+    ['How can I book a pandit online through Adhyatmah?', 'Choose your puja, select your date, time and city, and confirm the booking. You receive the pandit ji details before the ceremony, so online pandit booking takes only a few minutes.'],
+    ['Are the pandits verified?', 'Yes. All listed pandits are verified and experienced in performing traditional Hindu rituals.'],
+    ['Can I book an online puja?', 'Yes. Online puja services are available for devotees who are unable to attend the ceremony in person.'],
+    ['Do you provide puja samagri?', 'Yes. You can purchase puja samagri, puja kits, Rudraksha, idols and other spiritual products through Adhyatmah.'],
+    ['Can I choose a pandit based on language or location?', 'Yes. You can select a pandit based on language, experience and availability.'],
+  ].map(([q, a]) => ({ '@type': 'Question', name: q, acceptedAnswer: { '@type': 'Answer', text: a } })),
 };
 
 const PageContainer = ({ children }) => (
@@ -158,6 +173,10 @@ export default async function IndexPage() {
 
   return (
     <Stack gap={5}>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }}
+      />
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(localBusinessSchema) }}
@@ -306,6 +325,9 @@ export default async function IndexPage() {
       <PageContainer>
         <LatestBlogs />
       </PageContainer>
+
+      {/* SEO: keyword-focused crawlable content (server-rendered) */}
+      <HomeSeoContent />
 
       <PageContainer>
         <FaqSection />

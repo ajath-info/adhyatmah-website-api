@@ -1,4 +1,5 @@
 'use client';
+import { Suspense } from 'react';
 import React, { useState, useEffect } from 'react';
 import { useSearchParams } from 'next/navigation';
 
@@ -24,7 +25,7 @@ const TABLE_HEAD = [
   { id: 'createdAt', label: 'Created' },
   { id: '', label: 'actions', align: 'right' }
 ];
-export default function ShopIcomeList({ slug, onUpdatePayment, isVendor }) {
+function ShopIcomeList({ slug, onUpdatePayment, isVendor }) {
   const searchParams = useSearchParams();
   const pageParam = searchParams.get('page');
   const [payment, setPayment] = useState(null);
@@ -73,3 +74,13 @@ ShopIcomeList.propTypes = {
   slug: PropTypes.string, 
   onUpdatePayment: PropTypes.func 
 };
+
+// Suspense boundary: this component reads useSearchParams(); Next.js requires a
+// <Suspense> wrapper on statically rendered routes (CSR bailout rule).
+export default function ShopIcomeListSuspenseWrapper(props) {
+  return (
+    <Suspense fallback={null}>
+      <ShopIcomeList {...props} />
+    </Suspense>
+  );
+}

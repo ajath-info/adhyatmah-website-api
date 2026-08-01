@@ -1,4 +1,5 @@
 'use client';
+import { Suspense } from 'react';
 import React, { useState } from 'react';
 import { useSearchParams } from 'next/navigation';
 // components
@@ -20,7 +21,7 @@ const TABLE_HEAD = [
   { id: 'createdAt', label: 'Date' },
   { id: '', label: 'actions' }
 ];
-export default function AdminOrdersMain({ isVendor, shops }) {
+function AdminOrdersMain({ isVendor, shops }) {
   const searchParams = useSearchParams();
   const [apicall, setApicall] = useState(false);
   const { data, isPending: loadingList } = useQuery({
@@ -101,3 +102,13 @@ const SHOP_STATUS_FILTERS = {
     }
   ]
 };
+
+// Suspense boundary: this component reads useSearchParams(); Next.js requires a
+// <Suspense> wrapper on statically rendered routes (CSR bailout rule).
+export default function AdminOrdersMainSuspenseWrapper(props) {
+  return (
+    <Suspense fallback={null}>
+      <AdminOrdersMain {...props} />
+    </Suspense>
+  );
+}

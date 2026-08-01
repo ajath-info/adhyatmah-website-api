@@ -1,4 +1,5 @@
 'use client';
+import { Suspense } from 'react';
 // react
 import React from 'react';
 import { useQuery } from '@tanstack/react-query';
@@ -13,7 +14,7 @@ import Table from 'src/components/table/table';
 import OrderRow from '@/components/table/rows/order-row';
 import OrderCard from 'src/components/cards/order';
 
-export default function InvoiceHistory() {
+function InvoiceHistory() {
   const searchParams = useSearchParams();
   const pageParam = searchParams.get('page');
 
@@ -43,5 +44,15 @@ export default function InvoiceHistory() {
         <Table headData={TABLE_HEAD} data={tableData} isLoading={false} row={OrderRow} mobileRow={OrderCard} />
       )}
     </Box>
+  );
+}
+
+// Suspense boundary: this component reads useSearchParams(); Next.js requires a
+// <Suspense> wrapper on statically rendered routes (CSR bailout rule).
+export default function InvoiceHistorySuspenseWrapper(props) {
+  return (
+    <Suspense fallback={null}>
+      <InvoiceHistory {...props} />
+    </Suspense>
   );
 }

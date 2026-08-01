@@ -1,4 +1,5 @@
 'use client';
+import { Suspense } from 'react';
 import React, { useState } from 'react';
 import { useSearchParams } from 'next/navigation';
 // api
@@ -20,7 +21,7 @@ const TABLE_HEAD = [
   { id: '', label: 'Actions' }
 ];
 
-export default function BrandList() {
+function BrandList() {
   const searchParams = useSearchParams();
   const pageParam = searchParams.get('page');
   const searchParam = searchParams.get('search');
@@ -81,3 +82,13 @@ const STATUS_FILTER = {
     }
   ]
 };
+
+// Suspense boundary: this component reads useSearchParams(); Next.js requires a
+// <Suspense> wrapper on statically rendered routes (CSR bailout rule).
+export default function BrandListSuspenseWrapper(props) {
+  return (
+    <Suspense fallback={null}>
+      <BrandList {...props} />
+    </Suspense>
+  );
+}

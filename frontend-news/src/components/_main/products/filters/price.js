@@ -1,3 +1,4 @@
+import { Suspense } from 'react';
 import React, { useCallback, useState, useEffect } from 'react';
 import { useRouter } from '@bprogress/next';
 import PropTypes from 'prop-types';
@@ -10,7 +11,7 @@ PriceRange.propTypes = {
   path: PropTypes.string.isRequired
 };
 
-export default function PriceRange({ prices: filterPrices, path }) {
+function PriceRange({ prices: filterPrices, path }) {
   const searchParams = useSearchParams();
   const router = useRouter();
   const [priceRange, setPriceRange] = useState([0, 10000]);
@@ -84,5 +85,15 @@ export default function PriceRange({ prices: filterPrices, path }) {
         value={priceRange}
       />
     </>
+  );
+}
+
+// Suspense boundary: this component reads useSearchParams(); Next.js requires a
+// <Suspense> wrapper on statically rendered routes (CSR bailout rule).
+export default function PriceRangeSuspenseWrapper(props) {
+  return (
+    <Suspense fallback={null}>
+      <PriceRange {...props} />
+    </Suspense>
   );
 }

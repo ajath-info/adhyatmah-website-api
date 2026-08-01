@@ -1,4 +1,5 @@
 'use client';
+import { Suspense } from 'react';
 import React, { useState } from 'react';
 import { useSearchParams } from 'next/navigation';
 import toast from 'react-hot-toast';
@@ -19,7 +20,7 @@ const TABLE_HEAD = [
   { id: 'createdAt', label: 'Created' },
   { id: '', label: 'actions' }
 ];
-export default function PayoutsMain({ shops }) {
+function PayoutsMain({ shops }) {
   const searchParams = useSearchParams();
 
   const [payment, setPayment] = useState(null);
@@ -63,5 +64,15 @@ export default function PayoutsMain({ shops }) {
         setCount={setCount}
       />
     </div>
+  );
+}
+
+// Suspense boundary: this component reads useSearchParams(); Next.js requires a
+// <Suspense> wrapper on statically rendered routes (CSR bailout rule).
+export default function PayoutsMainSuspenseWrapper(props) {
+  return (
+    <Suspense fallback={null}>
+      <PayoutsMain {...props} />
+    </Suspense>
   );
 }

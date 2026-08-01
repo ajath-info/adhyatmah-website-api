@@ -1,4 +1,5 @@
 'use client';
+import { Suspense } from 'react';
 
 import { useEffect, useState } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
@@ -14,7 +15,7 @@ import { IoCheckmarkCircle, IoArrowBack } from 'react-icons/io5';
 import * as api from 'src/services';
 import BookingDetailsContent from '@/components/booking/booking-details-content';
 
-export default function BookingSuccessPage() {
+function BookingSuccessPage() {
   const params = useSearchParams();
   const router = useRouter();
   const [booking, setBooking] = useState(null);
@@ -99,5 +100,14 @@ export default function BookingSuccessPage() {
         </Button>
       </Stack>
     </Container>
+  );
+}
+// Suspense boundary: this component reads useSearchParams(); Next.js requires a
+// <Suspense> wrapper on statically rendered routes (CSR bailout rule).
+export default function BookingSuccessPageSuspenseWrapper(props) {
+  return (
+    <Suspense fallback={null}>
+      <BookingSuccessPage {...props} />
+    </Suspense>
   );
 }

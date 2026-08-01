@@ -1,11 +1,12 @@
 'use client';
+import { Suspense } from 'react';
 
 import { useEffect, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Button, Card, CardContent, Typography, Box, CircularProgress, Alert } from '@mui/material';
 import { MdCheckCircle, MdError, MdArrowBack, MdHome } from 'react-icons/md';
 
-export default function BookingPaymentSuccess() {
+function BookingPaymentSuccess() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [paymentStatus, setPaymentStatus] = useState('verifying');
@@ -223,5 +224,15 @@ export default function BookingPaymentSuccess() {
         </CardContent>
       </Card>
     </Box>
+  );
+}
+
+// Suspense boundary: this component reads useSearchParams(); Next.js requires a
+// <Suspense> wrapper on statically rendered routes (CSR bailout rule).
+export default function BookingPaymentSuccessSuspenseWrapper(props) {
+  return (
+    <Suspense fallback={null}>
+      <BookingPaymentSuccess {...props} />
+    </Suspense>
   );
 }

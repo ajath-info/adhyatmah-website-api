@@ -1,4 +1,5 @@
 'use client';
+import { Suspense } from 'react';
 import React, { useState } from 'react';
 import { useSearchParams } from 'next/navigation';
 
@@ -19,7 +20,7 @@ const TABLE_HEAD = [
   { id: 'createdAt', label: 'Date' },
   { id: '', label: 'Actions' }
 ];
-export default function SubCategoryList({ categories }) {
+function SubCategoryList({ categories }) {
   const searchParams = useSearchParams();
 
   const [open, setOpen] = useState(false);
@@ -79,3 +80,13 @@ const STATUS_FILTER = {
     }
   ]
 };
+
+// Suspense boundary: this component reads useSearchParams(); Next.js requires a
+// <Suspense> wrapper on statically rendered routes (CSR bailout rule).
+export default function SubCategoryListSuspenseWrapper(props) {
+  return (
+    <Suspense fallback={null}>
+      <SubCategoryList {...props} />
+    </Suspense>
+  );
+}

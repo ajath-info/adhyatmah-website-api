@@ -1,3 +1,4 @@
+import { Suspense } from 'react';
 // react
 import { useState, useEffect, useCallback } from 'react';
 import { usePathname, useSearchParams } from 'next/navigation';
@@ -35,7 +36,7 @@ const SearchStyle = styled(OutlinedInput)(({ theme }) => ({
   }
 }));
 
-export default function Search() {
+function Search() {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
@@ -88,5 +89,15 @@ export default function Search() {
         }
       />
     </RootStyle>
+  );
+}
+
+// Suspense boundary: this component reads useSearchParams(); Next.js requires a
+// <Suspense> wrapper on statically rendered routes (CSR bailout rule).
+export default function SearchSuspenseWrapper(props) {
+  return (
+    <Suspense fallback={null}>
+      <Search {...props} />
+    </Suspense>
   );
 }

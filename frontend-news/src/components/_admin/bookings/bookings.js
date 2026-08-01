@@ -1,4 +1,5 @@
 'use client';
+import { Suspense } from 'react';
 import React, { useMemo, useState } from 'react';
 import { useSearchParams, useRouter, usePathname } from 'next/navigation';
 import Table from 'src/components/table/table';
@@ -35,7 +36,7 @@ const STATUS_FILTER = {
 
 const PAGE_SIZE = 10; // ek page par kitni rows
 
-export default function AdminBookingsMain({ isVendor = false }) {
+function AdminBookingsMain({ isVendor = false }) {
   const searchParams = useSearchParams();
   const router = useRouter();
   const pathname = usePathname();
@@ -150,5 +151,14 @@ export default function AdminBookingsMain({ isVendor = false }) {
         />
       )}
     </>
+  );
+}
+// Suspense boundary: this component reads useSearchParams(); Next.js requires a
+// <Suspense> wrapper on statically rendered routes (CSR bailout rule).
+export default function AdminBookingsMainSuspenseWrapper(props) {
+  return (
+    <Suspense fallback={null}>
+      <AdminBookingsMain {...props} />
+    </Suspense>
   );
 }

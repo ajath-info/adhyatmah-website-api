@@ -1,4 +1,5 @@
 'use client';
+import { Suspense } from 'react';
 import React, { useState } from 'react';
 import { useSearchParams } from 'next/navigation';
 
@@ -26,7 +27,7 @@ const TABLE_HEAD = [
 ];
 
 // ----------------------------------------------------------------------
-export default function CouponCodesMain() {
+function CouponCodesMain() {
   const searchParams = useSearchParams();
   const pageParam = searchParams.get('page');
   const searchParam = searchParams.get('search');
@@ -68,5 +69,15 @@ export default function CouponCodesMain() {
         isSearch
       />
     </>
+  );
+}
+
+// Suspense boundary: this component reads useSearchParams(); Next.js requires a
+// <Suspense> wrapper on statically rendered routes (CSR bailout rule).
+export default function CouponCodesMainSuspenseWrapper(props) {
+  return (
+    <Suspense fallback={null}>
+      <CouponCodesMain {...props} />
+    </Suspense>
   );
 }

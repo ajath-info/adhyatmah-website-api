@@ -1,4 +1,5 @@
 'use client';
+import { Suspense } from 'react';
 import React, { useState } from 'react';
 import { useSearchParams } from 'next/navigation';
 import Table from 'src/components/table/table';
@@ -16,7 +17,7 @@ const SERVICE_TABLE_HEAD = [
   { id: 'date', label: 'Date' }
 ];
 
-export default function PoojaServicesTab({ vendorId }) {
+function PoojaServicesTab({ vendorId }) {
   const [, setDeleteId] = useState(null);
 
   const { data, isPending: isLoading, isError, refetch } = useQuery({
@@ -77,5 +78,14 @@ export default function PoojaServicesTab({ vendorId }) {
         handleClickOpen={handleClickOpen}
       />
     </Box>
+  );
+}
+// Suspense boundary: this component reads useSearchParams(); Next.js requires a
+// <Suspense> wrapper on statically rendered routes (CSR bailout rule).
+export default function PoojaServicesTabSuspenseWrapper(props) {
+  return (
+    <Suspense fallback={null}>
+      <PoojaServicesTab {...props} />
+    </Suspense>
   );
 }

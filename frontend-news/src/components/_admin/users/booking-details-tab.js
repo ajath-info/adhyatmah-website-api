@@ -1,4 +1,5 @@
 'use client';
+import { Suspense } from 'react';
 import React from 'react';
 import { useSearchParams } from 'next/navigation';
 import Table from 'src/components/table/table';
@@ -17,7 +18,7 @@ const BOOKING_TABLE_HEAD = [
   { id: '', label: 'Actions' }
 ];
 
-export default function BookingDetailsTab({ vendorId }) {
+function BookingDetailsTab({ vendorId }) {
   const { data, isPending: isLoading, isError, refetch } = useQuery({
     queryKey: ['vendor-bookings', vendorId],
     queryFn: () => api.getVendorBookingsByAdmin(vendorId),  // ✅ FIXED
@@ -65,5 +66,14 @@ export default function BookingDetailsTab({ vendorId }) {
         handleClickOpen={() => { }}
       />
     </Box>
+  );
+}
+// Suspense boundary: this component reads useSearchParams(); Next.js requires a
+// <Suspense> wrapper on statically rendered routes (CSR bailout rule).
+export default function BookingDetailsTabSuspenseWrapper(props) {
+  return (
+    <Suspense fallback={null}>
+      <BookingDetailsTab {...props} />
+    </Suspense>
   );
 }

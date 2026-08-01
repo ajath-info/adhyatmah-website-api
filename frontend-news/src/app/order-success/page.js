@@ -1,4 +1,5 @@
 'use client';
+import { Suspense } from 'react';
 
 import { useEffect, useState } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
@@ -16,7 +17,7 @@ import {
   Grid
 } from '@mui/material';
 import { IoCheckmarkCircle, IoArrowBack } from 'react-icons/io5';
-export default function OrderSuccessPage() {
+function OrderSuccessPage() {
   const params = useSearchParams();
   const router = useRouter();
   const [order, setOrder] = useState(null);
@@ -288,5 +289,15 @@ export default function OrderSuccessPage() {
         </Button>
       </Stack>
     </Container>
+  );
+}
+
+// Suspense boundary: this component reads useSearchParams(); Next.js requires a
+// <Suspense> wrapper on statically rendered routes (CSR bailout rule).
+export default function OrderSuccessPageSuspenseWrapper(props) {
+  return (
+    <Suspense fallback={null}>
+      <OrderSuccessPage {...props} />
+    </Suspense>
   );
 }

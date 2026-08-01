@@ -1,8 +1,9 @@
 'use client';
+import { Suspense } from 'react';
 
 import { useEffect, useState } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
-export default function BookingPaymentCallbackPage() {
+function BookingPaymentCallbackPage() {
   const params = useSearchParams();
   const router = useRouter();
   const [status, setStatus] = useState('loading');
@@ -365,3 +366,13 @@ const styles = {
     transition: 'all 0.3s'
   }
 };
+
+// Suspense boundary: this component reads useSearchParams(); Next.js requires a
+// <Suspense> wrapper on statically rendered routes (CSR bailout rule).
+export default function BookingPaymentCallbackPageSuspenseWrapper(props) {
+  return (
+    <Suspense fallback={null}>
+      <BookingPaymentCallbackPage {...props} />
+    </Suspense>
+  );
+}

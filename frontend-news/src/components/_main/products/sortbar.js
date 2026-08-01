@@ -1,4 +1,5 @@
 // 'use client';
+import { Suspense } from 'react';
 // import PropTypes from 'prop-types';
 // import { useState, useEffect, useCallback } from 'react';
 // import { isString } from 'lodash';
@@ -17,7 +18,7 @@
 // import { MdTune } from 'react-icons/md';
 // import shape from '@/theme/shape';
 
-// export default function SortBar({ productData, isLoading, sortData, filters }) {
+// function SortBar({ productData, isLoading, sortData, filters }) {
 //   const router = useRouter();
 //   const pathname = usePathname();
 //   const searchParams = useSearchParams();
@@ -448,3 +449,12 @@ SortBar.propTypes = {
   isLoading: PropTypes.bool.isRequired,
   filters: PropTypes.array
 };
+// Suspense boundary: this component reads useSearchParams(); Next.js requires a
+// <Suspense> wrapper on statically rendered routes (CSR bailout rule).
+export default function SortBarSuspenseWrapper(props) {
+  return (
+    <Suspense fallback={null}>
+      <SortBar {...props} />
+    </Suspense>
+  );
+}

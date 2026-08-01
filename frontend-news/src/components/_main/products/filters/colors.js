@@ -1,3 +1,4 @@
+import { Suspense } from 'react';
 import { useEffect, useState, useCallback } from 'react';
 import PropTypes from 'prop-types';
 // mui
@@ -16,7 +17,7 @@ ColorsMain.propTypes = {
   keyName: PropTypes.string.isRequired
 };
 
-export default function ColorsMain({ ...props }) {
+function ColorsMain({ ...props }) {
   const { colors: filterColors, path, keyName } = props;
   const { push } = useRouter();
   const searchParams = useSearchParams();
@@ -145,5 +146,15 @@ export default function ColorsMain({ ...props }) {
         ))}
       </Stack>
     </>
+  );
+}
+
+// Suspense boundary: this component reads useSearchParams(); Next.js requires a
+// <Suspense> wrapper on statically rendered routes (CSR bailout rule).
+export default function ColorsMainSuspenseWrapper(props) {
+  return (
+    <Suspense fallback={null}>
+      <ColorsMain {...props} />
+    </Suspense>
   );
 }

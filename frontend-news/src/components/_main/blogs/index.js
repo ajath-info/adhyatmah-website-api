@@ -1,4 +1,5 @@
 'use client';
+import { Suspense } from 'react';
 import React from 'react';
 import Link from 'next/link';
 import { useSearchParams, usePathname } from 'next/navigation';
@@ -210,7 +211,7 @@ function BlogCardSkeleton() {
     );
 }
 
-export default function BlogsListing() {
+function BlogsListing() {
     const searchParams = useSearchParams();
     const router = useRouter();
     const pathname = usePathname();
@@ -293,4 +294,13 @@ export default function BlogsListing() {
             )}
         </Container>
     );
+}
+// Suspense boundary: this component reads useSearchParams(); Next.js requires a
+// <Suspense> wrapper on statically rendered routes (CSR bailout rule).
+export default function BlogsListingSuspenseWrapper(props) {
+  return (
+    <Suspense fallback={null}>
+      <BlogsListing {...props} />
+    </Suspense>
+  );
 }

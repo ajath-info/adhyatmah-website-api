@@ -126,3 +126,7 @@ export default async function Listing(props) {
     return notFound();
   }
 }
+
+// Render per-request (SSR): this page's filter/search components read useSearchParams,
+// which cannot be statically prerendered. SSR still sends full HTML to crawlers.
+export const dynamic = 'force-dynamic';
