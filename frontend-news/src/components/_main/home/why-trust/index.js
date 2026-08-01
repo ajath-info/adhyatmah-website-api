@@ -79,7 +79,7 @@ export default function WhyTrust() {
                         sx={{
                             fontSize: { xs: 13.5, md: 15 },
                             lineHeight: 1.8,
-                            color: 'text.secondary',
+                            color: '#5B4A42',
                             maxWidth: 1050,
                         }}
                     >

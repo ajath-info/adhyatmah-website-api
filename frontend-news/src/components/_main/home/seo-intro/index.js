@@ -58,7 +58,7 @@ export default function SeoIntro() {
                         sx={{
                             fontSize: { xs: 17, md: 21 },
                             fontWeight: 700,
-                            color: '#241511',
+                            color: 'text.primary',
                             mb: 1,
                         }}
                     >
