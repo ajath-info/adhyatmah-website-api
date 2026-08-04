@@ -56,7 +56,7 @@ function ProductHighlights({ highlights = [] }) {
                 {items.map((item) => (
                     <Chip
                         key={item}
-                        icon={<BsCheckCircleFill size={14} color={ORANGE} style={{ marginLeft: 8 }} />}
+                        icon={<BsCheckCircleFill size={14} color={ORANGE} style={{ marginLeft: 8, flexShrink: 0 }} />}
                         label={item}
                         sx={{
                             bgcolor: '#fff',
@@ -66,8 +66,17 @@ function ProductHighlights({ highlights = [] }) {
                             fontSize: 13,
                             justifyContent: 'flex-start',
                             height: 'auto',
+                            width: '100%',
+                            maxWidth: '100%',
                             py: 0.5,
-                            '& .MuiChip-icon': { color: ORANGE }
+                            '& .MuiChip-icon': { color: ORANGE },
+                            '& .MuiChip-label': {
+                                whiteSpace: 'normal',
+                                wordBreak: 'break-word',
+                                overflow: 'visible',
+                                textOverflow: 'clip',
+                                display: 'block'
+                            }
                         }}
                     />
                 ))}

@@ -56,8 +56,12 @@ export default function GeneralProfileForm({ user, isLoading }) {
       // onSuccess
 
       // delete previous if exists
-      if (Boolean(values.cover?._id)) {
-        await deleteMutate(values.cover._id);
+       if (Boolean(values.cover?._id)) {
+        try {
+          await deleteMutate(values.cover._id);
+        } catch (err) {
+          console.error('Failed to delete previous photo:', err);
+        }
       }
       setFieldValue('cover', { _id: data.public_id, url: data.secure_url });
       toast.success('Image Uploaded');

@@ -205,7 +205,17 @@ export default function VendorCard({
 
   const rating = vendor?.rating || 4.5;
 
-  const randomViews = vendor?.views || Math.floor(Math.random() * (10000 - 1000 + 1)) + 1000;
+  // Was: Math.floor(Math.random() * ...) — Math.random() runs once on the
+  // server and again on the client, producing two different numbers and
+  // triggering a hydration mismatch (React explicitly calls this out as a
+  // known cause). Fix: derive a deterministic pseudo-random number from the
+  // vendor's own id/_id instead, so server and client always agree.
+  const seedKey = String(vendor?.id || vendor?._id || '');
+  let seed = 0;
+  for (let i = 0; i < seedKey.length; i += 1) {
+    seed = (seed * 31 + seedKey.charCodeAt(i)) % 9000;
+  }
+  const randomViews = vendor?.views || (1000 + seed);
   const views = randomViews >= 1000 ? (randomViews / 1000).toFixed(1) + 'K' : randomViews;
 
   const langLabel = vendor?.language?.[0]
@@ -617,5 +627,3 @@ VendorCard.propTypes = {
   singleActionLabel: PropTypes.string,
   vendor: PropTypes.object
 };
-
-

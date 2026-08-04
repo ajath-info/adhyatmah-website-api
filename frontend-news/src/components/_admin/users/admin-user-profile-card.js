@@ -56,7 +56,12 @@ const InfoStyle = styled(Box)(({ theme }) => ({
 
 export default function AdminUserProfileCard({ user, isLoading }) {
   const fullName = [user?.firstName, user?.lastName].filter(Boolean).join(' ') || 'User';
-  const avatarSrc = user?.image || user?.cover?.url || '/images/default-avatar.png';
+  // `cover.url` is the up-to-date profile photo (same field the vendors/users
+  // list uses). `image` is a legacy field used elsewhere (e.g. booking
+  // snapshots) and can be stale, so it must not take priority here — that
+  // was causing the list and detail views to show different photos for the
+  // same vendor.
+  const avatarSrc = user?.cover?.url || user?.image || '/images/default-avatar.png';
   const shopSlug = user?.shop?.slug;
 
   return (

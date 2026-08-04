@@ -615,7 +615,7 @@ export const getLayout = async () => {
   return data;
 };
 export const singleDeleteFile = async (id) => {
-  const { data } = await http.delete(`/delete-file/${id}`);
+  const { data } = await http.delete(`/delete-file/${encodeURIComponent(id)}`);
   return data;
 };
 

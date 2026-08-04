@@ -2,7 +2,7 @@ import { Box, Stack, Typography } from '@mui/material';
 import Link from 'next/link';
 import { GiPrayerBeads } from 'react-icons/gi';
 
-const ORANGE = '#E87722';
+const ORANGE = '#fb8b05';
 
 // SEO Fix: Homepage intro content block.
 // Placement: below the Hero Banner, above the service/category cards.
@@ -53,7 +53,7 @@ export default function SeoIntro() {
                 </Stack>
 
                 <Box sx={{ flex: 1, width: '100%' }}>
-                    {/* <Typography
+                    <Typography
                         component="h2"
                         sx={{
                             fontSize: { xs: 17, md: 21 },
@@ -63,7 +63,7 @@ export default function SeoIntro() {
                         }}
                     >
                         Book Pandit Online for Puja &amp; Rituals Across India
-                    </Typography> */}
+                    </Typography>
 
                     <Typography
                         component="p"

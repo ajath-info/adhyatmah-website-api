@@ -73,12 +73,12 @@ export default function SecondaryHeader({ categories = [] }) {
                   height: 50,
                   borderRadius: '50%',
                   color: '#fff',
-                  bgcolor: '#FB8B05',
-                  boxShadow: '0 3px 10px rgba(232,119,34,0.28)',
+                  bgcolor: '#Fb8B05',
+                  boxShadow: '0 3px 10px rgba(232,119,34,0.35)',
                   transition: 'all 0.25s ease',
                   '&:hover': {
-                    bgcolor: '#E07D04',
-                    boxShadow: '0 5px 16px rgba(232,119,34,0.38)',
+                    bgcolor: '#C5651D',
+                    boxShadow: '0 5px 16px rgba(232,119,34,0.45)',
                     transform: 'translateY(-1px)'
                   }
                 }}
@@ -139,14 +139,14 @@ export default function SecondaryHeader({ categories = [] }) {
               textTransform: 'none',
               whiteSpace: 'nowrap',
               color: '#fff',
-              bgcolor: '#FB8B05',
-              boxShadow: '0 3px 10px rgba(232,119,34,0.28)',
+              bgcolor: '#E87722',
+              boxShadow: '0 3px 10px rgba(232,119,34,0.35)',
               transition: 'all 0.25s ease',
               visibility: isAuthenticated ? 'hidden' : 'visible',
               pointerEvents: isAuthenticated ? 'none' : 'auto',
               '&:hover': {
-                bgcolor: '#E07D04',
-                boxShadow: '0 5px 16px rgba(232,119,34,0.38)',
+                bgcolor: '#C5651D',
+                boxShadow: '0 5px 16px rgba(232,119,34,0.45)',
                 transform: 'translateY(-1px)'
               },
               '&:active': {
@@ -155,7 +155,7 @@ export default function SecondaryHeader({ categories = [] }) {
             }}
             startIcon={<FaOm size={16} />}
           >
-            Become a Pandit Ji
+              Free Registration (For Pandit Ji)
           </Button>
         )}
       </Box>

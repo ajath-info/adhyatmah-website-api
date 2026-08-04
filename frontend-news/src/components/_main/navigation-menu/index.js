@@ -102,6 +102,14 @@ export default function NavigationMenu() {
   const { checkout } = useSelector(({ product }) => product);
   const cartItemsCount = sum((checkout?.cart || []).map((item) => item.quantity));
 
+  // Same fix as navbar: server always renders logged-out, client can restore
+  // auth state instantly from redux-persist -> mismatch. Gate on mount.
+  const [mounted, setMounted] = React.useState(false);
+  React.useEffect(() => {
+    setMounted(true);
+  }, []);
+  const showAuthenticatedUI = mounted && isAuthenticated;
+
   const [mobileOpen, setMobileOpen] = React.useState(false);
   const [openSubMenus, setOpenSubMenus] = React.useState({});
   const toggleMobile = () => setMobileOpen((prev) => !prev);
@@ -201,7 +209,7 @@ export default function NavigationMenu() {
         </Stack>
 
         {/* Login / Register or User */}
-        {!isAuthenticated ? (
+        {!showAuthenticatedUI ? (
           <Button
             fullWidth
             variant="contained"

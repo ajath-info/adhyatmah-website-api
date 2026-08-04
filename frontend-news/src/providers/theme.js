@@ -6,8 +6,6 @@ import { useDispatch, useSelector } from '@/redux';
 import { getTheme } from '@/theme';
 import { AppRouterCacheProvider } from '@mui/material-nextjs/v15-appRouter';
 import rtlPlugin from 'stylis-plugin-rtl';
-import createCache from '@emotion/cache';
-import { CacheProvider as EmotionCacheProvider } from '@emotion/react';
 import GlobalStyles from '@/theme/global-styles';
 import { initializeSettings } from '@/redux/slices/settings';
 import { setShippingFee } from '@/redux/slices/product';
@@ -56,14 +54,6 @@ export default function MuiThemeProvider({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [baseCurrency]);
 
-  // Memoize the cache for RTL or LTR
-  const styleCache = useMemo(() => {
-    return createCache({
-      key: direction === 'rtl' ? 'muirtl' : 'css',
-      stylisPlugins: direction === 'rtl' ? [rtlPlugin] : []
-    });
-  }, [direction]);
-
   // Memoize theme based on dependencies
   const theme = useMemo(() => {
     const selectedFont = fontFamilies[fontFamily] || fontFamilies.figtree;
@@ -71,18 +61,28 @@ export default function MuiThemeProvider({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [resolvedMode, direction, fontFamily, palette]);
 
+  // NOTE: previously we wrapped AppRouterCacheProvider with our own
+  // separate EmotionCacheProvider (createCache) to support RTL. That
+  // created two competing emotion caches, each injecting <style> tags
+  // in a different order on the server vs the client — which is what
+  // caused the "server rendered HTML didn't match the client" error.
+  // AppRouterCacheProvider accepts the same cache config directly via
+  // `options`, so we no longer need the extra provider.
   return (
-    <AppRouterCacheProvider>
-      <EmotionCacheProvider value={styleCache}>
-        <ThemeProvider theme={theme}>
-          <CssBaseline />
-          <main dir={direction}>
-            {children}
-            <Settings direction={direction} />
-          </main>
-          <GlobalStyles />
-        </ThemeProvider>
-      </EmotionCacheProvider>
+    <AppRouterCacheProvider
+      options={{
+        key: direction === 'rtl' ? 'muirtl' : 'css',
+        stylisPlugins: direction === 'rtl' ? [rtlPlugin] : []
+      }}
+    >
+      <ThemeProvider theme={theme}>
+        <CssBaseline />
+        <main dir={direction}>
+          {children}
+          <Settings direction={direction} />
+        </main>
+        <GlobalStyles />
+      </ThemeProvider>
     </AppRouterCacheProvider>
   );
 }

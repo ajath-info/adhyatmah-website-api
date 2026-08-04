@@ -205,7 +205,15 @@ export default function VendorCardLarge({
 
     const rating = vendor?.rating || 4.5;
 
-    const randomViews = vendor?.views || Math.floor(Math.random() * (10000 - 1000 + 1)) + 1000;
+    // Same fix as cards/vendor/index.js: Math.random() gives a different
+    // value on server vs client render, causing a hydration mismatch.
+    // Derive a deterministic number from the vendor's id instead.
+    const seedKey = String(vendor?.id || vendor?._id || '');
+    let seed = 0;
+    for (let i = 0; i < seedKey.length; i += 1) {
+        seed = (seed * 31 + seedKey.charCodeAt(i)) % 9000;
+    }
+    const randomViews = vendor?.views || (1000 + seed);
     const views = randomViews >= 1000 ? (randomViews / 1000).toFixed(1) + 'K' : randomViews;
 
     const langLabel = vendor?.language?.[0]

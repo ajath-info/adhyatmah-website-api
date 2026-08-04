@@ -2,7 +2,7 @@ import * as React from 'react';
 
 // mui
 import Box from '@mui/material/Box';
-// import LinearProgress from '@mui/material/LinearProgress';
+import LinearProgress from '@mui/material/LinearProgress';
 
 export default function LinearIndeterminate() {
   return (
@@ -21,7 +21,7 @@ export default function LinearIndeterminate() {
         zIndex: 111
       }}
     >
-      <Box sx={{ width: '200px' }}>{/* <LinearProgress /> */}</Box>
+      <Box sx={{ width: '200px' }}><LinearProgress /></Box>
     </Box>
   );
 }

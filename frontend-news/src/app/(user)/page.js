@@ -273,8 +273,6 @@ export default async function IndexPage() {
 
       <PageContainer>
         <Stack gap={5}>
-          <SeoIntro />
-
           <ServiceIcons />
 
           <WhyChooseUs />
@@ -324,6 +322,10 @@ export default async function IndexPage() {
 
       <PageContainer>
         <LatestBlogs />
+      </PageContainer>
+
+      <PageContainer>
+        <SeoIntro />
       </PageContainer>
 
       {/* SEO: keyword-focused crawlable content (server-rendered) */}

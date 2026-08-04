@@ -1,10 +1,11 @@
 'use client';
 
-import { Box, Stack, Typography, Accordion, AccordionSummary, AccordionDetails } from '@mui/material';
+import { useState } from 'react';
+import { Box, Stack, Typography, Grid, Collapse } from '@mui/material';
 import Link from 'next/link';
-import { MdExpandMore } from 'react-icons/md';
+import { MdAdd, MdRemove } from 'react-icons/md';
 
-const ORANGE = '#E87722';
+const ORANGE = '#fb8b05';
 
 const FAQS = [
     {
@@ -86,19 +87,82 @@ function ArrowLine({ direction = 'left' }) {
     );
 }
 
+/* ---------------- SINGLE FAQ ROW (question + circular toggle + collapsible answer) ---------------- */
+function FaqRow({ faq, isOpen, onToggle, isLast }) {
+    return (
+        <Box>
+            <Stack
+                direction="row"
+                alignItems="center"
+                justifyContent="space-between"
+                spacing={2}
+                onClick={onToggle}
+                sx={{
+                    cursor: 'pointer',
+                    py: 2,
+                    '&:hover .faq-question': { color: ORANGE },
+                }}
+            >
+                <Typography
+                    className="faq-question"
+                    sx={{
+                        fontWeight: 600,
+                        fontSize: { xs: 14, md: 15.5 },
+                        color: isOpen ? ORANGE : 'text.primary',
+                        transition: 'color 0.2s ease',
+                        pr: 1,
+                    }}
+                >
+                    {faq.question}
+                </Typography>
+                <Stack
+                    alignItems="center"
+                    justifyContent="center"
+                    sx={{
+                        flexShrink: 0,
+                        width: 30,
+                        height: 30,
+                        borderRadius: '50%',
+                        border: '1.5px solid',
+                        borderColor: ORANGE,
+                        color: ORANGE,
+                        bgcolor: isOpen ? 'rgba(232,119,34,0.1)' : 'transparent',
+                        transition: 'background-color 0.2s ease',
+                    }}
+                >
+                    {isOpen ? <MdRemove size={16} /> : <MdAdd size={16} />}
+                </Stack>
+            </Stack>
+            <Collapse in={isOpen} timeout={220} unmountOnExit>
+                <Typography sx={{ fontSize: { xs: 13, md: 13.5 }, color: 'text.secondary', lineHeight: 1.7, pb: 2, pr: 5 }}>
+                    {faq.answer}
+                </Typography>
+            </Collapse>
+            {!isLast && <Box sx={{ height: '1px', bgcolor: 'divider' }} />}
+        </Box>
+    );
+}
+
 // SEO Fix: FAQ accordion.
 // Placement: below the Blog section, above the Footer.
+// Layout/flow matches vodex.ai's two-column FAQ (single item open at a time,
+// circular +/- toggle), restyled with Adhyatmah's own orange/white theme.
 export default function FaqSection() {
+    const [openIndex, setOpenIndex] = useState(0);
+
+    const handleToggle = (index) => {
+        setOpenIndex((prev) => (prev === index ? -1 : index));
+    };
+
+    const midPoint = Math.ceil(FAQS.length / 2);
+    const leftColumn = FAQS.slice(0, midPoint).map((faq, i) => ({ faq, index: i }));
+    const rightColumn = FAQS.slice(midPoint).map((faq, i) => ({ faq, index: i + midPoint }));
+
     return (
         <Box
             sx={{
                 width: '100%',
-                border: '1px solid',
-                borderColor: 'divider',
-                borderRadius: 3,
-                bgcolor: 'background.paper',
                 px: { xs: 2.5, md: 4 },
-                py: { xs: 3, md: 3.5 },
             }}
         >
             <Stack alignItems="center" spacing={1} sx={{ width: '100%', mb: 3 }}>
@@ -119,64 +183,34 @@ export default function FaqSection() {
                 </Stack>
             </Stack>
 
-            <Stack spacing={1.25} sx={{ maxWidth: 860, mx: 'auto' }}>
-                {FAQS.map((faq, index) => (
-                    <Accordion
-                        key={index}
-                        disableGutters
-                        elevation={0}
-                        sx={{
-                            border: '1px solid',
-                            borderColor: 'divider',
-                            borderRadius: '10px !important',
-                            overflow: 'hidden',
-                            transition: 'border-color 0.2s ease, box-shadow 0.2s ease',
-                            '&:before': { display: 'none' },
-                            '&:hover': { borderColor: 'rgba(232,119,34,0.45)' },
-                            '&.Mui-expanded': {
-                                borderColor: ORANGE,
-                                boxShadow: '0 2px 8px rgba(232,119,34,0.12)',
-                            },
-                        }}
-                    >
-                        <AccordionSummary
-                            expandIcon={<MdExpandMore size={20} color={ORANGE} />}
-                            sx={{
-                                px: 2,
-                                py: 0.5,
-                                minHeight: 52,
-                                '&.Mui-expanded': { bgcolor: 'rgba(232,119,34,0.05)' },
-                            }}
-                        >
-                            <Stack direction="row" alignItems="center" spacing={1.5}>
-                                <Stack
-                                    alignItems="center"
-                                    justifyContent="center"
-                                    sx={{
-                                        flexShrink: 0,
-                                        width: 26,
-                                        height: 26,
-                                        borderRadius: '8px',
-                                        bgcolor: 'rgba(232,119,34,0.1)',
-                                    }}
-                                >
-                                    <Typography sx={{ fontSize: 12.5, fontWeight: 700, color: ORANGE, lineHeight: 1 }}>
-                                        Q
-                                    </Typography>
-                                </Stack>
-                                <Typography sx={{ fontWeight: 600, fontSize: { xs: 13.5, md: 14.5 } }}>
-                                    {faq.question}
-                                </Typography>
-                            </Stack>
-                        </AccordionSummary>
-                        <AccordionDetails sx={{ px: 2, pt: 0, pb: 2.25, pl: { xs: 6.25, sm: 6.5 } }}>
-                            <Typography sx={{ fontSize: { xs: 13, md: 13.5 }, color: 'text.secondary', lineHeight: 1.7 }}>
-                                {faq.answer}
-                            </Typography>
-                        </AccordionDetails>
-                    </Accordion>
-                ))}
-            </Stack>
+            <Grid container columnSpacing={{ xs: 0, md: 6 }} rowSpacing={0}>
+                <Grid size={{ xs: 12, md: 6 }}>
+                    <Stack divider={null}>
+                        {leftColumn.map(({ faq, index }, i) => (
+                            <FaqRow
+                                key={index}
+                                faq={faq}
+                                isOpen={openIndex === index}
+                                onToggle={() => handleToggle(index)}
+                                isLast={i === leftColumn.length - 1 && rightColumn.length === 0}
+                            />
+                        ))}
+                    </Stack>
+                </Grid>
+                <Grid size={{ xs: 12, md: 6 }}>
+                    <Stack divider={null}>
+                        {rightColumn.map(({ faq, index }, i) => (
+                            <FaqRow
+                                key={index}
+                                faq={faq}
+                                isOpen={openIndex === index}
+                                onToggle={() => handleToggle(index)}
+                                isLast={i === rightColumn.length - 1}
+                            />
+                        ))}
+                    </Stack>
+                </Grid>
+            </Grid>
         </Box>
     );
 }

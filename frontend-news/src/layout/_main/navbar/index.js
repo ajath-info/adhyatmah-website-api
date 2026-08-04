@@ -25,6 +25,18 @@ export default function Navbar({ branding }) {
   const { checkout } = useSelector(({ product }) => product);
   const cartItemsCount = sum((checkout?.cart || []).map((item) => item.quantity));
 
+  // The server never knows if a user is logged in (no access to localStorage),
+  // so it always renders the logged-out "Sign in" button. redux-persist restores
+  // the real auth state synchronously on the client, which can make the very
+  // first client render disagree with the server HTML -> hydration mismatch.
+  // Fix: force the logged-out view until after mount, then switch to the real
+  // auth state. The switch happens post-hydration so React handles it safely.
+  const [mounted, setMounted] = React.useState(false);
+  React.useEffect(() => {
+    setMounted(true);
+  }, []);
+  const showAuthenticatedUI = mounted && isAuthenticated;
+
   const isMobile = useMediaQuery('(max-width:992px)');
   const [hoverBell, setHoverBell] = React.useState(false);
   const [hoverCart, setHoverCart] = React.useState(false);
@@ -160,7 +172,7 @@ export default function Navbar({ branding }) {
               </Stack>
 
               {/* Login / Register Button */}
-              {!isAuthenticated ? (
+              {!showAuthenticatedUI ? (
                 <Button
                   variant="contained"
                   href="/auth/sign-in"
