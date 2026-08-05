@@ -168,7 +168,7 @@ const roboto = localFont({
   ],
   display: 'swap'
 });
-export default function index({ children, isAuth, theme, baseCurrency, cloudName, preset, shippingFee }) {
+export default function index({ children, isAuth, theme, baseCurrency, cloudName, preset, shippingFee, initialThemeMode }) {
   return (
     <QueryClientProvider>
       <ReduxProvider>
@@ -177,6 +177,7 @@ export default function index({ children, isAuth, theme, baseCurrency, cloudName
             baseCurrency={baseCurrency}
             palette={theme.palette}
             fontFamily={theme.fontFamily}
+            initialThemeMode={initialThemeMode}
             fontFamilies={{
               figtree,
               montserrat,

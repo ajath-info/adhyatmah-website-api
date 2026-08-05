@@ -1,5 +1,6 @@
 import * as React from 'react';
 import Script from 'next/script';
+import { cookies } from 'next/headers';
 import Providers from 'src/providers';
 import { GoogleTagManager, GoogleAnalytics } from '@next/third-parties/google';
 import FacebookPixel from 'src/components/FacebookPixel';
@@ -51,6 +52,11 @@ export default async function RootLayout({ children }) {
   const brandingRes = await fetch(`${baseUrl}/api/settings/branding`, { next: { revalidate: 60 } });
   const { data: main } = await mainRes.json();
   const { data: branding } = await brandingRes.json();
+
+
+  const cookieStore = await cookies();
+  const initialThemeMode = cookieStore.get('themeMode')?.value;
+
   return (
     <html lang={'en-US'}>
       <body data-new-gr-c-s-check-loaded="14.1251.0" data-gr-ext-installed="">
@@ -124,6 +130,7 @@ export default async function RootLayout({ children }) {
           cloudName={main.cloudName}
           preset={main.preset}
           shippingFee={main.shippingFee}
+          initialThemeMode={initialThemeMode}
         >
           {children}
         </Providers>

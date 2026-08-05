@@ -29,6 +29,17 @@ export default function SecondaryHeader({ categories = [] }) {
   // show it only to logged-out guests.
   const { isAuthenticated } = useSelector(({ user }) => user);
 
+  // Same fix already used in navbar/navigation-menu: the server always renders
+  // logged-out (it has no access to the auth token in localStorage/redux-persist),
+  // so `isAuthenticated` can briefly disagree with the server HTML on first paint.
+  // Gate on mount so this button starts in the same "visible" state as the server,
+  // then correctly hides once the real auth state is confirmed on the client.
+  const [mounted, setMounted] = React.useState(false);
+  React.useEffect(() => {
+    setMounted(true);
+  }, []);
+  const showAuthenticatedUI = mounted && isAuthenticated;
+
   /* ---------------- ActionBar Category Button ---------------- */
   const [anchorEl, setAnchorEl] = React.useState(null);
   const open = Boolean(anchorEl);
@@ -142,8 +153,8 @@ export default function SecondaryHeader({ categories = [] }) {
               bgcolor: '#E87722',
               boxShadow: '0 3px 10px rgba(232,119,34,0.35)',
               transition: 'all 0.25s ease',
-              visibility: isAuthenticated ? 'hidden' : 'visible',
-              pointerEvents: isAuthenticated ? 'none' : 'auto',
+              visibility: showAuthenticatedUI ? 'hidden' : 'visible',
+              pointerEvents: showAuthenticatedUI ? 'none' : 'auto',
               '&:hover': {
                 bgcolor: '#C5651D',
                 boxShadow: '0 5px 16px rgba(232,119,34,0.45)',

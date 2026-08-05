@@ -20,10 +20,18 @@ export default function MuiThemeProvider({
   baseCurrency,
   preset,
   cloudName,
-  shippingFee
+  shippingFee,
+  initialThemeMode
 }) {
   const { themeMode, direction, rate, currency, isInitialized } = useSelector((state) => state.settings);
-  const [resolvedMode, setResolvedMode] = useState(themeMode !== 'system' ? themeMode : 'light');
+
+  const [resolvedMode, setResolvedMode] = useState(
+    initialThemeMode === 'dark' || initialThemeMode === 'light'
+      ? initialThemeMode
+      : themeMode !== 'system'
+        ? themeMode
+        : 'light'
+  );
   const dispatch = useDispatch();
   useEffect(() => {
     if (themeMode === 'system') {
@@ -38,6 +46,13 @@ export default function MuiThemeProvider({
       return undefined;
     }
   }, [themeMode]);
+
+  // Keep the cookie mirrored to whatever mode actually ends up applied
+  // (manual light/dark pick, or the resolved value of "system"), so the
+  // next full reload's server render starts on the right foot.
+  useEffect(() => {
+    document.cookie = `themeMode=${resolvedMode}; path=/; max-age=31536000; SameSite=Lax`;
+  }, [resolvedMode]);
 
   useEffect(() => {
     dispatch(setShippingFee(shippingFee));
@@ -61,13 +76,7 @@ export default function MuiThemeProvider({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [resolvedMode, direction, fontFamily, palette]);
 
-  // NOTE: previously we wrapped AppRouterCacheProvider with our own
-  // separate EmotionCacheProvider (createCache) to support RTL. That
-  // created two competing emotion caches, each injecting <style> tags
-  // in a different order on the server vs the client — which is what
-  // caused the "server rendered HTML didn't match the client" error.
-  // AppRouterCacheProvider accepts the same cache config directly via
-  // `options`, so we no longer need the extra provider.
+  
   return (
     <AppRouterCacheProvider
       options={{
