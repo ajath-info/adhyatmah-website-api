@@ -34,7 +34,7 @@ const createVendorSlug = (vendor) => {
 
   if (!slug) {
 
-    slug = `pandit-${vendor?.id}`;
+    slug = `pandit-${vendor?.id || vendor?._id}`;
 
   }
 

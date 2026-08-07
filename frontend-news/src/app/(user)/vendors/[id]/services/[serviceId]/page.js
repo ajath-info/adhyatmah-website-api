@@ -1,7 +1,9 @@
+
 'use client';
 
+import { Suspense } from 'react';
 import React, { useEffect, useMemo, useState } from 'react';
-import { useParams, useRouter } from 'next/navigation';
+import { useParams, useRouter, useSearchParams } from 'next/navigation';
 import { useSelector } from 'react-redux';
 import toast from 'react-hot-toast';
 import { useQuery } from '@tanstack/react-query';
@@ -30,6 +32,8 @@ import {
 
 import HeaderBreadcrumbs from '@/components/header-breadcrumbs';
 import BookingPaymentDialog from '@/components/booking/booking-payment-dialog.js';
+import ServiceReviewsSection from '@/components/_main/service/tabs';
+import ServiceRatingSummaryCard from '@/components/cards/service/service-rating-summary-card';
 import * as api from 'src/services';
 import {
   EMPTY_KIT_DATA,
@@ -56,13 +60,21 @@ import {
 
 const MAX_KIT_LIMIT = 5;
 
-export default function VendorServiceBookingPage() {
+function VendorServiceBookingPage() {
   const params = useParams();
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { isAuthenticated } = useSelector(({ user }) => user);
 
   const vendorId = params.id;
   const serviceId = params.serviceId;
+
+  // This page is shared by two different booking origins:
+  // - "Pandit Ji" profile -> /vendors/{id}/services/{serviceId}          (no query param)
+  // - "Services" browse page -> /vendors/{id}/services/{serviceId}?from=service
+  // The `from=service` flag is only ever added by the Service-origin
+  // pages, so its presence tells us which coupon module applies here.
+  const bookingModule = searchParams.get('from') === 'service' ? 'service' : 'pandit';
 
   const [paymentDialogOpen, setPaymentDialogOpen] = useState(false);
   const [selectedDate, setSelectedDate] = useState('');
@@ -269,6 +281,10 @@ export default function VendorServiceBookingPage() {
             { name: service.poojaType }
           ]}
         />
+
+        {/* Rating + Read Reviews / Write Review - trust signal right under
+            the title, before the user decides whether to book */}
+        <ServiceRatingSummaryCard serviceId={resolvedServiceId} />
 
         <Grid container spacing={3}>
           {/* ── Left Column ── */}
@@ -819,6 +835,11 @@ export default function VendorServiceBookingPage() {
             </Card>
           </Grid>
         </Grid>
+
+        {/* Reviews only show up via popup (Read Reviews / Write Review
+            buttons above) - this stays mounted for the dialogs but renders
+            nothing inline. */}
+        <ServiceReviewsSection serviceId={resolvedServiceId} />
       </Stack>
 
       {paymentDialogOpen && selectedDate && selectedTime && streetAddress && city && district && state && country && (
@@ -828,6 +849,7 @@ export default function VendorServiceBookingPage() {
           bookingData={{
             vendorId: vendor.id,
             serviceId: service.id,
+            module: bookingModule,
             poojaType: service.poojaType,
             package: service.poojaType,
             dateTime: new Date(`${selectedDate}T${selectedTime}`).toISOString(),
@@ -859,5 +881,15 @@ export default function VendorServiceBookingPage() {
         />
       )}
     </Container>
+  );
+}
+
+// Suspense boundary: this component reads useSearchParams(); Next.js requires a
+// <Suspense> wrapper on statically rendered routes (CSR bailout rule).
+export default function VendorServiceBookingPageSuspenseWrapper(props) {
+  return (
+    <Suspense fallback={null}>
+      <VendorServiceBookingPage {...props} />
+    </Suspense>
   );
 }

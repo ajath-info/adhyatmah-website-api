@@ -66,28 +66,31 @@ function PoojaServicePanditsPage() {
 
         <Box>
           <Grid container spacing={2} justifyContent="start" alignItems="center" mb={3}>
-          {(isLoading ? Array.from(new Array(12)) : filteredVendors).map((vendor, index) => {
-  const matchedService = !isLoading && vendor ? resolveMatchedService(vendor) : null;
-  const vendorServiceId = matchedService?.id || matchedService?._id;
-  const bookingHref =
-    !isLoading && vendor
-      ? (vendorServiceId ? `/vendors/${vendor.id}/services/${vendorServiceId}` : `/vendors/${vendor.id}`)
-      : undefined;
+            {(isLoading ? Array.from(new Array(12)) : filteredVendors).map((vendor, index) => {
+              const matchedService = !isLoading && vendor ? resolveMatchedService(vendor) : null;
+              const vendorServiceId = matchedService?.id || matchedService?._id;
+              // `?from=service` marks this booking as having started from the
+              // "Pooja Services" browse page, so the shared booking page applies
+              // the Service coupon module instead of the Pandit one.
+              const bookingHref =
+                !isLoading && vendor
+                  ? (vendorServiceId ? `/vendors/${vendor.id}/services/${vendorServiceId}?from=service` : `/vendors/${vendor.id}`)
+                  : undefined;
 
-  return (
-    <React.Fragment key={vendor?.id || index}>
-      <Grid size={{ lg: 3, md: 6, sm: 6, xs: 12 }}>
-        <VendorCard
-          vendor={vendor}
-          isLoading={isLoading}
-          singleActionButton
-          singleActionLabel="View Details & Book"
-          singleActionHref={bookingHref}
-        />
-      </Grid>
-    </React.Fragment>
-  );
-})}
+              return (
+                <React.Fragment key={vendor?.id || index}>
+                  <Grid size={{ lg: 3, md: 6, sm: 6, xs: 12 }}>
+                    <VendorCard
+                      vendor={vendor}
+                      isLoading={isLoading}
+                      singleActionButton
+                      singleActionLabel="View Details & Book"
+                      singleActionHref={bookingHref}
+                    />
+                  </Grid>
+                </React.Fragment>
+              );
+            })}
           </Grid>
 
           {!isLoading && !Boolean(filteredVendors.length) && (

@@ -23,7 +23,7 @@ export default function ProductReview({ ...props }) {
   const router = useRouter();
   const [count, setCount] = useState(0);
   const [state, setstate] = useState([]);
-  const [reviewBox, setReviewBox] = useState(false);
+  const [reviewBox, setReviewBox] = useState(!reviews?.length);
   const { isAuthenticated } = useSelector(({ user }) => user);
   const handleOpenReviewBox = () => {
     isAuthenticated ? setReviewBox((prev) => !prev) : router.push('/auth/sign-in?redirect=' + router.asPath);

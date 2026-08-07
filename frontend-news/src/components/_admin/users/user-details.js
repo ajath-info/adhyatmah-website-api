@@ -9,6 +9,7 @@ import AdminUserProfileCard from './admin-user-profile-card';
 import VendorProfileDetails from './vendor-profile-details';
 import UserBookingHistory from './user-booking-history';
 import PoojaServicesTab from './pooja-services-tab';
+import VendorSeoContentTab from './vendor-seo-content-tab';
 
 import * as api from 'src/services';
 import { useQuery } from '@tanstack/react-query';
@@ -67,6 +68,7 @@ export default function UserProfile({ id }) {
               <Tab label="Vendor Details" id="vendor-tab-0" aria-controls="vendor-tabpanel-0" />
               <Tab label="Pooja Services" id="vendor-tab-1" aria-controls="vendor-tabpanel-1" />
               <Tab label="Booking History" id="vendor-tab-2" aria-controls="vendor-tabpanel-2" />
+              <Tab label="SEO Content" id="vendor-tab-3" aria-controls="vendor-tabpanel-3" />
             </Tabs>
           </Box>
 
@@ -78,6 +80,9 @@ export default function UserProfile({ id }) {
           </TabPanel>
           <TabPanel value={tabValue} index={2}>
             <UserBookingHistory userId={id} isVendorView embedded />
+          </TabPanel>
+          <TabPanel value={tabValue} index={3}>
+            <VendorSeoContentTab user={user} isLoading={isLoading} />
           </TabPanel>
         </Box>
       ) : (

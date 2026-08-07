@@ -1,5 +1,5 @@
 'use client';
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 
 // mui
@@ -26,6 +26,8 @@ import { MdPhone, MdEmail, MdLocationOn, MdWork, MdExpandMore, MdVerified, MdChe
 // components
 import HeaderBreadcrumbs from '@/components/header-breadcrumbs';
 import PoojaCard from 'src/components/cards/service/PoojaCard';
+import VendorReviewsSection from '@/components/_main/vendor/reviews';
+import VendorRatingSummaryCard from '@/components/cards/vendor/rating-summary-card';
 
 // api
 import * as api from 'src/services';
@@ -282,7 +284,7 @@ function RichText({ content, variant = 'body2', color = 'text.secondary', sx = {
 
 // ─── SEO Content Card Component ────────────────────────────────────────────────
 function SeoContentCard({ vendor, slug }) {
-  const custom = VENDOR_SEO_CONTENT[slug] || null;
+  const custom = vendor?.seoContent || VENDOR_SEO_CONTENT[slug] || null;
 
   const experienceLabel =
     custom?.details?.experience ||
@@ -432,7 +434,20 @@ export default function VendorDetailPage() {
   // ── Image zoom state ──
   const [zoomOpen, setZoomOpen] = useState(false);
 
-  const customSeo = VENDOR_SEO_CONTENT[slug] || null;
+  // If the user arrived here via a "Write Review" link (e.g. from a
+  // completed booking in their dashboard), open the existing Add Review
+  // popup automatically - no page scrolling. Reads the query string on the
+  // client only, so this doesn't need a Suspense boundary and can't affect
+  // server rendering of the page.
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const openReview = new URLSearchParams(window.location.search).get('openReview');
+    if (openReview !== '1') return;
+    const timer = setTimeout(() => {
+      window.dispatchEvent(new CustomEvent('adhyatmah:open-vendor-review'));
+    }, 300);
+    return () => clearTimeout(timer);
+  }, []);
 
   const {
     data: vendorData,
@@ -443,10 +458,40 @@ export default function VendorDetailPage() {
     queryFn: async () => {
       const response = await api.getAllPandit();
       const vendors = response?.payload?.vendors || [];
-      const matchedVendor = vendors.find((vendor) => {
-        console.log(createVendorSlug(vendor), slug);
-        return createVendorSlug(vendor) === slug;
-      });
+      let matchedVendor = vendors.find((vendor) => createVendorSlug(vendor) === slug);
+
+      // Names in Devanagari (or any non-Latin script) get stripped down to an
+      // empty string by createVendorSlug, so those vendors end up on a
+      // "pandit-<id>" slug (see createVendorSlug's fallback above). If that's
+      // the slug we're looking for but the vendor wasn't in the list above
+      // (e.g. it didn't come back for whatever reason), fetch that vendor
+      // directly by id instead of showing "Vendor not found" — this is what
+      // "Write Review" links from a booking rely on. Only kicks in for this
+      // id-based slug shape, so normal name-based slug navigation is unaffected.
+      if (!matchedVendor) {
+        const idMatch = /^pandit-([a-f0-9]{24})$/i.exec(slug || '');
+        if (idMatch) {
+          try {
+            const profileResponse = await api.getPanditProfile(idMatch[1]);
+            const profileVendor = profileResponse?.payload?.vendor;
+            if (profileVendor) {
+              matchedVendor = {
+                ...profileVendor,
+                id: String(profileVendor.id),
+                address: profileVendor.address?.street ?? null,
+                city: profileVendor.address?.city ?? null,
+                state: profileVendor.address?.state ?? null,
+                zip: profileVendor.address?.zip ?? null,
+                country: profileVendor.address?.country ?? null
+              };
+            }
+          } catch (error) {
+            // Fall through — matchedVendor stays undefined and the existing
+            // "Vendor not found" state renders, same as before.
+          }
+        }
+      }
+
       return { payload: { vendor: matchedVendor } };
     },
     enabled: !!slug
@@ -466,6 +511,12 @@ export default function VendorDetailPage() {
 
   const vendor = vendorData?.payload?.vendor;
   const services = servicesData?.payload?.services || [];
+
+  // Admin-filled SEO content (saved on the vendor's profile in the admin
+  // dashboard) takes priority; falls back to the hardcoded per-slug content
+  // below so pandits that haven't been configured in the dashboard yet keep
+  // showing exactly what they showed before.
+  const customSeo = vendor?.seoContent || VENDOR_SEO_CONTENT[slug] || null;
 
   const getLocalServiceImageByName = (poojaType = '') => {
     const normalized = normalizeServiceName(poojaType);
@@ -607,6 +658,12 @@ export default function VendorDetailPage() {
                     </Box>
                   )}
 
+                  {/* Rating Summary + Write Review (so users don't need to
+                      scroll past the full services list to find reviews) */}
+                  <Box sx={{ mt: 2, mb: 1 }}>
+                    <VendorRatingSummaryCard vendorId={vendorId} />
+                  </Box>
+
                   {/* Trust Badges */}
                   <Stack direction="row" sx={{ mt: 2, justifyContent: 'center', flexWrap: 'wrap', gap: 1 }}>
                     <Chip
@@ -742,6 +799,15 @@ export default function VendorDetailPage() {
                 </CardContent>
               </Card>
 
+              {/* Reviews preview - shown before Services so users see social
+                  proof and can jump to / write a review without scrolling
+                  past every service card first */}
+              <Card>
+                <CardContent>
+                  <VendorRatingSummaryCard vendorId={vendorId} showRecentReviews />
+                </CardContent>
+              </Card>
+
               {/* Services Section */}
               <Card>
                 <CardContent>
@@ -796,8 +862,11 @@ export default function VendorDetailPage() {
                 </CardContent>
               </Card>
 
-              {/* Empty card placeholder */}
-              <Card />
+              {/* Reviews list + rating breakdown no longer render inline
+                  here - "See All Reviews" (above) opens them in a popup
+                  instead, so this section is mounted only for its dialogs
+                  and stays invisible on the page itself. */}
+              <VendorReviewsSection vendorId={vendorId} />
 
             </Stack>
           </Grid>

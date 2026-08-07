@@ -3,6 +3,8 @@ const BrandModel = require("../../models/Brand");
 const Category = require("../../models/Category");
 const Product = require("../../models/Product");
 const Review = require("../../models/Review");
+const ServiceReview = require("../../models/ServiceReview");
+const VendorReview = require("../../models/VendorReview");
 const Settings = require("../../models/Settings");
 const User = require("../../models/User");
 
@@ -185,7 +187,7 @@ const getCategoryProducts = async (categoryId, limit = 4) => {
 const getUnifiedHomeData = async (req, res) => {
   try {
     // Fetch all data in parallel for better performance
-    const [bannersData, categoriesData, vendorsData, reviewsData] =
+    const [bannersData, categoriesData, vendorsData, productReviewsData, serviceReviewsData, vendorReviewsData] =
       await Promise.all([
         // 1. Banners and slides
         Settings.findOne().select("home"),
@@ -206,20 +208,95 @@ const getUnifiedHomeData = async (req, res) => {
           })
           .limit(5),
 
-        // 4. Reviews/Testimonials (limited to 8)
+        // 4. Product Reviews/Testimonials (limited to 8)
         Review.aggregate([
           { $sort: { rating: -1, createdAt: -1 } },
           { $group: { _id: "$user", review: { $first: "$$ROOT" } } },
           { $replaceRoot: { newRoot: "$review" } },
           { $limit: 8 },
         ]).exec(),
+
+        // 5. Service Reviews/Testimonials (limited to 8)
+        ServiceReview.aggregate([
+          { $sort: { rating: -1, createdAt: -1 } },
+          { $group: { _id: "$user", review: { $first: "$$ROOT" } } },
+          { $replaceRoot: { newRoot: "$review" } },
+          { $limit: 8 },
+        ]).exec(),
+
+        // 6. Pandit Ji (vendor) Reviews/Testimonials (limited to 8)
+        VendorReview.aggregate([
+          { $sort: { rating: -1, createdAt: -1 } },
+          { $group: { _id: "$customer", review: { $first: "$$ROOT" } } },
+          { $replaceRoot: { newRoot: "$review" } },
+          { $limit: 8 },
+        ]).exec(),
       ]);
 
     // Populate reviews with user data
-    await Review.populate(reviewsData, {
+    await Review.populate(productReviewsData, {
       path: "user",
       select: ["firstName", "lastName", "cover", "gender", "city", "country"],
     });
+    await ServiceReview.populate(serviceReviewsData, [
+      {
+        path: "user",
+        select: ["firstName", "lastName", "cover", "gender", "city", "country"],
+      },
+      {
+        path: "service",
+        select: ["poojaType"],
+      },
+    ]);
+    await VendorReview.populate(vendorReviewsData, [
+      {
+        path: "customer",
+        select: ["firstName", "lastName", "cover", "gender", "city", "country"],
+      },
+      {
+        path: "vendor",
+        select: ["firstName", "lastName"],
+      },
+    ]);
+
+    // Use the puja name as the badge shown on the testimonial card, instead
+    // of the raw service ObjectId.
+    const formattedServiceReviewsData = serviceReviewsData.map((review) => ({
+      ...(review.toObject ? review.toObject() : review),
+      category: review.service?.poojaType || "Puja Booking",
+    }));
+
+    // VendorReview docs use `customer`/`image` instead of `user`/`cover` -
+    // normalize to the same shape the testimonial card expects, and use the
+    // Pandit's name as the badge.
+    const formattedVendorReviewsData = vendorReviewsData.map((review) => {
+      const plain = review.toObject ? review.toObject() : review;
+      return {
+        ...plain,
+        user: plain.customer
+          ? {
+            firstName: plain.customer.firstName,
+            lastName: plain.customer.lastName,
+            gender: plain.customer.gender,
+            city: plain.customer.city,
+            country: plain.customer.country,
+            cover: plain.customer.cover,
+          }
+          : undefined,
+        category: plain.vendor
+          ? `Pandit ${plain.vendor.firstName || ""} ${plain.vendor.lastName || ""}`.trim()
+          : "Pandit Ji",
+      };
+    });
+
+    // Merge product + service reviews together for the testimonials strip,
+    // best rated / most recent first, capped at 8 total.
+    const reviewsData = [...productReviewsData, ...formattedServiceReviewsData, ...formattedVendorReviewsData]
+      .sort((a, b) => {
+        if (b.rating !== a.rating) return b.rating - a.rating;
+        return new Date(b.createdAt) - new Date(a.createdAt);
+      })
+      .slice(0, 8);
 
     // Format vendors data to match expected frontend structure
     const formattedVendors = vendorsData.map((vendor) => ({
@@ -292,6 +369,92 @@ const getUnifiedHomeData = async (req, res) => {
   }
 };
 
+// GET /api/reviews-all?page=1&limit=9
+// Powers the "View All Reviews" popup on the homepage testimonials section.
+// Unlike the unified-home reviews (capped at 8, one per user), this returns
+// every product/service/pandit review, newest & best rated first, paginated.
+const getAllReviewsMerged = async (req, res) => {
+  try {
+    const page = Math.max(parseInt(req.query.page, 10) || 1, 1);
+    const limit = Math.max(parseInt(req.query.limit, 10) || 9, 1);
+
+    const [productReviewsData, serviceReviewsData, vendorReviewsData] = await Promise.all([
+      Review.find({}).sort({ rating: -1, createdAt: -1 }).populate({
+        path: "user",
+        select: ["firstName", "lastName", "cover", "gender", "city", "country"],
+      }),
+      ServiceReview.find({}).sort({ rating: -1, createdAt: -1 }).populate([
+        { path: "user", select: ["firstName", "lastName", "cover", "gender", "city", "country"] },
+        { path: "service", select: ["poojaType"] },
+      ]),
+      VendorReview.find({}).sort({ rating: -1, createdAt: -1 }).populate([
+        { path: "customer", select: ["firstName", "lastName", "cover", "gender", "city", "country"] },
+        { path: "vendor", select: ["firstName", "lastName"] },
+      ]),
+    ]);
+
+    // Same badge-normalisation used on the homepage strip, so cards look
+    // identical in both places.
+    const formattedServiceReviewsData = serviceReviewsData.map((review) => ({
+      ...(review.toObject ? review.toObject() : review),
+      category: review.service?.poojaType || "Puja Booking",
+    }));
+
+    const formattedVendorReviewsData = vendorReviewsData.map((review) => {
+      const plain = review.toObject ? review.toObject() : review;
+      return {
+        ...plain,
+        user: plain.customer
+          ? {
+            firstName: plain.customer.firstName,
+            lastName: plain.customer.lastName,
+            gender: plain.customer.gender,
+            city: plain.customer.city,
+            country: plain.customer.country,
+            cover: plain.customer.cover,
+          }
+          : undefined,
+        category: plain.vendor
+          ? `Pandit ${plain.vendor.firstName || ""} ${plain.vendor.lastName || ""}`.trim()
+          : "Pandit Ji",
+      };
+    });
+
+    const allReviews = [
+      ...productReviewsData.map((r) => (r.toObject ? r.toObject() : r)),
+      ...formattedServiceReviewsData,
+      ...formattedVendorReviewsData,
+    ].sort((a, b) => {
+      if (b.rating !== a.rating) return b.rating - a.rating;
+      return new Date(b.createdAt) - new Date(a.createdAt);
+    });
+
+    const total = allReviews.length;
+    const totalPages = Math.max(Math.ceil(total / limit), 1);
+    const start = (page - 1) * limit;
+    const paginatedReviews = allReviews.slice(start, start + limit);
+
+    return res.status(200).json({
+      success: true,
+      data: {
+        reviews: paginatedReviews,
+        total,
+        page,
+        limit,
+        totalPages,
+      },
+    });
+  } catch (error) {
+    console.error("Error in getAllReviewsMerged controller:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Failed to fetch reviews",
+      error: error.message,
+    });
+  }
+};
+
 module.exports = {
   getUnifiedHomeData,
+  getAllReviewsMerged,
 };

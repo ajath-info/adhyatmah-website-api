@@ -2,11 +2,31 @@
 
 import React from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useRouter } from '@bprogress/next';
 import { Box, Tabs, Tab, Stack, Card, CardContent, Typography, Chip, Grid, Button, CircularProgress } from '@mui/material';
+import { MdStar } from 'react-icons/md';
 import * as api from 'src/services';
 import BookingDetailsModal from '@/components/booking/booking-details-modal';
 
-function BookingCard({ booking, onOpenDetails }) {
+// Mirrors the slug logic already used on the pandit profile page
+// (VendorProfileClient's createVendorSlug), so "Write Review" always lands
+// on the right profile even when the vendor doc has no explicit slug.
+const createVendorSlug = (vendor) => {
+  if (vendor?.slug) return vendor.slug;
+  const fullName = [vendor?.firstName || '', vendor?.lastName || ''].join(' ');
+  let slug = fullName
+    .toLowerCase()
+    .replace(/[^\x00-\x7F]/g, '')
+    .replace(/\./g, '')
+    .replace(/[^a-z0-9\s-]/g, '')
+    .replace(/\s+/g, '-')
+    .replace(/-+/g, '-')
+    .replace(/^-|-$/g, '');
+  if (!slug) slug = `pandit-${vendor?.id || vendor?._id}`;
+  return slug;
+};
+
+function BookingCard({ booking, onOpenDetails, showWriteReview }) {
   const queryClient = useQueryClient();
   const vendor = booking.vendor || {};
   const customer = booking.customer || {};
@@ -33,6 +53,13 @@ function BookingCard({ booking, onOpenDetails }) {
   const handleViewDetails = (e) => {
     e.stopPropagation();
     onOpenDetails(booking._id);
+  };
+
+  const router = useRouter();
+  const handleWriteReview = (e) => {
+    e.stopPropagation();
+    const slug = createVendorSlug(vendor);
+    router.push(`/${slug}?openReview=1`);
   };
 
   const handleCardClick = () => {
@@ -108,6 +135,17 @@ function BookingCard({ booking, onOpenDetails }) {
             <Typography variant="subtitle2">₹{booking.paymentAmount}</Typography>
             <Chip size="small" variant="outlined" label={booking.status} />
             {getActionButton()}
+            {showWriteReview && (
+              <Button
+                variant="contained"
+                size="small"
+                startIcon={<MdStar />}
+                onClick={handleWriteReview}
+                sx={{ minWidth: 80 }}
+              >
+                Write Review
+              </Button>
+            )}
           </Stack>
         </Stack>
       </CardContent>
@@ -149,7 +187,11 @@ export default function BookingHistory() {
         <Grid container spacing={2}>
           {(TAB_MAP[tab] || []).map((bk) => (
             <Grid size={{ xs: 12, sm: 6, md: 4, lg: 4 }} key={bk._id}>
-              <BookingCard booking={bk} onOpenDetails={handleOpenDetails} />
+              <BookingCard
+                booking={bk}
+                onOpenDetails={handleOpenDetails}
+                showWriteReview={tab === 'previous' && bk.status === 'completed'}
+              />
             </Grid>
           ))}
           {TAB_MAP[tab].length === 0 && (

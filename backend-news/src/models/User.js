@@ -253,6 +253,35 @@ const UserSchema = new mongoose.Schema(
       ],
       default: [],
     },
+    // Admin-editable SEO content shown on this vendor's public profile page
+    // (Traditional Puja Services intro + Pandit Ji Overview + FAQ block).
+    // When left empty the frontend/backend fall back to the hardcoded
+    // per-slug content in vendorSeoContent.js, so existing pandit pages
+    // keep working exactly as before until an admin fills this in.
+    seoContent: {
+      h1: { type: String },
+      intro: {
+        heading: { type: String },
+        content: { type: String },
+      },
+      about: {
+        heading: { type: String },
+        content: { type: String },
+      },
+      details: {
+        experience: { type: String },
+        specialization: { type: String },
+        services: { type: String },
+        availability: { type: String },
+      },
+      faqs: [
+        {
+          question: { type: String },
+          answer: { type: String },
+          _id: false,
+        },
+      ],
+    },
   },
   {
     timestamps: true,

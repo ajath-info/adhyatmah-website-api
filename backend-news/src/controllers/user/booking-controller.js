@@ -6,6 +6,11 @@ const Settings = require("../../models/Settings");
 const { singleFileUploader } = require("../../utils/uploader-util");
 const { VENDOR_SEO_CONTENT } = require("../../data/vendorSeoContent");
 const { allServices } = require("../../data/allServices");
+const {
+  validateCouponForModule,
+  calculateDiscount,
+  markCouponUsed,
+} = require("../../utils/coupon-util");
 
 
 function normalizeAddress(address) {
@@ -103,6 +108,8 @@ const createBooking = async (
       pujaSamagri,
       paymentAmount,
       language,
+      couponCode,
+      module,
     } = req.body;
 
     // ------------------------------------
@@ -257,6 +264,49 @@ const createBooking = async (
     };
 
     // ------------------------------------
+    // Coupon (optional) - Service Booking OR Pandit Booking module.
+    // Both booking origins ("Book from Service page" and "Book from
+    // Pandit page") call this same createBooking() endpoint, so the
+    // caller must tell us which one it was via `module`. We never
+    // hardcode a single module here and we never treat the two as
+    // the same module - a Service coupon must not work when the
+    // booking started from the Pandit page and vice-versa.
+    // Server-side validation + discount calc only.
+    // The discount is never trusted from the client;
+    // it is always recomputed here against paymentAmount.
+    // ------------------------------------
+    let discount = 0;
+    let appliedCouponCode = null;
+
+    // "pandit" is the historical/default origin (kept only as a
+    // fallback for older clients that don't send `module` yet).
+    const bookingModule = module === "service" ? "service" : "pandit";
+
+    if (couponCode) {
+      const { valid, message, coupon: couponData } =
+        await validateCouponForModule(couponCode, bookingModule);
+
+      if (!valid) {
+        return res.status(400).json({
+          error: true,
+          code: 400,
+          status: 0,
+          message,
+        });
+      }
+
+      discount = calculateDiscount(couponData, paymentAmount);
+      appliedCouponCode = couponCode;
+
+      await markCouponUsed(couponCode, customer.email);
+    }
+
+    const discountedPaymentAmount = Math.max(
+      0,
+      paymentAmount - discount
+    );
+
+    // ------------------------------------
     // Create Booking
     // ------------------------------------
     const booking =
@@ -289,7 +339,13 @@ const createBooking = async (
         language:
           language || ["hindi"],
 
-        paymentAmount,
+        paymentAmount:
+          discountedPaymentAmount,
+
+        couponCode:
+          appliedCouponCode,
+
+        discount,
 
         bookingID:
           `BOOK-${Date.now()}-${Math.floor(
@@ -381,6 +437,12 @@ const createBooking = async (
 
           paymentAmount:
             booking.paymentAmount,
+
+          couponCode:
+            booking.couponCode,
+
+          discount:
+            booking.discount,
 
           service:
             populatedBooking.service
@@ -1346,7 +1408,7 @@ const getPanditList = async (req, res) => {
 
     let vendorsQuery = User.find(query)
       .select(
-        "firstName lastName email phone about services cover address city country state zip language gotra veda pankti shakha sutra pravar experience referral_code"
+        "firstName lastName email phone about services cover address city country state zip language gotra veda pankti shakha sutra pravar experience referral_code seoContent"
       )
       .populate({
         path: "services",
@@ -1434,17 +1496,27 @@ const getPanditList = async (req, res) => {
         sutra: vendor.sutra ?? null,
         pravar: vendor.pravar ?? null,
         experience: vendor.experience ?? null,
-        seoContent: VENDOR_SEO_CONTENT[vendorSlug]
-          ? {
-            ...VENDOR_SEO_CONTENT[vendorSlug],
+        // Admin-filled SEO content (from the vendor's User document) takes
+        // priority; if the admin hasn't filled it in yet, fall back to the
+        // hardcoded per-slug content so existing pandit pages don't change.
+        seoContent: (() => {
+          const rawDbSeo = vendor.seoContent?.toObject
+            ? vendor.seoContent.toObject()
+            : vendor.seoContent;
+          const dbSeo = rawDbSeo && rawDbSeo.h1 ? rawDbSeo : null;
+          const staticSeo = VENDOR_SEO_CONTENT[vendorSlug] || null;
+          const resolvedSeo = dbSeo || staticSeo;
+          if (!resolvedSeo) return null;
+          return {
+            ...resolvedSeo,
             details: {
-              ...VENDOR_SEO_CONTENT[vendorSlug]?.details,
+              ...resolvedSeo?.details,
               experience: vendor.experience
                 ? `${vendor.experience}+ Years`
-                : VENDOR_SEO_CONTENT[vendorSlug]?.details?.experience,
+                : resolvedSeo?.details?.experience,
             },
-          }
-          : null,
+          };
+        })(),
       };
     });
 
@@ -2504,7 +2576,7 @@ const getVendorReviews = async (req, res) => {
 
     const [items, count, avg] = await Promise.all([
       VendorReview.find({ vendor: vendorId })
-        .populate("customer", "firstName lastName image")
+        .populate("customer", "firstName lastName cover")
         .sort({ createdAt: -1 })
         .skip(skip)
         .limit(Number(limit)),

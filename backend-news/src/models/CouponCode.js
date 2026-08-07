@@ -31,6 +31,15 @@ const CouponCodeSchema = new mongoose.Schema(
       enum: ["percent", "fixed"],
       required: [true, "Type is required."],
     },
+    // Which module/checkout this coupon is valid for.
+    // Old coupons created before this field existed will not have it set;
+    // application-level code treats a missing/undefined value as "all"
+    // so existing coupons keep working everywhere (see coupon-util.js).
+    appliesTo: {
+      type: String,
+      enum: ["product", "service", "pandit", "all"],
+      default: "all",
+    },
     usedBy: [{ type: String }],
   },
   {

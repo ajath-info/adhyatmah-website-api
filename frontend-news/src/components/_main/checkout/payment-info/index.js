@@ -32,7 +32,7 @@ export default function PaymentInfo({ setCouponCode, setTotal }) {
   const [appliedDiscount, setDiscount] = useState(null);
 
   const { mutate, isPending: isLoading } = useMutation({
-    mutationFn: api.applyCouponCode,
+    mutationFn: (couponCode) => api.applyCouponCode(couponCode, 'product'),
     onSuccess: ({ data }) => {
       if (isExpired(data.expire)) {
         toast.error('Coupon code is expired!');

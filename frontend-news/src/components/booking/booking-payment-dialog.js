@@ -15,7 +15,8 @@ import {
   Divider,
   Alert,
   CircularProgress,
-  Chip
+  Chip,
+  TextField
 } from '@mui/material';
 
 // icons
@@ -29,7 +30,9 @@ import {
   MdAccessTime,
   MdAccountBalanceWallet,
   MdInfoOutline,
-  MdReceipt
+  MdReceipt,
+  MdLocalOffer,
+  MdClose
 } from 'react-icons/md';
 
 // api
@@ -43,6 +46,51 @@ export default function BookingPaymentDialog({ open, onClose, bookingData, onSuc
   const [selectedPaymentMethod, setSelectedPaymentMethod] = useState('razorpay');
   const [paymentMethods, setPaymentMethods] = useState(['razorpay']);
 
+  // ── Coupon (Service Booking OR Pandit Booking module) ──
+  // `bookingData.module` tells us which page the booking started from
+  // ('service' or 'pandit'). It must NOT be hardcoded here - a Service
+  // coupon should only work when the user started from the Service
+  // page, and a Pandit coupon only when they started from the Pandit
+  // page. Falls back to 'pandit' only if a caller hasn't been updated
+  // to pass module yet.
+  // This is a preview only - the discount shown here is recalculated,
+  // authoritatively, on the server when the booking is actually created.
+  const bookingModule = bookingData?.module === 'service' ? 'service' : 'pandit';
+
+  const [couponInput, setCouponInput] = useState('');
+  const [couponApplying, setCouponApplying] = useState(false);
+  const [couponError, setCouponError] = useState(null);
+  const [appliedCoupon, setAppliedCoupon] = useState(null); // { code, type, discount }
+
+  const handleApplyCoupon = useCallback(async () => {
+    if (!couponInput || couponInput.trim().length < 4) {
+      setCouponError('Enter a valid coupon code.');
+      return;
+    }
+    setCouponApplying(true);
+    setCouponError(null);
+    try {
+      const response = await api.applyCouponCode(couponInput.trim(), bookingModule);
+      const coupon = response?.data;
+      setAppliedCoupon({
+        code: coupon.code,
+        type: coupon.type,
+        discount: coupon.discount
+      });
+    } catch (err) {
+      setCouponError(err?.response?.data?.message || 'Coupon code is not valid');
+      setAppliedCoupon(null);
+    } finally {
+      setCouponApplying(false);
+    }
+  }, [couponInput, bookingModule]);
+
+  const handleRemoveCoupon = () => {
+    setAppliedCoupon(null);
+    setCouponInput('');
+    setCouponError(null);
+  };
+
   const createBooking = useCallback(async () => {
     if (!bookingData) return;
 
@@ -50,7 +98,15 @@ export default function BookingPaymentDialog({ open, onClose, bookingData, onSuc
     setError(null);
 
     try {
-      const response = await api.createBooking(bookingData);
+      const response = await api.createBooking({
+        ...bookingData,
+        // `module` tells the server which origin ('service' or 'pandit')
+        // this booking started from, so it validates the coupon against
+        // the correct module only.
+        module: bookingModule,
+        // Only the code is sent - discount is always calculated server-side.
+        ...(appliedCoupon ? { couponCode: appliedCoupon.code } : {})
+      });
 
       if (response.error === false) {
         setBookingCreated(true);
@@ -64,7 +120,7 @@ export default function BookingPaymentDialog({ open, onClose, bookingData, onSuc
       setProcessing(false);
       throw err;
     }
-  }, [bookingData]);
+  }, [bookingData, appliedCoupon, bookingModule]);
 
   const handlePayment = useCallback(async () => {
     if (!bookingData) return;
@@ -155,6 +211,15 @@ export default function BookingPaymentDialog({ open, onClose, bookingData, onSuc
 
   // ✅ FIX: Remaining = grandTotal - advanceAmount (was: totalAmount - advanceAmount)
   const remainingAmount = grandTotal - advanceAmount;
+
+  // ── Coupon discount preview (display only) ──
+  // Authoritative discount is always recalculated server-side in createBooking.
+  const couponDiscount = appliedCoupon
+    ? appliedCoupon.type === 'percent'
+      ? (appliedCoupon.discount / 100) * advanceAmount
+      : Math.min(appliedCoupon.discount, advanceAmount)
+    : 0;
+  const discountedAdvanceAmount = Math.max(0, advanceAmount - couponDiscount);
 
   return (
     <Dialog open={open} onClose={handleClose} maxWidth="md" fullWidth disableEscapeKeyDown={processing}>
@@ -357,13 +422,27 @@ export default function BookingPaymentDialog({ open, onClose, bookingData, onSuc
                 <Typography variant="body2" fontWeight={500} sx={{ color: '#1a1a1a' }}>₹{grandTotal}</Typography>
               </Stack>
 
+              {/* Coupon Discount */}
+              {appliedCoupon && (
+                <Stack direction="row" justifyContent="space-between" alignItems="center">
+                  <Typography variant="body2" sx={{ color: '#16a34a' }}>
+                    Coupon ({appliedCoupon.code})
+                  </Typography>
+                  <Typography variant="body2" sx={{ color: '#16a34a' }}>
+                    - ₹{couponDiscount.toFixed(2)}
+                  </Typography>
+                </Stack>
+              )}
+
               {/* Paying Now */}
               <Stack direction="row" justifyContent="space-between" alignItems="center">
                 <Stack direction="row" alignItems="center" spacing={1}>
                   <MdAccountBalanceWallet size={18} color="#f97316" />
                   <Typography variant="body2" fontWeight={600} sx={{ color: '#1a1a1a' }}>Paying Now</Typography>
                 </Stack>
-                <Typography variant="h6" fontWeight="bold" sx={{ color: '#f97316' }}>₹{advanceAmount}</Typography>
+                <Typography variant="h6" fontWeight="bold" sx={{ color: '#f97316' }}>
+                  ₹{discountedAdvanceAmount.toFixed(2)}
+                </Typography>
               </Stack>
             </Stack>
 
@@ -376,6 +455,46 @@ export default function BookingPaymentDialog({ open, onClose, bookingData, onSuc
             </Box>
           </Box>
           {/* ── End Payment Summary ── */}
+
+          {/* Coupon */}
+          <Box>
+            <Typography variant="subtitle2" sx={{ mb: 1, display: 'flex', alignItems: 'center', gap: 0.75 }}>
+              <MdLocalOffer size={16} color="#f97316" /> Have a coupon?
+            </Typography>
+            {appliedCoupon ? (
+              <Chip
+                label={`${appliedCoupon.code} applied`}
+                color="success"
+                variant="outlined"
+                onDelete={handleRemoveCoupon}
+                deleteIcon={<MdClose />}
+                disabled={processing}
+              />
+            ) : (
+              <Stack direction="row" gap={1}>
+                <TextField
+                  fullWidth
+                  size="small"
+                  placeholder="Enter coupon code"
+                  value={couponInput}
+                  disabled={processing || couponApplying}
+                  onChange={(e) => setCouponInput(e.target.value)}
+                />
+                <Button
+                  variant="outlined"
+                  onClick={handleApplyCoupon}
+                  disabled={processing || couponApplying || couponInput.trim().length < 4}
+                >
+                  {couponApplying ? 'Applying...' : 'Apply'}
+                </Button>
+              </Stack>
+            )}
+            {couponError && (
+              <Typography variant="caption" color="error" sx={{ mt: 0.5, display: 'block' }}>
+                {couponError}
+              </Typography>
+            )}
+          </Box>
 
           {/* Error Display */}
           {error && <Alert severity="error">{error}</Alert>}
@@ -428,7 +547,7 @@ export default function BookingPaymentDialog({ open, onClose, bookingData, onSuc
           disabled={processing || !selectedPaymentMethod}
           sx={{ ml: 2 }}
         >
-          {processing ? 'Processing...' : `Pay ₹${advanceAmount} with Razorpay`}
+          {processing ? 'Processing...' : `Pay ₹${discountedAdvanceAmount.toFixed(2)} with Razorpay`}
         </Button>
       </DialogActions>
     </Dialog>

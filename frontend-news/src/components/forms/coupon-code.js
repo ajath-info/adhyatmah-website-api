@@ -18,7 +18,9 @@ import {
   FormControlLabel,
   Radio,
   InputAdornment,
-  RadioGroup
+  RadioGroup,
+  Select,
+  MenuItem
 } from '@mui/material';
 // api
 import * as api from 'src/services';
@@ -52,6 +54,9 @@ export default function CouponCodeForm({ data: currentCouponCode, isLoading: cat
       code: currentCouponCode?.code || '',
       type: currentCouponCode?.type || 'fixed',
       discount: currentCouponCode?.discount || '',
+      // Old coupons saved before this field existed have no appliesTo value -
+      // treat them as "all" so the form (and the coupon) keeps working as before.
+      appliesTo: currentCouponCode?.appliesTo || 'all',
       expire: currentCouponCode?.expire?.split('T')[0] || '',
       description: currentCouponCode?.description || ''
     },
@@ -167,14 +172,44 @@ export default function CouponCodeForm({ data: currentCouponCode, isLoading: cat
                               {values.type === 'fixed'
                                 ? fCurrency(0)
                                   ? fCurrency(0)
-                                      ?.replace(/\d+(\.\d+)?/g, '')
-                                      .trim()
+                                    ?.replace(/\d+(\.\d+)?/g, '')
+                                    .trim()
                                   : null
                                 : '%'}
                             </InputAdornment>
                           )
                         }}
                       />
+                    )}
+                  </Stack>
+                  <Stack gap={1}>
+                    {categoryLoading ? (
+                      <Skeleton variant="text" width={90} />
+                    ) : (
+                      <Typography variant="overline" htmlFor="applies-to" color="text.primary" component={'label'}>
+                        Applies To
+                      </Typography>
+                    )}
+                    {categoryLoading ? (
+                      <Skeleton variant="rounded" width="100%" height={56} />
+                    ) : (
+                      <Select
+                        id="applies-to"
+                        fullWidth
+                        value={values.appliesTo}
+                        onChange={(e) => setFieldValue('appliesTo', e.target.value)}
+                        error={Boolean(touched.appliesTo && errors.appliesTo)}
+                      >
+                        <MenuItem value="all">All</MenuItem>
+                        <MenuItem value="product">Products</MenuItem>
+                        <MenuItem value="service">Services</MenuItem>
+                        <MenuItem value="pandit">Pandit Booking</MenuItem>
+                      </Select>
+                    )}
+                    {!categoryLoading && touched.appliesTo && errors.appliesTo && (
+                      <Typography variant="caption" color="error">
+                        {errors.appliesTo}
+                      </Typography>
                     )}
                   </Stack>
                 </Stack>

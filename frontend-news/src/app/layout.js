@@ -2,7 +2,7 @@ import * as React from 'react';
 import Script from 'next/script';
 import { cookies } from 'next/headers';
 import Providers from 'src/providers';
-import { GoogleTagManager, GoogleAnalytics } from '@next/third-parties/google';
+import { GoogleAnalytics } from '@next/third-parties/google';
 import FacebookPixel from 'src/components/FacebookPixel';
 import 'simplebar-react/dist/simplebar.min.css';
 
@@ -144,7 +144,6 @@ export default async function RootLayout({ children }) {
         {/* Meta Pixel Code */}
         <FacebookPixel />
 
-        <GoogleTagManager gtmId={main.gtmId} />
         <GoogleAnalytics gaId={main.gaId} />
 
         <Providers

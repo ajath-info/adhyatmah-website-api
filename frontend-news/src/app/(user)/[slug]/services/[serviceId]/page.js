@@ -30,6 +30,8 @@ import {
 
 import HeaderBreadcrumbs from '@/components/header-breadcrumbs';
 import BookingPaymentDialog from '@/components/booking/booking-payment-dialog.js';
+import ServiceReviewsSection from '@/components/_main/service/tabs';
+import ServiceRatingSummaryCard from '@/components/cards/service/service-rating-summary-card';
 import * as api from 'src/services';
 import { EMPTY_KIT_DATA, buildPujaSamagriPayload, fetchServiceKits } from 'src/utils/puja-kit-product';
 import {
@@ -358,6 +360,10 @@ export default function VendorServiceBookingPage() {
             { name: service.poojaType }
           ]}
         />
+
+        {/* Rating + Read Reviews / Write Review - trust signal right under
+            the title, before the user decides whether to book */}
+        <ServiceRatingSummaryCard serviceId={resolvedServiceId} />
 
         <Grid container spacing={3}>
           {/* ── LEFT COLUMN ── */}
@@ -1230,6 +1236,12 @@ export default function VendorServiceBookingPage() {
             </Card>
           </Grid>
         </Grid>
+
+        {/* ── Reviews Section ── */}
+        {/* Reviews only show up via popup (Read Reviews / Write Review
+            buttons above) - this stays mounted for the dialogs but renders
+            nothing inline. */}
+        <ServiceReviewsSection serviceId={resolvedServiceId} />
       </Stack>
 
       {paymentDialogOpen && selectedDate && selectedTime && streetAddress && city && district && state && country && (
@@ -1239,6 +1251,10 @@ export default function VendorServiceBookingPage() {
           bookingData={{
             vendorId: vendor.id,
             serviceId: service.id,
+            // This page is only ever linked from a pandit's own profile
+            // (VendorProfileClient.js), so the coupon module is always
+            // "pandit" here - never "service".
+            module: 'pandit',
             poojaType: service.poojaType,
             package: service.poojaType,
             dateTime: new Date(`${selectedDate}T${selectedTime}`).toISOString(),

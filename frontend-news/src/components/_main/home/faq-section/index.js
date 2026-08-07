@@ -68,47 +68,30 @@ const FAQS = [
     },
 ];
 
-/* ---------------- DECORATIVE ARROW LINE (matches other home section titles) ---------------- */
-function ArrowLine({ direction = 'left' }) {
+/* ---------------- SINGLE FAQ CARD (question + circular toggle + collapsible answer) ---------------- */
+function FaqRow({ faq, isOpen, onToggle }) {
     return (
         <Box
-            component="svg"
-            viewBox="0 0 46 14"
+            onClick={onToggle}
             sx={{
-                width: { xs: 26, sm: 36, md: 42 },
-                height: 14,
-                display: { xs: 'none', sm: 'block' },
-                transform: direction === 'right' ? 'scaleX(-1)' : 'none',
+                cursor: 'pointer',
+                bgcolor: '#fff',
+                borderRadius: 2.5,
+                px: { xs: 2, md: 2.5 },
+                boxShadow: isOpen ? '0 4px 14px rgba(251,139,5,0.16)' : '0 1px 4px rgba(0,0,0,0.06)',
+                border: '1px solid',
+                borderColor: isOpen ? 'rgba(251,139,5,0.35)' : 'rgba(0,0,0,0.06)',
+                transition: 'box-shadow 0.2s ease, border-color 0.2s ease',
+                '&:hover .faq-question': { color: ORANGE },
             }}
         >
-            <line x1="0" y1="7" x2="34" y2="7" stroke={ORANGE} strokeWidth="2" />
-            <path d="M28 1.5 L37 7 L28 12.5" fill="none" stroke={ORANGE} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-        </Box>
-    );
-}
-
-/* ---------------- SINGLE FAQ ROW (question + circular toggle + collapsible answer) ---------------- */
-function FaqRow({ faq, isOpen, onToggle, isLast }) {
-    return (
-        <Box>
-            <Stack
-                direction="row"
-                alignItems="center"
-                justifyContent="space-between"
-                spacing={2}
-                onClick={onToggle}
-                sx={{
-                    cursor: 'pointer',
-                    py: 2,
-                    '&:hover .faq-question': { color: ORANGE },
-                }}
-            >
+            <Stack direction="row" alignItems="center" justifyContent="space-between" spacing={2} sx={{ py: 1.75 }}>
                 <Typography
                     className="faq-question"
                     sx={{
                         fontWeight: 600,
-                        fontSize: { xs: 14, md: 15.5 },
-                        color: isOpen ? ORANGE : 'text.primary',
+                        fontSize: { xs: 13.5, md: 14.5 },
+                        color: isOpen ? ORANGE : '#1A1A1A',
                         transition: 'color 0.2s ease',
                         pr: 1,
                     }}
@@ -120,92 +103,106 @@ function FaqRow({ faq, isOpen, onToggle, isLast }) {
                     justifyContent="center"
                     sx={{
                         flexShrink: 0,
-                        width: 30,
-                        height: 30,
+                        width: 28,
+                        height: 28,
                         borderRadius: '50%',
                         border: '1.5px solid',
                         borderColor: ORANGE,
                         color: ORANGE,
-                        bgcolor: isOpen ? 'rgba(232,119,34,0.1)' : 'transparent',
+                        bgcolor: isOpen ? 'rgba(251,139,5,0.1)' : 'transparent',
                         transition: 'background-color 0.2s ease',
                     }}
                 >
-                    {isOpen ? <MdRemove size={16} /> : <MdAdd size={16} />}
+                    {isOpen ? <MdRemove size={15} /> : <MdAdd size={15} />}
                 </Stack>
             </Stack>
             <Collapse in={isOpen} timeout={220} unmountOnExit>
-                <Typography sx={{ fontSize: { xs: 13, md: 13.5 }, color: 'text.secondary', lineHeight: 1.7, pb: 2, pr: 5 }}>
+                <Typography sx={{ fontSize: { xs: 12.5, md: 13 }, color: '#5C5C5C', lineHeight: 1.7, pb: 2, pr: 5 }}>
                     {faq.answer}
                 </Typography>
             </Collapse>
-            {!isLast && <Box sx={{ height: '1px', bgcolor: 'divider' }} />}
         </Box>
     );
 }
 
 // SEO Fix: FAQ accordion.
 // Placement: below the Blog section, above the Footer.
-// Layout/flow matches vodex.ai's two-column FAQ (single item open at a time,
-// circular +/- toggle), restyled with Adhyatmah's own orange/white theme.
+// Layout matches arthum.co.in's reference FAQ pattern — left column has the
+// heading + description + illustration, right column is a single-file stack
+// of accordion cards (one open at a time) — restyled with Adhyatmah's own
+// saffron/cream brand theme.
 export default function FaqSection() {
-    const [openIndex, setOpenIndex] = useState(0);
+    const [openIndex, setOpenIndex] = useState(-1);
 
     const handleToggle = (index) => {
         setOpenIndex((prev) => (prev === index ? -1 : index));
     };
 
-    const midPoint = Math.ceil(FAQS.length / 2);
-    const leftColumn = FAQS.slice(0, midPoint).map((faq, i) => ({ faq, index: i }));
-    const rightColumn = FAQS.slice(midPoint).map((faq, i) => ({ faq, index: i + midPoint }));
-
     return (
         <Box
             sx={{
                 width: '100%',
-                px: { xs: 2.5, md: 4 },
+                bgcolor: '#FBEBDA',
+                borderRadius: 3,
+                px: { xs: 2.5, md: 5 },
+                py: { xs: 3.5, md: 5 },
+                position: 'relative',
+                overflow: 'hidden',
             }}
         >
-            <Stack alignItems="center" spacing={1} sx={{ width: '100%', mb: 3 }}>
-                <Stack direction="row" alignItems="center" justifyContent="center" spacing={{ xs: 1, sm: 1.5 }} sx={{ width: '100%' }}>
-                    <ArrowLine direction="left" />
-                    <Typography
-                        component="h2"
-                        sx={{
-                            fontSize: { xs: 20, sm: 24, md: 26 },
-                            fontWeight: 700,
-                            color: 'text.primary',
-                            textAlign: 'center',
-                        }}
-                    >
-                        Frequently Asked Questions
-                    </Typography>
-                    <ArrowLine direction="right" />
-                </Stack>
-            </Stack>
+            <Grid container spacing={{ xs: 3, md: 6 }} alignItems="flex-start">
+                {/* Left: heading + description + illustration (image path below) */}
+                <Grid size={{ xs: 12, md: 5 }}>
+                    <Stack spacing={2}>
+                        <Typography
+                            component="h2"
+                            sx={{
+                                fontSize: { xs: 24, sm: 28, md: 32 },
+                                fontWeight: 700,
+                                color: '#1A1A1A',
+                                lineHeight: 1.2,
+                            }}
+                        >
+                            Frequently asked questions
+                        </Typography>
+                        <Typography sx={{ fontSize: { xs: 13.5, md: 14.5 }, color: '#5C5C5C', lineHeight: 1.7, maxWidth: 380 }}>
+                            Get quick answers to the most common questions about pandit booking, puja services, and
+                            how Adhyatmah works.
+                        </Typography>
 
-            <Grid container columnSpacing={{ xs: 0, md: 6 }} rowSpacing={0}>
-                <Grid size={{ xs: 12, md: 6 }}>
-                    <Stack divider={null}>
-                        {leftColumn.map(({ faq, index }, i) => (
-                            <FaqRow
-                                key={index}
-                                faq={faq}
-                                isOpen={openIndex === index}
-                                onToggle={() => handleToggle(index)}
-                                isLast={i === leftColumn.length - 1 && rightColumn.length === 0}
+                        {/* Illustration — drop the generated PNG/SVG at public/images/faq-illustration.png */}
+                        <Box
+                            sx={{
+                                display: { xs: 'none', md: 'flex' },
+                                justifyContent: 'center',
+                                width: '100%',
+                                mt: 2,
+                            }}
+                        >
+                            <img
+                                src="/images/faq-illustration.png"
+                                alt="Frequently asked questions about Adhyatmah pandit booking"
+                                style={{
+                                    width: '100%',
+                                    maxWidth: 400,
+                                    height: 'auto',
+                                    display: 'block',
+                                    margin: '0 auto',
+                                }}
                             />
-                        ))}
+                        </Box>
                     </Stack>
                 </Grid>
-                <Grid size={{ xs: 12, md: 6 }}>
-                    <Stack divider={null}>
-                        {rightColumn.map(({ faq, index }, i) => (
+
+                {/* Right: single-column stack of accordion cards */}
+                <Grid size={{ xs: 12, md: 7 }}>
+                    <Stack spacing={1.5}>
+                        {FAQS.map((faq, index) => (
                             <FaqRow
                                 key={index}
                                 faq={faq}
                                 isOpen={openIndex === index}
                                 onToggle={() => handleToggle(index)}
-                                isLast={i === rightColumn.length - 1}
                             />
                         ))}
                     </Stack>

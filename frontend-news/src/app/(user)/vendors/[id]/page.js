@@ -26,6 +26,7 @@ import { MdPhone, MdEmail, MdLocationOn, MdWork, MdExpandMore, MdVerified, MdChe
 // components
 import HeaderBreadcrumbs from '@/components/header-breadcrumbs';
 import PoojaCard from 'src/components/cards/service/PoojaCard';
+import VendorReviewsSection from '@/components/_main/vendor/reviews';
 
 // api
 import * as api from 'src/services';
@@ -518,6 +519,9 @@ export default function VendorDetailPage() {
 
               {/* Empty card placeholder */}
               <Card />
+
+              {/* ── Pandit Ji Reviews Section ── */}
+              <VendorReviewsSection vendorId={vendorId} />
 
             </Stack>
           </Grid>

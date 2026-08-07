@@ -169,6 +169,21 @@ const BookingSchema =
         ],
       },
 
+      // ------------------------------------
+      // Coupon (optional) - discount is always
+      // calculated server-side, never trusted
+      // from the client. See coupon-util.js.
+      // ------------------------------------
+      couponCode: {
+        type: String,
+        default: null,
+      },
+
+      discount: {
+        type: Number,
+        default: 0,
+      },
+
       bookingID: {
         type: String,
 

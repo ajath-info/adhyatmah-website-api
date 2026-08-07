@@ -258,8 +258,10 @@ export const updateUserDetailsByAdmin = async ({ id, ...payload }) => {
   return response;
 };
 
-export const getCouponCodesByAdmin = async (page, search) => {
-  const { data: response } = await http.get(`/admin/coupon-codes?search=${search}&page=${page}`);
+export const getCouponCodesByAdmin = async (page, search, appliesTo = '') => {
+  const { data: response } = await http.get(
+    `/admin/coupon-codes?search=${search}&page=${page}${appliesTo ? `&appliesTo=${appliesTo}` : ''}`
+  );
   return response;
 };
 
@@ -564,6 +566,29 @@ export const addProductReview = async (payload) => {
   return data;
 };
 
+export const getServiceReviews = async (sid) => {
+  const { data } = await http.get(`/service-reviews/${sid}`);
+  return data;
+};
+export const addServiceReview = async (payload) => {
+  const { data } = await http.post(`/services/reviews`, payload);
+  return data;
+};
+
+export const getVendorReviewsList = async (vendorId) => {
+  const { data } = await http.get(`/reviews?vendorId=${vendorId}&limit=50`);
+  return data;
+};
+export const addVendorReview = async (payload) => {
+  const { data } = await http.post(`/reviews`, payload);
+  return data;
+};
+
+export const getAllReviews = async (query = '') => {
+  const { data } = await http.get(`/reviews-all${query}`);
+  return data;
+};
+
 export const getUserInvoice = async (page) => {
   const { data: response } = await http.get(`/users/invoice${page}`);
   return response;
@@ -684,8 +709,13 @@ export const getBrands = async (page) => {
   const { data } = await http.get(`/brands?page=${page || 1}`);
   return data;
 };
-export const applyCouponCode = async (code) => {
-  const { data: response } = await http.get(`/coupon-codes/${code}`);
+// `module` restricts the coupon to a checkout module: 'product' | 'service' | 'pandit'.
+// Kept optional (defaults to no restriction) to stay backward compatible with any
+// existing caller that doesn't pass it.
+export const applyCouponCode = async (code, module = '') => {
+  const { data: response } = await http.get(
+    `/coupon-codes/${code}${module ? `?module=${module}` : ''}`
+  );
   return response;
 };
 

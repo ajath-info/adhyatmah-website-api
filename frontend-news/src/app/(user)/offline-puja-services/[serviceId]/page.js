@@ -69,9 +69,12 @@ function PoojaServicePanditsPage() {
             {(isLoading ? Array.from(new Array(12)) : filteredVendors).map((vendor, index) => {
               const matchedService = !isLoading && vendor ? resolveMatchedService(vendor) : null;
               const vendorServiceId = matchedService?.id || matchedService?._id;
+              // `?from=service` marks this booking as having started from the
+              // "Pooja Services" browse page, so the shared booking page applies
+              // the Service coupon module instead of the Pandit one.
               const bookingHref =
                 !isLoading && vendor
-                  ? (vendorServiceId ? `/vendors/${vendor.id}/services/${vendorServiceId}` : `/vendors/${vendor.id}`)
+                  ? (vendorServiceId ? `/vendors/${vendor.id}/services/${vendorServiceId}?from=service` : `/vendors/${vendor.id}`)
                   : undefined;
 
               return (

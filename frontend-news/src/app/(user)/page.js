@@ -335,9 +335,13 @@ export default async function IndexPage() {
         <FaqSection />
       </PageContainer>
 
-      <PageContainer>
+      {/* AppBanner temporarily disabled — spacer below reserves the gap for it.
+          When re-enabling AppBanner, remove the spacer Box and uncomment this block. */}
+      {/* <PageContainer>
         <AppBanner />
-      </PageContainer>
+      </PageContainer> */}
+      <Box sx={{ height: { xs: 40, md: 64 } }} />
+
 
       <SubscriptionModal />
     </Stack>

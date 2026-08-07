@@ -22,8 +22,16 @@ const TABLE_HEAD = [
   { id: 'coupon', label: 'Coupon code' },
   { id: 'type', label: 'Type' },
   { id: 'discount', label: 'Discount' },
+  { id: 'appliesTo', label: 'Applies To' },
   { id: 'expire', label: 'Expire' },
   { id: '', label: 'actions' }
+];
+
+const APPLIES_TO_FILTER = [
+  { slug: 'product', name: 'Products' },
+  { slug: 'service', name: 'Services' },
+  { slug: 'pandit', name: 'Pandit Booking' },
+  { slug: 'all', name: 'All' }
 ];
 
 // ----------------------------------------------------------------------
@@ -31,13 +39,14 @@ function CouponCodesMain() {
   const searchParams = useSearchParams();
   const pageParam = searchParams.get('page');
   const searchParam = searchParams.get('search');
+  const appliesToParam = searchParams.get('appliesTo');
   const [open, setOpen] = useState(false);
   const [apicall, setApicall] = useState(false);
   const [id, setId] = useState(null);
 
   const { data, isPending: isLoading } = useQuery({
-    queryKey: ['coupon-codes', apicall, searchParam, pageParam],
-    queryFn: () => api.getCouponCodesByAdmin(+pageParam || 1, searchParam || '')
+    queryKey: ['coupon-codes', apicall, searchParam, pageParam, appliesToParam],
+    queryFn: () => api.getCouponCodesByAdmin(+pageParam || 1, searchParam || '', appliesToParam || '')
   });
 
   const handleClickOpen = (prop) => () => {
@@ -67,6 +76,7 @@ function CouponCodesMain() {
         row={CouponCode}
         handleClickOpen={handleClickOpen}
         isSearch
+        filters={[{ name: 'Applies To', param: 'appliesTo', data: APPLIES_TO_FILTER }]}
       />
     </>
   );

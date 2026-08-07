@@ -6,6 +6,11 @@ const User = require("../../models/User");
 const CourierInfo = require("../../models/CourierInfo");
 const fs = require("fs");
 const path = require("path");
+const {
+  validateCouponForModule,
+  calculateDiscount,
+  markCouponUsed,
+} = require("../../utils/coupon-util");
 
 const { sendEmail } = require("../../utils/mailer-util");
 function isExpired(expirationDate) {
@@ -139,26 +144,20 @@ const createOrder = async (req, res) => {
     let discount = 0;
 
     if (couponCode) {
-      const couponData = await Coupons.findOne({ code: couponCode });
+      // Module-aware, server-side validation (exists / active / expiry /
+      // usage rules / appliesTo). Discount is always calculated here from
+      // the coupon document + server-known grandTotal - never trusted
+      // from the client.
+      const { valid, message, coupon: couponData } =
+        await validateCouponForModule(couponCode, "product");
 
-      const expired = isExpired(couponData.expire);
-      if (expired) {
-        return res
-          .status(400)
-          .json({ success: false, message: "Coupon Code Is Expired" });
+      if (!valid) {
+        return res.status(400).json({ success: false, message });
       }
 
-      await Coupons.findOneAndUpdate(
-        { code: couponCode },
-        { $addToSet: { usedBy: user.email } }
-      );
+      await markCouponUsed(couponCode, user.email);
 
-      if (couponData && couponData.type === "percent") {
-        const percentLess = couponData.discount;
-        discount = (percentLess / 100) * grandTotal;
-      } else if (couponData) {
-        discount = couponData.discount;
-      }
+      discount = calculateDiscount(couponData, grandTotal);
     }
 
     let discountedTotal = grandTotal - discount;

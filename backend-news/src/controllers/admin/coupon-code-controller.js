@@ -24,10 +24,16 @@ const createCouponCodeByAdmin = async (req, res) => {
 /*  Get All Coupon Codes by Admin */
 const getCouponCodesByAdmin = async (req, res) => {
   try {
-    const { limit = 10, page = 1, search = "" } = req.query;
+    const { limit = 10, page = 1, search = "", appliesTo = "" } = req.query;
 
     const skip = parseInt(limit) * (parseInt(page) - 1) || 0;
     const query = search ? { code: { $regex: search, $options: "i" } } : {};
+
+    // Optional filter by module ("product" | "service" | "pandit" | "all").
+    if (appliesTo) {
+      query.appliesTo = appliesTo;
+    }
+
     const totalCouponCode = await CouponCode.countDocuments(query);
 
     const couponCodes = await CouponCode.find(query, null, {

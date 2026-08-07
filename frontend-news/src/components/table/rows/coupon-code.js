@@ -30,6 +30,14 @@ function isExpired(expirationDate) {
   const currentDateTime = new Date();
   return currentDateTime >= new Date(expirationDate);
 }
+
+const APPLIES_TO_LABELS = {
+  product: 'Product',
+  service: 'Service',
+  pandit: 'Pandit Booking',
+  all: 'All'
+};
+
 export default function CategoryRow({ isLoading, row, handleClickOpen }) {
   const router = useRouter();
   const fCurrency = useCurrencyFormat('base');
@@ -63,6 +71,14 @@ export default function CategoryRow({ isLoading, row, handleClickOpen }) {
           row.discount + '%'
         ) : (
           fCurrency(row.discount)
+        )}
+      </TableCell>
+      <TableCell>
+        {isLoading ? (
+          <Skeleton variant="text" width={90} />
+        ) : (
+          // Old coupons saved before this field existed have no appliesTo value - show as "All".
+          APPLIES_TO_LABELS[row.appliesTo] || APPLIES_TO_LABELS.all
         )}
       </TableCell>
       <TableCell>
