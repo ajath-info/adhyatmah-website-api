@@ -268,7 +268,7 @@ export default function VendorServiceBookingPage() {
             heading="Loading..."
             links={[
               { name: 'Home', href: '/' },
-              { name: 'Pandits', href: '/shops' }
+              { name: 'Pandits', href: '/book-pandit-online' }
             ]}
           />
           <Typography>Loading service details...</Typography>
@@ -285,7 +285,7 @@ export default function VendorServiceBookingPage() {
             heading="Service Not Found"
             links={[
               { name: 'Home', href: '/' },
-              { name: 'Pandits', href: '/shops' }
+              { name: 'Pandits', href: '/book-pandit-online' }
             ]}
           />
           <Alert severity="error">Service details not found. Please go back and try again.</Alert>
@@ -355,7 +355,7 @@ export default function VendorServiceBookingPage() {
           heading={service.poojaType}
           links={[
             { name: 'Home', href: '/' },
-            { name: 'Pandits', href: '/shops' },
+            { name: 'Pandits', href: '/book-pandit-online' },
             { name: `${vendor.firstName} ${vendor.lastName}`, href: `/${slug}` },
             { name: service.poojaType }
           ]}

@@ -6,6 +6,7 @@ import { notFound } from 'next/navigation';
 import HeaderBreadcrumbs from '@/components/header-breadcrumbs';
 import ProductList from 'src/components/_main/products';
 import Categories from '@/components/_main/home/categories';
+import { CANONICAL_ORIGIN, isBadSlug } from 'src/utils/seo';
 
 export const revalidate = 60;
 const baseUrl = process.env.NEXT_PUBLIC_API_URL;
@@ -29,65 +30,69 @@ export async function generateStaticParams() {
   }
 }
 
+// Returns null instead of throwing when the category is missing/unreadable, so
+// the caller can call notFound() outside any try/catch (notFound() signals by
+// throwing — a surrounding catch would swallow it).
+async function fetchCategory(category) {
+  if (!baseUrl || isBadSlug(category)) return null;
+
+  try {
+    const res = await fetch(`${baseUrl}/api/categories/${category}`, { next: { revalidate: 60 } });
+    if (!res.ok) return null;
+
+    const response = await res.json();
+    if (!response?.success || !response?.data) return null;
+
+    return response.data;
+  } catch (err) {
+    // eslint-disable-next-line no-console
+    console.warn('category page: failed to fetch category', err);
+    return null;
+  }
+}
+
 export async function generateMetadata({ params }) {
   const { category } = await params;
 
-  try {
-    if (!baseUrl) return {};
-    const res = await fetch(`${baseUrl}/api/categories/${category}`, {
-      cache: 'force-cache' // Prefer cached
-    });
+  const currentCategory = await fetchCategory(category);
+  if (!currentCategory) return {};
 
-    if (!res.ok) return {};
-
-    const { data: currentCategory } = await res.json();
-
-    if (!currentCategory) return {};
-
-    return {
-      title: currentCategory.metaTitle || currentCategory.name,
-      description: currentCategory.metaDescription || currentCategory.description,
-      openGraph: {
-        title: currentCategory.name,
-        description: currentCategory.metaDescription || currentCategory.description
-      }
-    };
-  } catch (err) {
-    // eslint-disable-next-line no-console
-    console.warn('generateMetadata: failed to fetch category', err);
-    return {};
-  }
+  return {
+    title: currentCategory.metaTitle || currentCategory.name,
+    description: currentCategory.metaDescription || currentCategory.description,
+    // Self-referencing canonical so the ?brand=/?price= filtered variants of
+    // this listing all fold into one indexable URL.
+    alternates: { canonical: `${CANONICAL_ORIGIN}/products/${category}` },
+    openGraph: {
+      title: currentCategory.name,
+      description: currentCategory.metaDescription || currentCategory.description
+    }
+  };
 }
 
 export default async function Listing(props) {
   const params = await props.params;
   const { category } = params;
+
+  const categoryData = await fetchCategory(category);
+  if (!categoryData) notFound();
+
+  const subCategories = categoryData?.subCategories || [];
+
+  let filters = [];
   try {
-    if (!baseUrl) return notFound();
-
-    const res = await fetch(`${baseUrl}/api/categories/${category}`, { next: { revalidate: 60 } });
-    if (!res.ok) return notFound();
-
-    const response = await res.json();
-    if (!response?.success || !response?.data) return notFound();
-
-    const { data: categoryData } = response;
-    const subCategories = categoryData?.subCategories || [];
-
-    let filters = [];
-    try {
-      const res2 = await fetch(`${baseUrl}/api/products/filters`, { next: { revalidate: 60 } });
-      if (res2.ok) {
-        const response2 = await res2.json();
-        filters = response2?.data || [];
-      }
-    } catch (err) {
-      // eslint-disable-next-line no-console
-      console.warn('Listing: failed to fetch filters', err);
-      filters = [];
+    const res2 = await fetch(`${baseUrl}/api/products/filters`, { next: { revalidate: 60 } });
+    if (res2.ok) {
+      const response2 = await res2.json();
+      filters = response2?.data || [];
     }
+  } catch (err) {
+    // eslint-disable-next-line no-console
+    console.warn('Listing: failed to fetch filters', err);
+    filters = [];
+  }
 
-    return (
+  return (
       <Box>
         <Box sx={{ bgcolor: 'background.default' }}>
           <Container maxWidth="xl">
@@ -119,12 +124,7 @@ export default async function Listing(props) {
           </Container>
         </Box>
       </Box>
-    );
-  } catch (err) {
-    // eslint-disable-next-line no-console
-    console.warn('Listing: failed to fetch category data', err);
-    return notFound();
-  }
+  );
 }
 
 // Render per-request (SSR): this page's filter/search components read useSearchParams,

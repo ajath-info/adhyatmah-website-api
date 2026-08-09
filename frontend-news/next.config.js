@@ -1,173 +1,10 @@
-// 'use client';
-
-// const path = require('path');
-
-// /** @type {import('next').NextConfig} */
-// const nextConfig = {
-
-//   turbopack: {
-//     root: path.join(__dirname, '')
-//   },
-
-//   eslint: {
-//     ignoreDuringBuilds: true,
-//   },
-
-//   env: {
-//     NEXT_PUBLIC_API_URL: process.env.NEXT_PUBLIC_API_URL,
-//     JWT_SECRET: process.env.JWT_SECRET,
-//     NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY:
-//     process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY
-//   },
-
-//   // ADD THIS
-//   async rewrites() {
-//     return [
-
-//       {
-//         source: '/about-us',
-//         destination: '/about',
-//       },
-
-//       {
-//         source: '/contact-us',
-//         destination: '/contact',
-//       },
-
-//       {
-//         source: '/book-pandit-online',
-//         destination: '/shops',
-//       },
-
-//       {
-//         source: '/puja-products-online-store',
-//         destination: '/products',
-//       },
-
-//       {
-//         source: '/puja-product-brands-online',
-//         destination: '/brands',
-//       },
-
-//       {
-//         source: '/online-puja-services',
-//         destination: '/services',
-//       },
-
-//     ];
-//   },
-
-//   async redirects() {
-//     return [
-
-//       {
-//         source: '/&',
-//         destination: '/',
-//         statusCode: 301,
-//       },
-
-//       {
-//         source: '/hi/products/rudrabhishek-pooja',
-//         destination: '/product/rudrabhishek-puja-kit',
-//         statusCode: 301,
-//       },
-
-//       {
-//         source: '/hi/collections/puja/products/rudrabhishek-pooja',
-//         destination: '/product/rudrabhishek-puja-kit',
-//         statusCode: 301,
-//       },
-
-//       // Duplicate URL variants for "Brahmin Varan Kit" -> canonical product URL
-//       {
-//         source: '/products/brahmin-varan-kit',
-//         destination: '/product/brahmin-varan-kit',
-//         statusCode: 301,
-//       },
-
-//       {
-//         source: '/products/brahmin-varan-kit/brahmin-varan-kit',
-//         destination: '/product/brahmin-varan-kit',
-//         statusCode: 301,
-//       },
-
-//       {
-//         source: '/products/brahmin-varan-kit/brahmin-varan-kit/brahmin-varan-kit',
-//         destination: '/product/brahmin-varan-kit',
-//         statusCode: 301,
-//       },
-
-//       {
-//         source: '/products/vastra-dakshina-for-pandit-ji/brahmin-varan-kit',
-//         destination: '/product/brahmin-varan-kit',
-//         statusCode: 301,
-//       },
-
-//       {
-//         source: '/products/vastra-dakshina-for-pandit-ji/brahmin-varan-kit/brahmin-varan-kit',
-//         destination: '/product/brahmin-varan-kit',
-//         statusCode: 301,
-//       },
-
-//       // Duplicate URL variants across 20 products -> canonical product URLs
-//       { source: '/products/puja-kit/bhoomi-neev-puja-kit', destination: '/product/bhoomi-neev-puja-kit', statusCode: 301 },
-//       { source: '/products/puja-kit/bhoomi-neev-puja-kit/bhoomi-neev-puja-kit', destination: '/product/bhoomi-neev-puja-kit', statusCode: 301 },
-//       { source: '/products/puja-kit/brihaspati-jupiter-graha-shanti-puja-kit', destination: '/product/brihaspati-jupiter-graha-shanti-puja-kit', statusCode: 301 },
-//       { source: '/products/puja-kit/budh-mercury-graha-shanti-puja-kit', destination: '/product/budh-graha-shanti-puja-kit', statusCode: 301 },
-//       { source: '/products/puja-kit/budh-mercury-graha-shanti-puja-kit/budh-mercury-graha-shanti-puja-kit', destination: '/product/budh-graha-shanti-puja-kit', statusCode: 301 },
-//       { source: '/products/puja-kit/engagement-puja-kit', destination: '/product/engagement-puja-kit', statusCode: 301 },
-//       { source: '/products/puja-kit/engagement-puja-kit/engagement-puja-kit', destination: '/product/engagement-puja-kit', statusCode: 301 },
-//       { source: '/products/puja-kit/griha-pravesh-puja-kit', destination: '/product/griha-pravesh-puja', statusCode: 301 },
-//       { source: '/products/puja-kit/griha-vastu-shanti-puja-kit', destination: '/product/griha-vastu-shanti-puja-kit', statusCode: 301 },
-//       { source: '/products/puja-kit-/mangal-mars-graha-shanti-puja-kit', destination: '/product/mangal-mars-graha-shanti-puja', statusCode: 301 },
-//       { source: '/products/instant-puja-kit/manglik-dosha-nivaran-puja-instant-kit/manglik-dosha-nivaran-puja-instant-kit', destination: '/product/manglik-dosha-nivaran-puja-instant-kit', statusCode: 301 },
-//       { source: '/products/puja-kit/mool-puja-kit-', destination: '/product/mool-puja-kit', statusCode: 301 },
-//       { source: '/products/puja-kit/mool-puja-kit-/mool-puja-kit', destination: '/product/mool-puja-kit', statusCode: 301 },
-//       { source: '/products/puja-kit/narayan-nagbali-puja-kit', destination: '/product/narayan-nagbali-puja-kit', statusCode: 301 },
-//       { source: '/products/puja-kit/navratri-puja-kit', destination: '/product/navratri-puja-kit', statusCode: 301 },
-//       { source: '/products/puja-kit/pitrudosh-nivaran-puja-kit', destination: '/product/pitrudosh-nivaran-puja-kit', statusCode: 301 },
-//       { source: '/products/puja-kit-/rahu-graha-shanti-puja-kit', destination: '/product/rahu-graha-shanti-puja-kit', statusCode: 301 },
-//       { source: '/products/puja-kit/rahu-graha-shanti-puja-kit', destination: '/product/rahu-graha-shanti-puja-kit', statusCode: 301 },
-//       { source: '/products/puja-kit/rudrabhishek-puja-kit/rudrabhishek-puja-kit', destination: '/product/rudrabhishek-puja-kit', statusCode: 301 },
-//       { source: '/products/puja-kit-/satyanarayan-puja-kit', destination: '/product/satyanarayan-puja-kit', statusCode: 301 },
-//       { source: '/products/puja-kit/shani-graha-shanti-puja-kit', destination: '/product/shani-graha-shanti-puja-kit', statusCode: 301 },
-//       { source: '/products/puja-kit/shanti-puja-poorvajon-ke-lie-puja-kit', destination: '/product/shanti-puja-poorvajon-ke-liye-puja-kit', statusCode: 301 },
-//       { source: '/products/puja-kit-/shukra-venus-graha-shanti-puja-kit', destination: '/product/shukra-venus-graha-shanti-puja-kit', statusCode: 301 },
-//       { source: '/products/puja-kit/shukra-venus-graha-shanti-puja-kit', destination: '/product/shukra-venus-graha-shanti-puja-kit', statusCode: 301 },
-//       { source: '/products/puja-kit/tilak-puja-kit', destination: '/product/tilak-puja-kit', statusCode: 301 },
-//       { source: '/products/puja-kit/vishwakarma-puja-kit', destination: '/product/vishwakarma-puja-kit', statusCode: 301 },
-//     ];
-//   },
-
-//   images: {
-//     remotePatterns: [
-//       {
-//         hostname: 'images.unsplash.com'
-//       },
-//       {
-//         hostname: 'res.cloudinary.com'
-//       },
-//       {
-//         hostname: 'adhyatmah.com'
-//       },
-//       {
-//         hostname: 'www.adhyatmah.com'
-//       },
-//       {
-//         hostname: 'api.adhyatmah.com'
-//       },
-//       {
-//         hostname: 'cdn.shopify.com'
-//       }
-//     ]
-//   }
-
-// };
-
-// module.exports = nextConfig;
-
-
 const path = require('path');
+const { LEGACY_REDIRECTS, PATTERN_REDIRECTS } = require('./src/config/legacy-redirects');
+
+// Note: this file previously carried a ~167-line commented-out copy of an older
+// version of itself, sitting above the real config and contradicting it. It has
+// been deleted — git history holds it if it is ever needed, and having two
+// conflicting redirect lists in one file is how they drift apart.
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
@@ -200,122 +37,54 @@ const nextConfig = {
     ],
   },
 
-  // ADD THIS
+  // A rewrite serves one page at two different URLs. That is exactly what
+  // Search Console flagged as "Duplicate without user-selected canonical":
+  // /about-us and /about, /puja-products-online-store and /products and so on
+  // all answered 200 with byte-identical HTML and no canonical to break the tie.
+  //
+  // Only ONE rewrite survives — /book-pandit-online. That URL is an exact match
+  // for the primary target keyword, it is the URL already advertised in the
+  // sitemap, and its twin (/shops) now 301s onto it, so no duplicate is left.
+  // Every other rewrite became a 301 instead.
+  //
+  // Ordering note: redirects() run BEFORE afterFiles rewrites, and a rewrite's
+  // internal destination is not re-run through redirects. So
+  // /shops -> 301 -> /book-pandit-online -> rewritten internally to /shops
+  // terminates; it does not loop. Verified with curl against `next start`.
   async rewrites() {
     return [
-
-      {
-        source: '/about-us',
-        destination: '/about',
-      },
-
-      {
-        source: '/contact-us',
-        destination: '/contact',
-      },
 
       {
         source: '/book-pandit-online',
         destination: '/shops',
       },
 
-      {
-        source: '/puja-products-online-store',
-        destination: '/products',
-      },
-
-      {
-        source: '/puja-product-brands-online',
-        destination: '/brands',
-      },
-
-      {
-        source: '/online-puja-services',
-        destination: '/services',
-      },
-
     ];
   },
 
   async redirects() {
+    // The redirect list itself lives in src/config/legacy-redirects.js because
+    // src/app/sitemap.js has to read it too: a URL that 301s must never be
+    // submitted in the sitemap or it comes straight back as "Page with
+    // redirect". One source of truth is what stops the two drifting apart.
     return [
 
+      // --- One host only ---------------------------------------------------
+      // https://adhyatmah.com/ currently answers 200 with the full site, i.e.
+      // every page exists twice as far as Google is concerned. The canonical
+      // tags already point at the www host; this makes the server agree.
+      // The `has` host guard means it never fires on localhost, so `next dev`
+      // and `next start` are unaffected.
       {
-        source: '/&',
-        destination: '/',
+        source: '/:path*',
+        has: [{ type: 'host', value: 'adhyatmah.com' }],
+        destination: 'https://www.adhyatmah.com/:path*',
         statusCode: 301,
       },
 
-      {
-        source: '/hi/products/rudrabhishek-pooja',
-        destination: '/product/rudrabhishek-puja-kit',
-        statusCode: 301,
-      },
+      ...LEGACY_REDIRECTS.map((rule) => ({ ...rule, statusCode: 301 })),
+      ...PATTERN_REDIRECTS.map((rule) => ({ ...rule, statusCode: 301 })),
 
-      {
-        source: '/hi/collections/puja/products/rudrabhishek-pooja',
-        destination: '/product/rudrabhishek-puja-kit',
-        statusCode: 301,
-      },
-
-      // Duplicate URL variants for "Brahmin Varan Kit" -> canonical product URL
-      {
-        source: '/products/brahmin-varan-kit',
-        destination: '/product/brahmin-varan-kit',
-        statusCode: 301,
-      },
-
-      {
-        source: '/products/brahmin-varan-kit/brahmin-varan-kit',
-        destination: '/product/brahmin-varan-kit',
-        statusCode: 301,
-      },
-
-      {
-        source: '/products/brahmin-varan-kit/brahmin-varan-kit/brahmin-varan-kit',
-        destination: '/product/brahmin-varan-kit',
-        statusCode: 301,
-      },
-
-      {
-        source: '/products/vastra-dakshina-for-pandit-ji/brahmin-varan-kit',
-        destination: '/product/brahmin-varan-kit',
-        statusCode: 301,
-      },
-
-      {
-        source: '/products/vastra-dakshina-for-pandit-ji/brahmin-varan-kit/brahmin-varan-kit',
-        destination: '/product/brahmin-varan-kit',
-        statusCode: 301,
-      },
-
-      // Duplicate URL variants across 20 products -> canonical product URLs
-      { source: '/products/puja-kit/bhoomi-neev-puja-kit', destination: '/product/bhoomi-neev-puja-kit', statusCode: 301 },
-      { source: '/products/puja-kit/bhoomi-neev-puja-kit/bhoomi-neev-puja-kit', destination: '/product/bhoomi-neev-puja-kit', statusCode: 301 },
-      { source: '/products/puja-kit/brihaspati-jupiter-graha-shanti-puja-kit', destination: '/product/brihaspati-jupiter-graha-shanti-puja-kit', statusCode: 301 },
-      { source: '/products/puja-kit/budh-mercury-graha-shanti-puja-kit', destination: '/product/budh-graha-shanti-puja-kit', statusCode: 301 },
-      { source: '/products/puja-kit/budh-mercury-graha-shanti-puja-kit/budh-mercury-graha-shanti-puja-kit', destination: '/product/budh-graha-shanti-puja-kit', statusCode: 301 },
-      { source: '/products/puja-kit/engagement-puja-kit', destination: '/product/engagement-puja-kit', statusCode: 301 },
-      { source: '/products/puja-kit/engagement-puja-kit/engagement-puja-kit', destination: '/product/engagement-puja-kit', statusCode: 301 },
-      { source: '/products/puja-kit/griha-pravesh-puja-kit', destination: '/product/griha-pravesh-puja', statusCode: 301 },
-      { source: '/products/puja-kit/griha-vastu-shanti-puja-kit', destination: '/product/griha-vastu-shanti-puja-kit', statusCode: 301 },
-      { source: '/products/puja-kit-/mangal-mars-graha-shanti-puja-kit', destination: '/product/mangal-mars-graha-shanti-puja', statusCode: 301 },
-      { source: '/products/instant-puja-kit/manglik-dosha-nivaran-puja-instant-kit/manglik-dosha-nivaran-puja-instant-kit', destination: '/product/manglik-dosha-nivaran-puja-instant-kit', statusCode: 301 },
-      { source: '/products/puja-kit/mool-puja-kit-', destination: '/product/mool-puja-kit', statusCode: 301 },
-      { source: '/products/puja-kit/mool-puja-kit-/mool-puja-kit', destination: '/product/mool-puja-kit', statusCode: 301 },
-      { source: '/products/puja-kit/narayan-nagbali-puja-kit', destination: '/product/narayan-nagbali-puja-kit', statusCode: 301 },
-      { source: '/products/puja-kit/navratri-puja-kit', destination: '/product/navratri-puja-kit', statusCode: 301 },
-      { source: '/products/puja-kit/pitrudosh-nivaran-puja-kit', destination: '/product/pitrudosh-nivaran-puja-kit', statusCode: 301 },
-      { source: '/products/puja-kit-/rahu-graha-shanti-puja-kit', destination: '/product/rahu-graha-shanti-puja-kit', statusCode: 301 },
-      { source: '/products/puja-kit/rahu-graha-shanti-puja-kit', destination: '/product/rahu-graha-shanti-puja-kit', statusCode: 301 },
-      { source: '/products/puja-kit/rudrabhishek-puja-kit/rudrabhishek-puja-kit', destination: '/product/rudrabhishek-puja-kit', statusCode: 301 },
-      { source: '/products/puja-kit-/satyanarayan-puja-kit', destination: '/product/satyanarayan-puja-kit', statusCode: 301 },
-      { source: '/products/puja-kit/shani-graha-shanti-puja-kit', destination: '/product/shani-graha-shanti-puja-kit', statusCode: 301 },
-      { source: '/products/puja-kit/shanti-puja-poorvajon-ke-lie-puja-kit', destination: '/product/shanti-puja-poorvajon-ke-liye-puja-kit', statusCode: 301 },
-      { source: '/products/puja-kit-/shukra-venus-graha-shanti-puja-kit', destination: '/product/shukra-venus-graha-shanti-puja-kit', statusCode: 301 },
-      { source: '/products/puja-kit/shukra-venus-graha-shanti-puja-kit', destination: '/product/shukra-venus-graha-shanti-puja-kit', statusCode: 301 },
-      { source: '/products/puja-kit/tilak-puja-kit', destination: '/product/tilak-puja-kit', statusCode: 301 },
-      { source: '/products/puja-kit/vishwakarma-puja-kit', destination: '/product/vishwakarma-puja-kit', statusCode: 301 },
     ];
   },
 

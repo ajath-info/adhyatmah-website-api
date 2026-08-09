@@ -1,9 +1,12 @@
+import { notFound } from 'next/navigation';
+
 import VendorProfileClient from './VendorProfileClient';
 import BreadcrumbSchema from 'src/components/seo/breadcrumb-schema';
 
 import * as api from 'src/services';
 
 import panditSeo from 'src/data/panditSeo';
+import { CANONICAL_ORIGIN, isBadSlug } from 'src/utils/seo';
 
 const createVendorSlug = (vendor) => {
 
@@ -50,6 +53,25 @@ const decodeSlugParam = (value) => {
   }
 };
 
+// This route is a single-segment catch-all: it matches ANY path that is not a
+// real page (/collections, /random-typo, an old campaign URL...). It used to
+// render the pandit-profile shell with HTTP 200 for every one of them, which
+// Google reports as a Soft 404 and which also fed the "Duplicate without
+// user-selected canonical" bucket. Looking the vendor up first and 404-ing when
+// there is no match is what stops that.
+async function findVendor(slug) {
+  if (isBadSlug(slug)) return null;
+
+  try {
+    const response = await api.getAllPandit();
+    const vendors = response?.payload?.vendors || [];
+    return vendors.find((item) => createVendorSlug(item) === slug) || null;
+  } catch (error) {
+    console.warn('vendor profile: failed to fetch pandit list', error);
+    return null;
+  }
+}
+
 export async function generateMetadata({ params }) {
 
   // const slug = params.slug;
@@ -59,67 +81,48 @@ export async function generateMetadata({ params }) {
   const seoData =
     panditSeo[slug];
 
-  try {
+  const vendor = await findVendor(slug);
 
-    const response =
-      await api.getAllPandit();
+  if (!vendor) {
+    return { title: 'Pandit Profile | Adhyatmah' };
+  }
 
-    const vendors =
-      response?.payload?.vendors || [];
+  const fullName =
+    `${vendor.firstName || ''} ${vendor.lastName || ''}`.trim();
 
-    const vendor =
-      vendors.find((item) =>
-        createVendorSlug(item) === slug
-      );
+  return {
 
-    if (!vendor) {
+    title:
+      seoData?.title ||
+      `${fullName} | Book Verified Pandit Online`,
 
-      return {
-        title: 'Pandit Profile | Adhyatmah'
-      };
+    description:
+      seoData?.description ||
+      `Book ${fullName} for puja, havan, grah shanti and Hindu rituals.`,
 
-    }
+    // The same pandit is also reachable at /shops/[slug] and /vendors/[id].
+    // This URL is the one listed in the sitemap, so it is the canonical one.
+    alternates: { canonical: `${CANONICAL_ORIGIN}/${slug}` },
 
-    const fullName =
-      `${vendor.firstName || ''} ${vendor.lastName || ''}`.trim();
-
-    return {
+    openGraph: {
 
       title:
         seoData?.title ||
-        `${fullName} | Book Verified Pandit Online`,
+        `${fullName} | Adhyatmah`,
 
       description:
         seoData?.description ||
-        `Book ${fullName} for puja, havan, grah shanti and Hindu rituals.`,
 
-      openGraph: {
+        `Book ${fullName} for Vedic puja services.`,
 
-        title:
-          seoData?.title ||
-          `${fullName} | Adhyatmah`,
+      images: [
+        {
+          url: vendor?.profileImage
+        }
+      ]
+    }
 
-        description:
-          seoData?.description ||
-
-          `Book ${fullName} for Vedic puja services.`,
-
-        images: [
-          {
-            url: vendor?.profileImage
-          }
-        ]
-      }
-
-    };
-
-  } catch (error) {
-
-    return {
-      title: 'Pandit Profile | Adhyatmah'
-    };
-
-  }
+  };
 
 }
 
@@ -128,23 +131,18 @@ export default async function Page({ params }) {
   const { slug: rawSlug } = await params;
   const slug = decodeSlugParam(rawSlug);
 
-  let vendorName = 'Pandit Profile';
+  const vendor = await findVendor(slug);
 
-  try {
-    const response = await api.getAllPandit();
-    const vendors = response?.payload?.vendors || [];
-    const vendor = vendors.find((item) => createVendorSlug(item) === slug);
-    if (vendor) {
-      vendorName = `${vendor.firstName || ''} ${vendor.lastName || ''}`.trim() || vendorName;
-    }
-  } catch (error) {
-    // Keep default vendorName if the lookup fails — breadcrumb still renders.
-  }
+  // Real 404 for anything that is not an actual pandit profile.
+  if (!vendor) notFound();
+
+  const vendorName =
+    `${vendor.firstName || ''} ${vendor.lastName || ''}`.trim() || 'Pandit Profile';
 
   const breadcrumbItems = [
-    { name: 'Home', url: 'https://www.adhyatmah.com/' },
-    { name: 'Pandits', url: 'https://www.adhyatmah.com/shops' },
-    { name: vendorName, url: `https://www.adhyatmah.com/${slug}` },
+    { name: 'Home', url: `${CANONICAL_ORIGIN}/` },
+    { name: 'Pandits', url: `${CANONICAL_ORIGIN}/book-pandit-online` },
+    { name: vendorName, url: `${CANONICAL_ORIGIN}/${slug}` },
   ];
 
   return (

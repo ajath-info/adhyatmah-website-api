@@ -1,9 +1,11 @@
 import { Stack, Box, Typography, Grid, Container } from '@mui/material';
 import PoojaCard from 'src/components/cards/service/PoojaCard';
 import HeaderBreadcrumbs from '@/components/header-breadcrumbs';
+import { canonicalMeta } from 'src/utils/seo';
 
 // SEO
 export const metadata = {
+  ...canonicalMeta('/services'),
 
     title:
         'Online Pooja Service Near You | Verified Puja Experts',

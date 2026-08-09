@@ -5,12 +5,14 @@ import { Box, Container } from '@mui/material';
 import HeaderBreadcrumbs from '@/components/header-breadcrumbs';
 import ProductList from 'src/components/_main/products';
 import FilterChips from 'src/components/_main/products/search-params-list';
+import { canonicalMeta } from 'src/utils/seo';
 
 const baseUrl = process.env.NEXT_PUBLIC_API_URL;
 
 
 // SEO
 export const metadata = {
+  ...canonicalMeta('/products'),
   title: 'Buy Puja Samagri Online in India | Agarbatti, Diya & Spiritual Items',
 
   description: 'Shop puja samagri online including agarbatti, diya, camphor, and other spiritual items. Get authentic products for daily rituals and festivals with trusted quality.',

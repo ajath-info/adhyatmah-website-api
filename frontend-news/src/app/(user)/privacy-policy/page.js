@@ -7,6 +7,14 @@ import { Box, Grid, Container, Typography } from '@mui/material';
 
 // components
 import HeaderBreadcrumbs from '@/components/header-breadcrumbs';
+import { canonicalMeta } from 'src/utils/seo';
+
+// SEO: self-referencing canonical so this URL is never treated as a
+// duplicate of another page.
+export const metadata = {
+  ...canonicalMeta('/privacy-policy')
+};
+
 
 const PrivacyPolicy = () => {
   return (

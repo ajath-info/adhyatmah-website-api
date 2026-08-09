@@ -84,7 +84,7 @@ const SERVICES = [
   { label: 'Puja Booking', description: 'Book offline puja at your place', href: '/offline-puja-services' },
   { label: 'Pandit Ji Booking', description: 'Choose from verified & experienced Pandit Ji', href: '/book-pandit-online' },
   { label: 'Online Puja', description: 'Live-streamed puja from home', href: '/online-puja-services' },
-  { label: 'Spiritual E-Commerce', description: '1000+ authentic spiritual products', href: '/puja-products-online-store' },
+  { label: 'Spiritual E-Commerce', description: '1000+ authentic spiritual products', href: '/products' },
   { label: 'Panchang & Muhurat', description: 'Plan every ritual at the right time', href: '/panchang-muhurat' }
 ];
 

@@ -1,5 +1,13 @@
 import React from 'react';
 import Search from '@/components/widgets/search';
+import { NOINDEX } from 'src/utils/seo';
+
+// SEO: utility route with no search value — keep it out of the index while
+// still letting Google follow its links.
+export const metadata = {
+  ...NOINDEX
+};
+
 // dynamic import
 
 export default function Searchs() {

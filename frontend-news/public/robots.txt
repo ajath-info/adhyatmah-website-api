@@ -1,10 +1,30 @@
 User-agent: *
 Allow: /
 
+# Account, checkout and transactional routes — no search value, and indexing
+# them creates thin duplicate URLs.
 Disallow: /api/
 Disallow: /admin/
+Disallow: /vendor/
 Disallow: /auth/
 Disallow: /cart
+Disallow: /checkout
+Disallow: /compare
+Disallow: /search
 Disallow: /profile/
+Disallow: /order/
+Disallow: /order-success
+Disallow: /paymentCallback
+Disallow: /booking-payment
+Disallow: /booking-payment-success
+Disallow: /booking-payment-cancel
+Disallow: /booking-payment-callback
+Disallow: /booking-success
+Disallow: /delete-account
+
+# Deliberately NOT blocking the ?category= / ?brand= / ?sort= filter
+# permutations of the product listings. Those URLs now carry a canonical tag
+# pointing at the plain listing, and Google can only act on a canonical it is
+# allowed to fetch — blocking them here would freeze them as duplicates.
 
 Sitemap: https://www.adhyatmah.com/sitemap.xml

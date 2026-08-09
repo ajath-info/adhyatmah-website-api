@@ -5,6 +5,7 @@ import { Stack, Container } from '@mui/material';
 
 import HeaderBreadcrumbs from '@/components/header-breadcrumbs';
 import ProductList from 'src/components/_main/products';
+import { CANONICAL_ORIGIN } from 'src/utils/seo';
 // Static generation with ISR
 export const revalidate = 60;
 
@@ -49,6 +50,7 @@ export async function generateMetadata({ params }) {
     return {
       title: brand.metaTitle || brand.name,
       description: brand.metaDescription || brand.description,
+      alternates: { canonical: `${CANONICAL_ORIGIN}/brands/${slug}` },
       openGraph: {
         title: brand.name,
         description: brand.metaDescription || brand.description

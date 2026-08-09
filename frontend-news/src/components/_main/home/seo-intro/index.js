@@ -89,7 +89,7 @@ export default function SeoIntro() {
                         explore puja kits,{' '}
                         <Typography
                             component={Link}
-                            href="/puja-products-online-store"
+                            href="/products"
                             sx={{ fontSize: 'inherit', fontWeight: 600, color: ORANGE, textDecoration: 'none', '&:hover': { textDecoration: 'underline' } }}
                         >
                             puja samagri

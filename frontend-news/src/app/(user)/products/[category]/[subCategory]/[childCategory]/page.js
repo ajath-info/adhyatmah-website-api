@@ -1,9 +1,13 @@
+// next
+import { notFound } from 'next/navigation';
+
 // mui
 import { Box, Container } from '@mui/material';
 
 // components
 import HeaderBreadcrumbs from '@/components/header-breadcrumbs';
 import ProductList from 'src/components/_main/products';
+import { CANONICAL_ORIGIN, isBadSlug } from 'src/utils/seo';
 // Static generation with ISR
 export const revalidate = 60;
 
@@ -29,64 +33,77 @@ export async function generateStaticParams() {
   }
 }
 
-// // Generate metadata per brand
-export async function generateMetadata({ params }) {
-  const { childCategory } = await params;
+// Fetch the child category, returning null (never throwing) when it does not
+// exist. `isBadSlug` short-circuits the literal "undefined" segment that
+// produced /products/puja-kit/surya-sun-graha-shanti-puja/undefined — the URL
+// Search Console reported under "Server error (5xx)".
+async function fetchChildCategory(childCategory) {
+  if (!baseUrl || isBadSlug(childCategory)) return null;
+
   try {
-    if (!baseUrl) return {};
     const res = await fetch(`${baseUrl}/api/child-categories/${childCategory}`, {
-      cache: 'force-cache' // Prefer cached
+      next: { revalidate: 60 }
     });
 
-    if (!res.ok) return {};
+    if (!res.ok) return null;
 
-    const { data: child } = await res.json();
+    const response = await res.json();
+    if (!response?.success || !response?.data) return null;
 
-    if (!child) return {};
-
-    return {
-      title: child.metaTitle,
-      description: child.metaDescription,
-      openGraph: {
-        title: child.metaTitle,
-        description: child.metaDescription
-      }
-    };
+    return response.data;
   } catch (err) {
     // eslint-disable-next-line no-console
-    console.warn('generateMetadata: failed to fetch child-category', err);
-    return {};
+    console.warn('child-category page: failed to fetch child-category', err);
+    return null;
   }
+}
+
+// // Generate metadata per brand
+export async function generateMetadata({ params }) {
+  const { category, subCategory, childCategory } = await params;
+
+  const child = await fetchChildCategory(childCategory);
+  if (!child) return {};
+
+  return {
+    title: child.metaTitle,
+    description: child.metaDescription,
+    alternates: {
+      canonical: `${CANONICAL_ORIGIN}/products/${category}/${subCategory}/${childCategory}`
+    },
+    openGraph: {
+      title: child.metaTitle,
+      description: child.metaDescription
+    }
+  };
 }
 export default async function Listing(props) {
   const params = await props.params;
 
   const { category, subCategory, childCategory } = params;
+
+  const childCategoryData = await fetchChildCategory(childCategory);
+
+  // Must be outside any try/catch of ours: notFound() signals by throwing, so
+  // a surrounding catch would swallow it. Previously this was called inside a
+  // try block *and* `notFound` was never imported, so the ReferenceError
+  // escaped as a 500 rather than rendering a 404.
+  if (!childCategoryData) notFound();
+
+  let filters = [];
   try {
-    if (!baseUrl) return notFound();
-
-    const res = await fetch(`${baseUrl}/api/child-categories/${childCategory}`, { next: { revalidate: 60 } });
-    if (!res.ok) return notFound();
-
-    const response = await res.json();
-    if (!response?.success || !response?.data) return notFound();
-
-    const { data: childCategoryData } = response;
-
-    let filters = [];
-    try {
-      const res2 = await fetch(`${baseUrl}/api/products/filters`, { next: { revalidate: 60 } });
-      if (res2.ok) {
-        const response2 = await res2.json();
-        filters = response2?.data || [];
-      }
-    } catch (err) {
-      // eslint-disable-next-line no-console
-      console.warn('Listing: failed to fetch filters', err);
-      filters = [];
+    const res2 = await fetch(`${baseUrl}/api/products/filters`, { next: { revalidate: 60 } });
+    if (res2.ok) {
+      const response2 = await res2.json();
+      filters = response2?.data || [];
     }
+  } catch (err) {
+    // eslint-disable-next-line no-console
+    console.warn('Listing: failed to fetch filters', err);
+    filters = [];
+  }
 
-    return (
+  return (
       <Box>
         <Box sx={{ bgcolor: 'background.default' }}>
           <Container maxWidth="xl">
@@ -119,12 +136,7 @@ export default async function Listing(props) {
           </Container>
         </Box>
       </Box>
-    );
-  } catch (err) {
-    // eslint-disable-next-line no-console
-    console.warn('Listing: failed to fetch child-category data', err);
-    return notFound();
-  }
+  );
 }
 
 

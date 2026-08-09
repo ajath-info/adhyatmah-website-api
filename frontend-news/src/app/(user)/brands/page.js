@@ -4,9 +4,11 @@ import React from 'react';
 import { Container, Stack } from '@mui/material';
 import BrandsMain from '@/components/_main/brands';
 import HeaderBreadcrumbs from '@/components/header-breadcrumbs';
+import { canonicalMeta } from 'src/utils/seo';
 
 // SEO
 export const metadata = {
+  ...canonicalMeta('/brands'),
   title: 'Top Puja Product Brands in India | Agarbatti, Diya & Spiritual Essentials Online',
 
   description: 'Explore trusted puja product brands offering agarbatti, diya, camphor, and spiritual items. Shop authentic products for daily rituals and festivals with reliable quality online.',

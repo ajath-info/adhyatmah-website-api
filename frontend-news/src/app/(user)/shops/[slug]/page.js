@@ -105,7 +105,7 @@ export default async function Listing(props) {
                 },
                 {
                   name: 'Shops',
-                  href: '/shops'
+                  href: '/book-pandit-online'
                 },
                 {
                   name: shopData?.name
@@ -137,7 +137,7 @@ export default async function Listing(props) {
               },
               {
                 name: 'Shops',
-                href: '/shops'
+                href: '/book-pandit-online'
               },
               {
                 name: shopData?.name

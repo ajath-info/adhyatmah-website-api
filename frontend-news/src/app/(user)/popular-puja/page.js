@@ -1,9 +1,11 @@
 import { Stack, Grid, Container } from '@mui/material';
 import PoojaCard from 'src/components/cards/service/PoojaCard';
 import HeaderBreadcrumbs from '@/components/header-breadcrumbs';
+import { canonicalMeta } from 'src/utils/seo';
 
 // SEO
 export const metadata = {
+  ...canonicalMeta('/popular-puja'),
     title: 'Popular Puja Services | Adhyatmah',
     description:
         'Book our most popular puja services — Rudrabhishek, Satyanarayan, Griha Pravesh, Engagement, Dhanteras and Tilak Puja — performed by verified Pandit Ji.'

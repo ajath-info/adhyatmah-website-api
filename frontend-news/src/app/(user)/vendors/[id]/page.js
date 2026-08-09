@@ -313,7 +313,7 @@ export default function VendorDetailPage() {
     return (
       <Container maxWidth="xl">
         <Stack gap={3}>
-          <HeaderBreadcrumbs heading="Loading..." links={[{ name: 'Home', href: '/' }, { name: 'Pandits', href: '/shops' }]} />
+          <HeaderBreadcrumbs heading="Loading..." links={[{ name: 'Home', href: '/' }, { name: 'Pandits', href: '/book-pandit-online' }]} />
           <Typography>Loading vendor details...</Typography>
         </Stack>
       </Container>
@@ -325,7 +325,7 @@ export default function VendorDetailPage() {
     return (
       <Container maxWidth="xl">
         <Stack gap={3}>
-          <HeaderBreadcrumbs heading="Vendor Not Found" links={[{ name: 'Home', href: '/' }, { name: 'Pandits', href: '/shops' }]} />
+          <HeaderBreadcrumbs heading="Vendor Not Found" links={[{ name: 'Home', href: '/' }, { name: 'Pandits', href: '/book-pandit-online' }]} />
           <Typography variant="h3" color="error.main" textAlign="center">
             Vendor not found
           </Typography>
@@ -341,7 +341,7 @@ export default function VendorDetailPage() {
           heading={`${vendor.firstName} ${vendor.lastName}`}
           links={[
             { name: 'Home', href: '/' },
-            { name: 'Pandits', href: '/shops' },
+            { name: 'Pandits', href: '/book-pandit-online' },
             { name: `${vendor.firstName} ${vendor.lastName}` }
           ]}
         />

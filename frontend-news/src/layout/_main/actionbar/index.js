@@ -14,11 +14,11 @@ import DesktopMenuList from '@/components/lists/desktop-menu-list';
 
 const navlinks = [
   { title: 'Home', path: '/' },
-  { title: 'About', path: '/about-us' },
-  { title: 'Brands', path: '/puja-product-brands-online' },
-  { title: 'Products', path: '/puja-products-online-store' },
+  { title: 'About', path: '/about' },
+  { title: 'Brands', path: '/brands' },
+  { title: 'Products', path: '/products' },
   { title: 'Pandits', path: '/book-pandit-online' },
-  { title: 'Reach Us', path: '/contact-us' }
+  { title: 'Reach Us', path: '/contact' }
 ];
 
 export default function Navbar({ categories }) {

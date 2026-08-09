@@ -6,9 +6,11 @@ import { Container } from '@mui/material';
 // component
 import HeaderBreadcrumbs from '@/components/header-breadcrumbs';
 import BlogsListing from 'src/components/_main/blogs';
+import { canonicalMeta } from 'src/utils/seo';
 
 // SEO
 export const metadata = {
+  ...canonicalMeta('/blogs'),
     title: 'Blogs | Adhyatmah — Vedic Rituals, Puja Guidance & Spiritual Living',
     description:
         'Read articles on Vedic rituals, puja guidance, astrology insights and spiritual living, curated by Adhyatmah.'

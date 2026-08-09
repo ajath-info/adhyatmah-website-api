@@ -6,9 +6,11 @@ import { Container } from '@mui/material';
 // component
 import HeaderBreadcrumbs from '@/components/header-breadcrumbs';
 import ComingSoon from 'src/components/_main/coming-soon';
+import { canonicalMeta } from 'src/utils/seo';
 
 // SEO
 export const metadata = {
+  ...canonicalMeta('/online-puja-services'),
     title: 'Online Puja | Adhyatmah — Coming Soon',
     description:
         'Book a live-streamed Online Puja performed by verified Pandit Ji from anywhere, with your family joining virtually. Coming soon to Adhyatmah.'

@@ -1,5 +1,8 @@
 import React from 'react';
 
+// next
+import { notFound } from 'next/navigation';
+
 // mui
 import { Box, Container, Stack, Typography, Grid, Card, CardMedia, CardContent, CardActionArea } from '@mui/material';
 import Image from 'next/image';
@@ -7,76 +10,58 @@ import Image from 'next/image';
 // components
 import HeaderBreadcrumbs from '@/components/header-breadcrumbs';
 import ProductList from '@/components/_main/products';
+import { CANONICAL_ORIGIN, isBadSlug } from 'src/utils/seo';
 
 const baseUrl = process.env.NEXT_PUBLIC_API_URL;
 
-export async function generateMetadata({ params }) {
-  const { handle } = await params;
+// Look the collection up without letting a fetch error escape. Returns null for
+// "no such collection" so the caller can render a real 404.
+async function fetchCollection(handle) {
+  if (!baseUrl || isBadSlug(handle)) return null;
 
   try {
     const res = await fetch(`${baseUrl}/api/getHomepageCollections?limit=100`, {
       next: { revalidate: 60 }
     });
+    if (!res.ok) return null;
+
     const collections = await res.json();
+    return collections?.payload?.collections?.find((c) => c.handle === handle) || null;
+  } catch (error) {
+    console.warn('collection page: failed to fetch collections', error);
+    return null;
+  }
+}
 
-    const collection = collections?.payload?.collections?.find(c => c.handle === handle);
+export async function generateMetadata({ params }) {
+  const { handle } = await params;
 
-    if (!collection) {
-      return {
-        title: 'Collection Not Found',
-        description: 'The requested collection could not be found.'
-      };
-    }
+  const collection = await fetchCollection(handle);
+  if (!collection) return {};
 
-    return {
+  return {
+    title: `${collection.title} - Adhyatmah`,
+    description: collection.description || `Browse our ${collection.title} collection`,
+    alternates: { canonical: `${CANONICAL_ORIGIN}/collections/${handle}` },
+    openGraph: {
       title: `${collection.title} - Adhyatmah`,
       description: collection.description || `Browse our ${collection.title} collection`,
-      openGraph: {
-        title: `${collection.title} - Adhyatmah`,
-        description: collection.description || `Browse our ${collection.title} collection`,
-        images: collection.image?.url ? [{ url: collection.image.url }] : []
-      }
-    };
-  } catch (error) {
-    return {
-      title: 'Collection - Adhyatmah',
-      description: 'Browse our collection of products'
-    };
-  }
+      images: collection.image?.url ? [{ url: collection.image.url }] : []
+    }
+  };
 }
 
 export default async function CollectionPage({ params }) {
   const { handle } = await params;
 
-  try {
-    const res = await fetch(`${baseUrl}/api/getHomepageCollections?limit=100`, {
-      next: { revalidate: 60 }
-    });
-    const collections = await res.json();
+  const collection = await fetchCollection(handle);
 
-    const collection = collections?.payload?.collections?.find(c => c.handle === handle);
+  // Previously this route answered 200 with a "Collection not found" body for
+  // any unknown handle, which Google classifies as a Soft 404. Returning a real
+  // 404 status is what removes those pages from the report.
+  if (!collection) notFound();
 
-    if (!collection) {
-      return (
-        <Box>
-          <Container maxWidth="xl">
-            <HeaderBreadcrumbs
-              heading="Collection Not Found"
-              links={[
-                { name: 'Home', href: '/' },
-                { name: 'Collections', href: '/collections' },
-                { name: 'Not Found' }
-              ]}
-            />
-            <Typography variant="h3" color="error.main" textAlign="center" sx={{ mt: 4 }}>
-              Collection not found
-            </Typography>
-          </Container>
-        </Box>
-      );
-    }
-
-    return (
+  return (
       <Box>
         <Container maxWidth="xl">
           <Stack gap={3}>
@@ -143,24 +128,5 @@ export default async function CollectionPage({ params }) {
           </Stack>
         </Container>
       </Box>
-    );
-  } catch (error) {
-    return (
-      <Box>
-        <Container maxWidth="xl">
-          <HeaderBreadcrumbs
-            heading="Error"
-            links={[
-              { name: 'Home', href: '/' },
-              { name: 'Collections', href: '/collections' },
-              { name: 'Error' }
-            ]}
-          />
-          <Typography variant="h3" color="error.main" textAlign="center" sx={{ mt: 4 }}>
-            Error loading collection
-          </Typography>
-        </Container>
-      </Box>
-    );
-  }
+  );
 }

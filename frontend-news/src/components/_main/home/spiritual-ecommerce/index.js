@@ -36,7 +36,7 @@ function ArrowLine({ direction = 'left' }) {
 function CategoryItem({ category, FallbackIcon }) {
     const name = category?.name || '';
     const image = category?.cover?.url || category?.image?.url || '';
-    const href = `/puja-products-online-store?category=${category?.slug || ''}`;
+    const href = `/products?category=${category?.slug || ''}`;
 
     return (
         <Stack
@@ -94,7 +94,7 @@ function CategoryItem({ category, FallbackIcon }) {
 }
 
 /* ---------------- MAIN COMPONENT ---------------- */
-export default function SpiritualEcommerce({ categories, title = 'Spiritual E-Commerce', viewAllHref = '/puja-products-online-store' }) {
+export default function SpiritualEcommerce({ categories, title = 'Spiritual E-Commerce', viewAllHref = '/products' }) {
     const data = (categories || []).slice(0, 5);
 
     if (!data.length) return null;

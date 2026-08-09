@@ -534,7 +534,7 @@ export default function VendorDetailPage() {
         <Stack gap={3}>
           <HeaderBreadcrumbs
             heading="Loading..."
-            links={[{ name: 'Home', href: '/' }, { name: 'Pandits', href: '/shops' }]}
+            links={[{ name: 'Home', href: '/' }, { name: 'Pandits', href: '/book-pandit-online' }]}
           />
           <Typography>Loading vendor details...</Typography>
         </Stack>
@@ -549,7 +549,7 @@ export default function VendorDetailPage() {
         <Stack gap={3}>
           <HeaderBreadcrumbs
             heading="Vendor Not Found"
-            links={[{ name: 'Home', href: '/' }, { name: 'Pandits', href: '/shops' }]}
+            links={[{ name: 'Home', href: '/' }, { name: 'Pandits', href: '/book-pandit-online' }]}
           />
           <Typography variant="h3" color="error.main" textAlign="center">
             Vendor not found
@@ -579,7 +579,7 @@ export default function VendorDetailPage() {
           heading={pageHeading}
           links={[
             { name: 'Home', href: '/' },
-            { name: 'Pandits', href: '/shops' },
+            { name: 'Pandits', href: '/book-pandit-online' },
             { name: vendorFullName }
           ]}
         />

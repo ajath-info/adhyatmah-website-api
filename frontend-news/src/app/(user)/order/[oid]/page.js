@@ -1,11 +1,15 @@
 import React from 'react';
 
+// next
+import { notFound } from 'next/navigation';
+
 // mui
 import { Container, Typography, Box, Grid, Stack } from '@mui/material';
 
 // components
 import OrderDetails from '@/components/_main/orders/order-details';
 import TableCard from '@/components/table/order-table';
+import { NOINDEX, isBadSlug } from 'src/utils/seo';
 
 // Meta information
 export const metadata = {
@@ -15,16 +19,34 @@ export const metadata = {
   applicationName: 'adhyatmah',
   authors: 'adhyatmah',
   keywords:
-    'order confirmation, adhyatmah, order placed, successful order, order processing, order delivery, order status, order updates, fast delivery, shopping confirmation, shopping success, shopping updates, online shopping'
+    'order confirmation, adhyatmah, order placed, successful order, order processing, order delivery, order status, order updates, fast delivery, shopping confirmation, shopping success, shopping updates, online shopping',
+  // A per-customer confirmation screen must never be indexed. It was previously
+  // indexable, which is one of the ways thin, duplicate URLs entered the index.
+  ...NOINDEX
 };
 
 export default async function OrderMain(props) {
   const params = await props.params;
   const { oid } = params;
-  const response = await fetch(process.env.NEXT_PUBLIC_API_URL + '/api/orders/' + oid).then((res) => res.json());
+
+  // `notFound` was referenced here but never imported — any falsy response threw
+  // a ReferenceError and surfaced as a 500 instead of a 404.
+  let response = null;
+  if (!isBadSlug(oid)) {
+    try {
+      response = await fetch(process.env.NEXT_PUBLIC_API_URL + '/api/orders/' + oid).then((res) =>
+        res.ok ? res.json() : null
+      );
+    } catch (err) {
+      console.warn('order page: failed to fetch order', err);
+      response = null;
+    }
+  }
+
   if (!response) {
     notFound();
   }
+
   const data = response;
   return (
     <Box>

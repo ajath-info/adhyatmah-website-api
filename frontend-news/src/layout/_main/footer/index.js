@@ -23,16 +23,16 @@ const SERVICES = [
   { label: 'Puja Booking', href: '/offline-puja-services' },
   { label: 'Pandit Ji Booking', href: '/book-pandit-online' },
   { label: 'Online Puja', href: '/online-puja-services' },
-  { label: 'Puja Samagri', href: '/puja-products-online-store' },
+  { label: 'Puja Samagri', href: '/products' },
   { label: 'Panchang & Muhurat', href: '/panchang-muhurat' },
 ];
 
 const QUICK_LINKS = [
-  { label: 'About Us', href: '/about-us' },
+  { label: 'About Us', href: '/about' },
   { label: 'How It Works', href: '/' },
   { label: 'FAQs', href: '/' },
   { label: 'Blogs', href: '/blogs' },
-  { label: 'Contact Us', href: '/contact-us' },
+  { label: 'Contact Us', href: '/contact' },
 ];
 
 const FooterLink = ({ label, href }) => (

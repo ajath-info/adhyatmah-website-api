@@ -226,7 +226,7 @@ function VendorServiceBookingPage() {
     return (
       <Container maxWidth="xl">
         <Stack gap={3}>
-          <HeaderBreadcrumbs heading="Loading..." links={[{ name: 'Home', href: '/' }, { name: 'Pandits', href: '/shops' }]} />
+          <HeaderBreadcrumbs heading="Loading..." links={[{ name: 'Home', href: '/' }, { name: 'Pandits', href: '/book-pandit-online' }]} />
           <Typography>Loading service details...</Typography>
         </Stack>
       </Container>
@@ -237,7 +237,7 @@ function VendorServiceBookingPage() {
     return (
       <Container maxWidth="xl">
         <Stack gap={3}>
-          <HeaderBreadcrumbs heading="Service Not Found" links={[{ name: 'Home', href: '/' }, { name: 'Pandits', href: '/shops' }]} />
+          <HeaderBreadcrumbs heading="Service Not Found" links={[{ name: 'Home', href: '/' }, { name: 'Pandits', href: '/book-pandit-online' }]} />
           <Alert severity="error">Service details not found. Please go back and try again.</Alert>
         </Stack>
       </Container>
@@ -276,7 +276,7 @@ function VendorServiceBookingPage() {
           heading={service.poojaType}
           links={[
             { name: 'Home', href: '/' },
-            { name: 'Pandits', href: '/shops' },
+            { name: 'Pandits', href: '/book-pandit-online' },
             { name: `${vendor.firstName} ${vendor.lastName}`, href: `/vendors/${vendor.id}` },
             { name: service.poojaType }
           ]}

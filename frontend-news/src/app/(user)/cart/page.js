@@ -9,9 +9,11 @@ import HeaderBreadcrumbs from '@/components/header-breadcrumbs';
 
 // guard
 import AuthGuard from '@/guards/auth';
+import { NOINDEX } from 'src/utils/seo';
 
 // Meta information
 export const metadata = {
+  ...NOINDEX,
   title: 'adhyatmah Shopping Cart | adhyatmah - Convenient Shopping Cart for Easy Checkout',
   description:
     'View your shopping cart on adhyatmah for easy checkout. Add, remove, and manage items effortlessly. Enjoy a seamless shopping experience with secure transactions and personalized recommendations. Explore your cart now!',

@@ -71,10 +71,10 @@ const NAVIGATION_ITEMS = [
   
   {
     label: 'Spiritual E-Commerce',
-    href: '/puja-products-online-store',
+    href: '/products',
     children: [
-      { label: 'All Products', href: '/puja-products-online-store' },
-      { label: 'Brands', href: '/puja-product-brands-online' }
+      { label: 'All Products', href: '/products' },
+      { label: 'Brands', href: '/brands' }
     ]
   },
   {

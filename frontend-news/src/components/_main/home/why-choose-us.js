@@ -72,7 +72,7 @@ export default function WhyChooseUs() {
 
                     <Button
                         variant="outlined"
-                        href="/about-us"
+                        href="/about"
                         sx={{
                             borderColor: '#fff',
                             color: '#fff',

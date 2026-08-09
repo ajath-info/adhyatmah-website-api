@@ -6,9 +6,11 @@ import { Container } from '@mui/material';
 // component
 import HeaderBreadcrumbs from '@/components/header-breadcrumbs';
 import ComingSoon from 'src/components/_main/coming-soon';
+import { canonicalMeta } from 'src/utils/seo';
 
 // SEO
 export const metadata = {
+  ...canonicalMeta('/panchang-muhurat'),
     title: 'Panchang & Muhurat | Adhyatmah — Coming Soon',
     description:
         'Daily Panchang, auspicious Muhurat timings, festival dates and Vedic calendar tools are coming soon to Adhyatmah. Stay tuned.'

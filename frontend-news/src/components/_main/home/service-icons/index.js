@@ -40,7 +40,7 @@ const SERVICES = [
         title: 'Spiritual E-Commerce',
         subtitle: '1000+ authentic spiritual products',
         cta: 'Shop Now',
-        href: '/puja-products-online-store'
+        href: '/products'
     },
     {
         icon: GiCrystalBall,

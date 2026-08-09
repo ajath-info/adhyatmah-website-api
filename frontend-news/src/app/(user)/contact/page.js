@@ -6,9 +6,11 @@ import { Container } from '@mui/material';
 // component
 import ContactUsMain from '@/components/_main/contact-us';
 import HeaderBreadcrumbs from '@/components/header-breadcrumbs';
+import { canonicalMeta } from 'src/utils/seo';
 
 // SEO
 export const metadata = {
+  ...canonicalMeta('/contact'),
   title: 'Contact Us for Pandit Booking & Puja Services | Adhyatmah',
 
   description: 'Get in touch with Adhyatmah for pandit booking, puja services, and spiritual guidance. Contact our team for quick support, consultation, and easy service assistance.',

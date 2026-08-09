@@ -6,10 +6,12 @@ import { Container } from '@mui/material';
 // component import
 import HeaderBreadcrumbs from '@/components/header-breadcrumbs';
 import AboutUs from 'src/components/_main/about';
+import { canonicalMeta } from 'src/utils/seo';
 
 
 // SEO
 export const metadata = {
+  ...canonicalMeta('/about'),
   title: 'About Adhyatmah | Spiritual Guidance, Vedic Rituals & Astrology Services',
 
   description: 'Learn more about Adhyatmah and our approach to spiritual guidance, Vedic rituals, astrology consultations, and authentic puja services designed to support peace, clarity, and positive living.',

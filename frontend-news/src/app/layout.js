@@ -4,6 +4,7 @@ import { cookies } from 'next/headers';
 import Providers from 'src/providers';
 import { GoogleAnalytics } from '@next/third-parties/google';
 import FacebookPixel from 'src/components/FacebookPixel';
+import { CANONICAL_ORIGIN } from 'src/utils/seo';
 import 'simplebar-react/dist/simplebar.min.css';
 
 // API services (direct fetch here or via service layer)
@@ -20,7 +21,10 @@ export async function generateMetadata() {
   const seo = data.seo || {};
 
   return {
-    metadataBase: new URL('https://adhyatmah.com'),
+    // Must be the www host: adhyatmah.com and www.adhyatmah.com both answer, and
+    // every relative canonical/OG URL in the app is resolved against this value.
+    // Pointing it at the non-www host meant the site advertised the wrong origin.
+    metadataBase: new URL(CANONICAL_ORIGIN),
     title: seo.metaTitle || data.businessName,
     description: seo.metaDescription || seo.description || '',
     keywords: Array.isArray(seo.tags) ? seo.tags.join(', ') : '',
@@ -94,7 +98,7 @@ export default async function RootLayout({ children }) {
               '@context': 'https://schema.org',
               '@type': 'Organization',
               name: 'Adhyatmah',
-              url: 'https://www.adhyatmah.com',
+              url: CANONICAL_ORIGIN,
               logo: branding?.logoLight?.url || branding?.logoDark?.url || branding?.favicon?.url || '',
               sameAs: [
                 // 'https://www.facebook.com/adhyatamh/',

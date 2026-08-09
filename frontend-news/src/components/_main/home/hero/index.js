@@ -41,7 +41,7 @@ const TRUST_BADGES = [
 const QUICK_CARDS = [
   { icon: FaHome, title: 'Book Puja', subtitle: 'at Your Place', href: '/offline-puja-services' },
   { icon: FaLaptop, title: 'Online Puja', subtitle: 'from Home', href: '/online-puja-services' },
-  { icon: MdLocalShipping, title: 'Puja Samagri', subtitle: 'Delivered', href: '/puja-products-online-store' }
+  { icon: MdLocalShipping, title: 'Puja Samagri', subtitle: 'Delivered', href: '/products' }
 ];
 
 /* ---------------------------------------------------------------- */
