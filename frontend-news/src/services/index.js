@@ -718,6 +718,13 @@ export const applyCouponCode = async (code, module = '') => {
   );
   return response;
 };
+// Lists coupons that are currently active (started + not expired) and valid
+// for the given checkout module, so a checkout screen can show the user
+// which coupons they can apply.
+export const getActiveCouponCodes = async (module) => {
+  const { data: response } = await http.get(`/coupon-codes/active/${module}`);
+  return response;
+};
 
 export const paymentIntents = async (amount, currency) => {
   const { data } = await http.post(`/payment-intents`, {

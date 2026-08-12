@@ -36,6 +36,17 @@ function isExpired(expirationDate) {
 }
 
 /**
+ * Coupons created before the "applyDate" field existed have no value
+ * set for it - treat that as "already active" so old coupons keep
+ * working exactly as before (migration-safe).
+ */
+function isNotYetActive(applyDate) {
+    if (!applyDate) return false;
+    const currentDateTime = new Date();
+    return currentDateTime < new Date(applyDate);
+}
+
+/**
  * Checks whether a coupon is allowed to be used for the given module.
  * @param {"product"|"service"|"pandit"} module
  */
@@ -62,6 +73,10 @@ async function validateCouponForModule(code, module) {
 
     if (!coupon) {
         return { valid: false, message: "Coupon Code Not Found", coupon: null };
+    }
+
+    if (isNotYetActive(coupon.applyDate)) {
+        return { valid: false, message: "Coupon Code Is Not Active Yet", coupon };
     }
 
     if (isExpired(coupon.expire)) {
@@ -121,6 +136,7 @@ module.exports = {
     MODULE_LABELS,
     getAppliesTo,
     isExpired,
+    isNotYetActive,
     isCouponAllowedForModule,
     validateCouponForModule,
     calculateDiscount,

@@ -52,7 +52,17 @@ const QUICK_CARDS = [
    replace the file in /public/images/hero/ (or swap the `url` below)
    and redeploy — no admin-panel action needed.
    `link` is optional; set to null if a slide should not be clickable. */
+/* `promo: true` marks a slide whose IMAGE ITSELF already contains the full
+   headline / offer text (e.g. a "50% OFF" banner). For those slides we hide
+   the site's own left-side text overlay + right-side quick-access cards so
+   they don't sit on top of (and hide) the text baked into the image. Regular
+   slides (no baked-in text) keep the overlay + cards as before. */
 const HARDCODED_SLIDES = [
+  {
+    image: { _id: 'hero-slide-4', url: '/images/hero-banner5.png' },
+    link: null,
+    promo: true
+  },
   {
     image: { _id: 'hero-slide-1', url: '/images/hero-banner1.png' },
     link: null
@@ -83,6 +93,12 @@ const HERO_HEIGHT = {
 export default function Hero({ data }) {
   const router = useRouter();
   const [search, setSearch] = React.useState('');
+  const [activeSlide, setActiveSlide] = React.useState(0);
+
+  // true only while a "promo" slide (baked-in offer text, e.g. hero-banner4)
+  // is showing — hides the text overlay + quick-access cards for that slide
+  // only, so its own text/CTA stays fully visible and uncovered.
+  const isPromoSlide = Boolean(HARDCODED_SLIDES[activeSlide]?.promo);
 
   const handleSearch = (e) => {
     e.preventDefault();
@@ -118,7 +134,7 @@ export default function Hero({ data }) {
             '& > div': { height: '100% !important' }
           }}
         >
-          <SingleSlideCarousel data={HARDCODED_SLIDES} />
+          <SingleSlideCarousel data={HARDCODED_SLIDES} onSlideChange={setActiveSlide} />
         </Box>
 
         {/* Subtle overlay — only enough for text contrast on the left,
@@ -126,29 +142,39 @@ export default function Hero({ data }) {
             Theme-aware: uses the theme's own background color (light or dark)
             instead of a hardcoded white, so heading text stays readable in
             dark mode too. Only needed on desktop where the text overlay is shown. */}
-        <Box
-          sx={{
-            position: 'absolute',
-            inset: 0,
-            zIndex: 1,
-            display: { xs: 'none', md: 'block' },
-            background: (theme) =>
-              `linear-gradient(90deg, ${alpha(theme.palette.background.default, 0.92)} 0%, ${alpha(
-                theme.palette.background.default,
-                0.72
-              )} 28%, ${alpha(theme.palette.background.default, 0.15)} 55%, ${alpha(
-                theme.palette.background.default,
-                0
-              )} 70%)`
-          }}
-        />
+        {!isPromoSlide && (
+          <Box
+            sx={{
+              position: 'absolute',
+              inset: 0,
+              zIndex: 1,
+              display: { xs: 'none', md: 'block' },
+              background: (theme) =>
+                `linear-gradient(90deg, ${alpha(theme.palette.background.default, 0.92)} 0%, ${alpha(
+                  theme.palette.background.default,
+                  0.72
+                )} 28%, ${alpha(theme.palette.background.default, 0.15)} 55%, ${alpha(
+                  theme.palette.background.default,
+                  0
+                )} 70%)`
+            }}
+          />
+        )}
 
         {/* Foreground content — absolutely positioned INSIDE the
             aspect-ratio box so it scales with the banner instead of
             forcing the box to a fixed pixel height.
             Hidden on mobile (xs/sm) so only the banner image shows there —
             desktop (md and up) is unchanged. */}
-        <Box sx={{ position: 'absolute', inset: 0, zIndex: 2, display: { xs: 'none', md: 'flex' }, alignItems: 'center' }}>
+        <Box
+          sx={{
+            position: 'absolute',
+            inset: 0,
+            zIndex: 2,
+            display: isPromoSlide ? 'none' : { xs: 'none', md: 'flex' },
+            alignItems: 'center'
+          }}
+        >
           <Container maxWidth="xl" sx={{ width: '100%' }}>
             <Stack
               direction={{ xs: 'column', md: 'row' }}

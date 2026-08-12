@@ -20,6 +20,7 @@ CategoryRow.propTypes = {
     code: PropTypes.string.isRequired,
     type: PropTypes.string.isRequired,
     discount: PropTypes.number.isRequired,
+    applyDate: PropTypes.string,
     expire: PropTypes.instanceOf(Date).isRequired,
     _id: PropTypes.string.isRequired
   }).isRequired,
@@ -79,6 +80,15 @@ export default function CategoryRow({ isLoading, row, handleClickOpen }) {
         ) : (
           // Old coupons saved before this field existed have no appliesTo value - show as "All".
           APPLIES_TO_LABELS[row.appliesTo] || APPLIES_TO_LABELS.all
+        )}
+      </TableCell>
+      <TableCell>
+        {isLoading ? (
+          <Skeleton variant="text" width={90} />
+        ) : row.applyDate ? (
+          fDateShort(row.applyDate)
+        ) : (
+          '-'
         )}
       </TableCell>
       <TableCell>

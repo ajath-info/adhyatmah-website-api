@@ -11,8 +11,6 @@ import Testimonials from 'src/components/_main/home/testimonials';
 import HowItWorks from '@/components/_main/home/how-it-works';
 import SpiritualEcommerce from '@/components/_main/home/spiritual-ecommerce';
 import LatestBlogs from '@/components/_main/home/latest-blogs';
-import SeoIntro from '@/components/_main/home/seo-intro';
-import WhyTrust from '@/components/_main/home/why-trust';
 import FaqSection from '@/components/_main/home/faq-section';
 import AppBanner from '@/components/_main/home/app-banner';
 // Client-component wrapper that lazy-loads the modal with ssr:false —
@@ -317,18 +315,12 @@ export default async function IndexPage() {
 
 
       <PageContainer>
-        <WhyTrust />
-      </PageContainer>
-
-      <PageContainer>
         <LatestBlogs />
       </PageContainer>
 
-      <PageContainer>
-        <SeoIntro />
-      </PageContainer>
-
-      {/* SEO: keyword-focused crawlable content (server-rendered) */}
+      {/* SEO: keyword-focused crawlable content (server-rendered).
+          WhyTrust and SeoIntro are now rendered inside this section's
+          accordion area instead of as standalone blocks here. */}
       <HomeSeoContent />
 
       <PageContainer>

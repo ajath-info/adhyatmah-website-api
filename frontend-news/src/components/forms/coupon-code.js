@@ -57,6 +57,7 @@ export default function CouponCodeForm({ data: currentCouponCode, isLoading: cat
       // Old coupons saved before this field existed have no appliesTo value -
       // treat them as "all" so the form (and the coupon) keeps working as before.
       appliesTo: currentCouponCode?.appliesTo || 'all',
+      applyDate: currentCouponCode?.applyDate?.split('T')[0] || '',
       expire: currentCouponCode?.expire?.split('T')[0] || '',
       description: currentCouponCode?.description || ''
     },
@@ -239,6 +240,27 @@ export default function CouponCodeForm({ data: currentCouponCode, isLoading: cat
                             helperText={touched.description && errors.description}
                             rows={9}
                             multiline
+                          />
+                        )}
+                      </Stack>
+                      <Stack gap={1}>
+                        {categoryLoading ? (
+                          <Skeleton variant="text" width={70} />
+                        ) : (
+                          <Typography variant="overline" htmlFor="apply-date" color="text.primary" component={'label'}>
+                            Apply Date
+                          </Typography>
+                        )}
+                        {categoryLoading ? (
+                          <Skeleton variant="rounded" width="100%" height={56} />
+                        ) : (
+                          <TextField
+                            id="apply-date"
+                            type="date"
+                            fullWidth
+                            {...getFieldProps('applyDate')}
+                            error={Boolean(touched.applyDate && errors.applyDate)}
+                            helperText={touched.applyDate && errors.applyDate}
                           />
                         )}
                       </Stack>

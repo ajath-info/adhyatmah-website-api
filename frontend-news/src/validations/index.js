@@ -489,6 +489,7 @@ const couponCodeSchema = Yup.object().shape({
   appliesTo: Yup.string()
     .oneOf(['product', 'service', 'pandit', 'all'], 'Invalid module selected')
     .required('Applies To is required'),
+  applyDate: Yup.date(),
   expire: Yup.date().when('eventStartDate', (eventStartDate, schema) =>
     schema.min(new Date(), "Expiry date can't be past date.")
   )

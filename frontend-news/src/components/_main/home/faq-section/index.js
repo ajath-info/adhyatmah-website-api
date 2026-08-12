@@ -176,15 +176,15 @@ export default function FaqSection() {
                                 display: { xs: 'none', md: 'flex' },
                                 justifyContent: 'center',
                                 width: '100%',
-                                mt: 2,
+                                mt: 3,
                             }}
                         >
                             <img
-                                src="/images/faq-illustration.png"
+                                src="/images/faq.png"
                                 alt="Frequently asked questions about Adhyatmah pandit booking"
                                 style={{
                                     width: '100%',
-                                    maxWidth: 400,
+                                    maxWidth: 500,
                                     height: 'auto',
                                     display: 'block',
                                     margin: '0 auto',

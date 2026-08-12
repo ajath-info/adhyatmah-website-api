@@ -23,6 +23,7 @@ const TABLE_HEAD = [
   { id: 'type', label: 'Type' },
   { id: 'discount', label: 'Discount' },
   { id: 'appliesTo', label: 'Applies To' },
+  { id: 'applyDate', label: 'Apply Date' },
   { id: 'expire', label: 'Expire' },
   { id: '', label: 'actions' }
 ];

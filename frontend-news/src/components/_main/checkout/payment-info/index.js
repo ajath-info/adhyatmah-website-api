@@ -1,11 +1,14 @@
 'use client';
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useSelector } from 'react-redux';
 import toast from 'react-hot-toast';
 import PropTypes from 'prop-types';
 
 // mui
-import { Card, CardContent, Typography, Stack, Divider, TextField, Button } from '@mui/material';
+import { Card, CardContent, Typography, Stack, Divider, TextField, Button, Chip } from '@mui/material';
+
+// icons
+import { MdClose } from 'react-icons/md';
 
 // hook
 import { useCurrencyConvert } from '@/hooks/use-currency';
@@ -30,6 +33,24 @@ export default function PaymentInfo({ setCouponCode, setTotal }) {
 
   const [discountPrice, setDiscountPrice] = useState(null);
   const [appliedDiscount, setDiscount] = useState(null);
+  const [activeCoupons, setActiveCoupons] = useState([]);
+
+  // Show which coupons are currently active for product checkout, above the
+  // coupon input, so the user knows a coupon is available before typing.
+  useEffect(() => {
+    let cancelled = false;
+    api
+      .getActiveCouponCodes('product')
+      .then((response) => {
+        if (!cancelled) setActiveCoupons(response?.data || []);
+      })
+      .catch(() => {
+        if (!cancelled) setActiveCoupons([]);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   const { mutate, isPending: isLoading } = useMutation({
     mutationFn: (couponCode) => api.applyCouponCode(couponCode, 'product'),
@@ -73,6 +94,21 @@ export default function PaymentInfo({ setCouponCode, setTotal }) {
       toast.error('Enter valid coupon code.');
     }
   };
+
+  // Clicking one of the shown "active coupons" fills the code in and
+  // applies it right away, same as if the user typed it and pressed Apply.
+  const onSelectActiveCoupon = (couponCode) => {
+    setCode(couponCode);
+    mutate(couponCode);
+  };
+
+  const onRemoveCoupon = () => {
+    setCode('');
+    setDiscount(null);
+    setDiscountPrice(null);
+    setCouponCode(null);
+    setTotal(null);
+  };
   return (
     <Card sx={{ mb: 2 }}>
       <CardContent sx={{ py: 2 }}>
@@ -100,25 +136,57 @@ export default function PaymentInfo({ setCouponCode, setTotal }) {
             <Typography variant="subtitle2">{!shipping ? 'Free' : fCurrency(cCurrency(shipping))}</Typography>
           </Stack>
 
+          {!discountPrice && activeCoupons.length > 0 && (
+            <Stack gap={0.75}>
+              <Typography variant="caption" color="text.secondary">
+                Available coupons
+              </Typography>
+              <Stack direction="row" gap={1} flexWrap="wrap">
+                {activeCoupons.map((coupon) => (
+                  <Chip
+                    key={coupon._id || coupon.code}
+                    label={`${coupon.code} · ${coupon.type === 'percent' ? `${coupon.discount}% off` : `${fCurrency(cCurrency(coupon.discount))} off`}`}
+                    variant="outlined"
+                    color="primary"
+                    onClick={() => onSelectActiveCoupon(coupon.code)}
+                    disabled={isLoading}
+                    sx={{ cursor: 'pointer' }}
+                  />
+                ))}
+              </Stack>
+            </Stack>
+          )}
+
           <Stack direction={'row'} gap={1}>
-            <TextField
-              id="coupon-field"
-              fullWidth
-              placeholder="Enter coupon code"
-              size="small"
-              value={code}
-              disabled={Boolean(discountPrice)}
-              onChange={(e) => setCode(e.target.value)}
-            />
-            <Button
-              loading={isLoading}
-              onClick={onApplyCoupon}
-              variant="contained"
-              color="primary"
-              disabled={Boolean(discountPrice) || code.length < 4}
-            >
-              {discountPrice ? 'Applied' : 'Apply'}
-            </Button>
+            {discountPrice ? (
+              <Chip
+                label={`${code} applied`}
+                color="success"
+                variant="outlined"
+                onDelete={onRemoveCoupon}
+                deleteIcon={<MdClose />}
+              />
+            ) : (
+              <>
+                <TextField
+                  id="coupon-field"
+                  fullWidth
+                  placeholder="Enter coupon code"
+                  size="small"
+                  value={code}
+                  onChange={(e) => setCode(e.target.value)}
+                />
+                <Button
+                  loading={isLoading}
+                  onClick={onApplyCoupon}
+                  variant="contained"
+                  color="primary"
+                  disabled={code.length < 4}
+                >
+                  Apply
+                </Button>
+              </>
+            )}
           </Stack>
         </Stack>
         <Divider />

@@ -61,6 +61,8 @@ export default function BookingPaymentDialog({ open, onClose, bookingData, onSuc
   const [couponApplying, setCouponApplying] = useState(false);
   const [couponError, setCouponError] = useState(null);
   const [appliedCoupon, setAppliedCoupon] = useState(null); // { code, type, discount }
+  const [activeCoupons, setActiveCoupons] = useState([]);
+  const [activeCouponsLoading, setActiveCouponsLoading] = useState(false);
 
   const handleApplyCoupon = useCallback(async () => {
     if (!couponInput || couponInput.trim().length < 4) {
@@ -84,6 +86,31 @@ export default function BookingPaymentDialog({ open, onClose, bookingData, onSuc
       setCouponApplying(false);
     }
   }, [couponInput, bookingModule]);
+
+  // Selecting one of the shown "active coupons" fills the code in and
+  // applies it right away, same as if the user typed it and pressed Apply.
+  const handleSelectActiveCoupon = useCallback(
+    async (code) => {
+      setCouponInput(code);
+      setCouponApplying(true);
+      setCouponError(null);
+      try {
+        const response = await api.applyCouponCode(code, bookingModule);
+        const coupon = response?.data;
+        setAppliedCoupon({
+          code: coupon.code,
+          type: coupon.type,
+          discount: coupon.discount
+        });
+      } catch (err) {
+        setCouponError(err?.response?.data?.message || 'Coupon code is not valid');
+        setAppliedCoupon(null);
+      } finally {
+        setCouponApplying(false);
+      }
+    },
+    [bookingModule]
+  );
 
   const handleRemoveCoupon = () => {
     setAppliedCoupon(null);
@@ -174,6 +201,29 @@ export default function BookingPaymentDialog({ open, onClose, bookingData, onSuc
   React.useEffect(() => {
     setPaymentMethods(['razorpay']);
   }, []);
+
+  // Show which coupons are currently active for this module, above the
+  // "Have a coupon?" input, so the user knows a coupon is available and
+  // can pick it without needing to already know the code.
+  React.useEffect(() => {
+    if (!open) return;
+    let cancelled = false;
+    setActiveCouponsLoading(true);
+    api
+      .getActiveCouponCodes(bookingModule)
+      .then((response) => {
+        if (!cancelled) setActiveCoupons(response?.data || []);
+      })
+      .catch(() => {
+        if (!cancelled) setActiveCoupons([]);
+      })
+      .finally(() => {
+        if (!cancelled) setActiveCouponsLoading(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [open, bookingModule]);
 
   if (!bookingData) return null;
 
@@ -458,6 +508,28 @@ export default function BookingPaymentDialog({ open, onClose, bookingData, onSuc
 
           {/* Coupon */}
           <Box>
+            {/* Active coupons available for this module - shown so the
+                user knows a coupon is available before they type anything. */}
+            {!appliedCoupon && !activeCouponsLoading && activeCoupons.length > 0 && (
+              <Box sx={{ mb: 1.5 }}>
+                <Typography variant="caption" sx={{ color: '#888', display: 'block', mb: 0.75 }}>
+                  Available coupons
+                </Typography>
+                <Stack direction="row" gap={1} flexWrap="wrap">
+                  {activeCoupons.map((coupon) => (
+                    <Chip
+                      key={coupon._id || coupon.code}
+                      label={`${coupon.code} · ${coupon.type === 'percent' ? `${coupon.discount}% off` : `₹${coupon.discount} off`}`}
+                      variant="outlined"
+                      color="warning"
+                      onClick={() => handleSelectActiveCoupon(coupon.code)}
+                      disabled={processing || couponApplying}
+                      sx={{ cursor: 'pointer' }}
+                    />
+                  ))}
+                </Stack>
+              </Box>
+            )}
             <Typography variant="subtitle2" sx={{ mb: 1, display: 'flex', alignItems: 'center', gap: 0.75 }}>
               <MdLocalOffer size={16} color="#f97316" /> Have a coupon?
             </Typography>

@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useState, useCallback } from 'react';
+import React, { useEffect, useState, useCallback, useRef } from 'react';
 import PropTypes from 'prop-types';
 import Image from 'next/image';
 import Link from 'next/link';
@@ -71,26 +71,52 @@ CarouselItem.propTypes = {
 /* ------------------------------------------------------------------ */
 /* Main Carousel */
 /* ------------------------------------------------------------------ */
-export default function SingleSlideCarousel({ data }) {
+export default function SingleSlideCarousel({ data, onSlideChange }) {
   const [emblaRef, emblaApi] = useEmblaCarousel(
     { loop: true },
-    [Autoplay({ delay: AUTOPLAY_DELAY, stopOnInteraction: false })]
+    [
+      Autoplay({
+        delay: AUTOPLAY_DELAY,
+        stopOnInteraction: false,
+        // Pause the slide-change (and progress bar) while the cursor is
+        // over the banner, and resume automatically the moment it leaves —
+        // the currently hovered slide just stays put instead of sliding away.
+        stopOnMouseEnter: true
+      })
+    ]
   );
 
   const [selectedIndex, setSelectedIndex] = useState(0);
   const [progress, setProgress] = useState(0);
+
+  // Kept in a ref (not state) so hovering doesn't re-trigger the progress
+  // effect below — it just freezes/unfreezes the same running loop, so the
+  // progress bar (and slide) genuinely "hold" on hover and resume exactly
+  // where they left off on mouse-leave, in sync with the Autoplay plugin's
+  // own stopOnMouseEnter pause.
+  const isPausedRef = useRef(false);
+
+  const handleMouseEnter = useCallback(() => {
+    isPausedRef.current = true;
+  }, []);
+
+  const handleMouseLeave = useCallback(() => {
+    isPausedRef.current = false;
+  }, []);
 
   const isEmpty = !data || data.length === 0;
 
   const onSelect = useCallback(() => {
     if (!emblaApi) return;
 
-    setSelectedIndex(emblaApi.selectedScrollSnap());
+    const index = emblaApi.selectedScrollSnap();
+    setSelectedIndex(index);
     setProgress(0);
+    onSlideChange?.(index);
 
     const autoplay = emblaApi.plugins()?.autoplay;
     autoplay?.reset();
-  }, [emblaApi]);
+  }, [emblaApi, onSlideChange]);
 
   useEffect(() => {
     if (!emblaApi) return;
@@ -98,13 +124,20 @@ export default function SingleSlideCarousel({ data }) {
     onSelect();
   }, [emblaApi, onSelect]);
 
-  /* Progress animation */
+  /* Progress animation — freezes while isPausedRef is true (cursor over
+     the banner) and continues from the same point once it's false again. */
   useEffect(() => {
     let raf;
-    const start = Date.now();
+    let elapsed = 0;
+    let last = Date.now();
 
     const update = () => {
-      const elapsed = Date.now() - start;
+      const now = Date.now();
+      if (!isPausedRef.current) {
+        elapsed += now - last;
+      }
+      last = now;
+
       const value = Math.min((elapsed / AUTOPLAY_DELAY) * 100, 100);
       setProgress(value);
       if (value < 100) raf = requestAnimationFrame(update);
@@ -116,6 +149,8 @@ export default function SingleSlideCarousel({ data }) {
 
   return (
     <Card
+      onMouseEnter={handleMouseEnter}
+      onMouseLeave={handleMouseLeave}
       sx={{
         width: '100%',
         position: 'relative',
@@ -178,5 +213,6 @@ export default function SingleSlideCarousel({ data }) {
 }
 
 SingleSlideCarousel.propTypes = {
-  data: PropTypes.array.isRequired
+  data: PropTypes.array.isRequired,
+  onSlideChange: PropTypes.func
 };

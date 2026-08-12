@@ -34,7 +34,14 @@ export default async function RootLayout({ children }) {
   }
 
   return (
-    <>
+    // Visual-only: this `.zoom-scope` class is now just a leftover hook,
+    // kept for backward compatibility (nothing currently selects it). The
+    // actual `zoom: 0.9` desktop density rule (in src/theme/global-styles.js)
+    // is applied once, app-wide, to the root <html> element, so it covers
+    // this public site as well as the vendor and admin dashboards. No
+    // markup/logic/behavior changes here. Mobile/tablet are unaffected
+    // (see the media query in global-styles.js).
+    <div className="zoom-scope">
       <Navbar branding={branding} />
       <SecondaryHeader categories={categories} />
 
@@ -43,6 +50,6 @@ export default async function RootLayout({ children }) {
       <Toolbar sx={{ display: { xs: 'block', md: 'none' } }} />
 
       <Footer branding={branding} />
-    </>
+    </div>
   );
 }

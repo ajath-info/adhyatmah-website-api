@@ -18,6 +18,13 @@ const CouponCodeSchema = new mongoose.Schema(
       minlength: 4,
       required: [true, "Discount is required."],
     },
+    // Date from which this coupon becomes usable. Old coupons created
+    // before this field existed will not have it set; application-level
+    // code treats a missing/undefined value as "already active" so
+    // existing coupons keep working as before (see coupon-util.js).
+    applyDate: {
+      type: Date,
+    },
     expire: {
       type: Date,
       default: () => new Date(+new Date() + 30 * 24 * 60 * 60 * 1000), // 30 days from now

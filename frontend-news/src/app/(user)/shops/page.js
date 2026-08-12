@@ -1,5 +1,4 @@
 import { Box, Container, Stack, Typography } from '@mui/material';
-import Link from 'next/link';
 
 import ShopsClient from './ShopsClient';
 import BookPanditSeoContent from '@/components/_main/book-pandit/seo-content';
@@ -68,8 +67,6 @@ async function getPandits() {
     return [];
   }
 }
-
-const ORANGE = '#E87722';
 
 export default async function Page() {
   const vendors = await getPandits();
@@ -259,36 +256,12 @@ export default async function Page() {
       {/* Interactive directory (client-side). */}
       <ShopsClient />
 
-      {/* Text directory of the same pandits. This is what makes the listing
-          itself crawlable — the client grid above renders only skeletons in the
-          server HTML. */}
-      {Boolean(pandits.length) && (
-        <Container maxWidth="xl">
-          <Stack gap={1.5} sx={{ py: { xs: 3, md: 4 } }}>
-            <Typography component="h2" sx={{ fontSize: { xs: '1.2rem', md: '1.5rem' }, fontWeight: 700 }}>
-              Verified Pandit Ji Available for Booking
-            </Typography>
-
-            <Stack component="ul" gap={1.25} sx={{ listStyle: 'none', p: 0, m: 0 }}>
-              {pandits.map((pandit) => (
-                <Box component="li" key={pandit.slug}>
-                  <Typography sx={{ fontSize: 14.5, color: 'text.secondary', lineHeight: 1.75 }}>
-                    <Link href={`/${pandit.slug}`} style={{ color: ORANGE, fontWeight: 700, textDecoration: 'none' }}>
-                      {pandit.name}
-                    </Link>
-                    {pandit.city ? ` — ${pandit.city}` : ''}
-                    {pandit.experience ? `, ${pandit.experience} years of experience` : ''}
-                    {pandit.language ? `, conducts rituals in ${pandit.language}` : ''}
-                    {pandit.services.length ? `. Performs ${pandit.services.slice(0, 6).join(', ')}.` : '.'}
-                  </Typography>
-                </Box>
-              ))}
-            </Stack>
-          </Stack>
-        </Container>
-      )}
-
-      <BookPanditSeoContent panditCount={pandits.length} cityList={cityList} />
+      {/* The text directory of the same pandits used to render here as its own
+          section. It's still exactly the same data, same links, same server HTML
+          (still crawlable) — it now renders as the first accordion row inside
+          BookPanditSeoContent instead of a separate plain-text block, so it
+          matches the redesigned dropdown section below. */}
+      <BookPanditSeoContent panditCount={pandits.length} cityList={cityList} pandits={pandits} />
     </>
   );
 }
