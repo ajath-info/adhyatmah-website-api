@@ -27,4 +27,10 @@ Disallow: /delete-account
 # pointing at the plain listing, and Google can only act on a canonical it is
 # allowed to fetch — blocking them here would freeze them as duplicates.
 
+# Both URLs serve the identical generated sitemap. /sitemap-index.xml is listed
+# first because nginx currently intercepts /sitemap.xml on the production server
+# and answers it with its own 404 without reaching the app. Once that nginx
+# location block is removed, /sitemap.xml works too and both remain valid —
+# robots.txt is allowed to declare more than one Sitemap line.
+Sitemap: https://www.adhyatmah.com/sitemap-index.xml
 Sitemap: https://www.adhyatmah.com/sitemap.xml
