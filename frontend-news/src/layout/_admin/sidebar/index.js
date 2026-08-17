@@ -29,6 +29,7 @@ import { LuLayoutDashboard } from 'react-icons/lu';
 import { FaRegBuilding } from 'react-icons/fa';
 import { TbCategory2 } from 'react-icons/tb';
 import { BsShop } from 'react-icons/bs';
+import { BsListStars } from 'react-icons/bs';
 import { BsCart3 } from 'react-icons/bs';
 import { LuUsers } from 'react-icons/lu';
 import { LuUserCog } from 'react-icons/lu';
@@ -131,6 +132,13 @@ export const navlinks = [
     title: 'Pandit Services',
     slug: 'services',
     icon: <BsShop />,
+    isSearch: true
+  },
+  {
+    id: 204,
+    title: 'Master Services',
+    slug: 'master-services',
+    icon: <BsListStars />,
     isSearch: true
   },
   {

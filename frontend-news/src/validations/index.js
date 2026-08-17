@@ -2,6 +2,7 @@ import * as Yup from 'yup';
 import { isValidPhoneNumber } from 'react-phone-number-input';
 import blogCategorySchema from './blog-category';
 import articleSchema from './article';
+import masterServiceSchema from './master-service';
 
 const variantSchema = Yup.object().shape({
   name: Yup.string().required('Variant name is required'),
@@ -616,5 +617,6 @@ export {
   editPaymentSchema,
   blogCategorySchema,
   articleSchema,
+  masterServiceSchema,
   accountDeletionSchema
 };

@@ -24,123 +24,11 @@ import {
 import * as api from 'src/services';
 import { useMutation, useQuery } from '@tanstack/react-query';
 
-// Pooja types from the Service model
-const POOJA_TYPES = [
-  "Rudrabhishek Puja",
-  "Satyanarayan Puja",
-  "Mool Puja",
-  "Bhoomi (Neev) Puja",
-  "Griha Pravesh Puja",
-  "Griha Vastu Shanti Puja",
-  "Namkaran Puja",
-  "Annaprashan Sanskar Puja",
-  "Navratri Puja",
-  "Dhanteras Puja",
-  "Diwali Puja",
-  "Engagement Puja",
-  "Tilak Puja",
-  "Vivah Puja",
-  "Sunderkand Path (Mool Path)",
-  "Saraswati Puja",
-  "Vishwakarma Puja",
-  "Krishna Janmashtami Puja",
-  "Hanuman Janmotsav Puja",
-  "Ram Navami Puja",
-  "Akshaya Tritiya Puja",
-  "Holika Puja",
-  "Govardhan Puja",
-  "Mahalakshmi Puja",
-  "Haritalika Teej Vrat Puja",
-  "Navagraha Shanti Puja",
-  "Budh (Mercury) Graha Shanti Puja",
-  "Shukra (Venus) Graha Shanti Puja",
-  "Chandra (Moon) Graha Shanti Puja",
-  "Brihaspati (Jupiter) Graha Shanti Puja",
-  "Surya (Sun) Graha Shanti Puja",
-  "Mangal (Mars) Graha Shanti Puja",
-  "Rahu Graha Shanti Puja",
-  "Ketu Graha Shanti Puja",
-  "Shani Graha Shanti Puja",
-  "Pitrudosh Nivaran Puja",
-  "Santan Gopal Mantra Jaap",
-  "Kalsarpa Dosha Nivaran Puja",
-  "Ganesh Puja",
-  "Janeu, Yajnopaveet (Upanayana Sanskar)",
-  "Business Opening Puja",
-  "Manglik Dosha Nivaran Puja (KumbhArk Marriage)",
-  "Shanti Puja (Poorvajon ke lie)",
-  "Marriage Anniversary Puja",
-  "Varshik Shradh Puja",
-  "Godh Bharai",
-  "Kuber Upasana Puja",
-  "Birthday Puja",
-  "Shuddhikaran Puja",
-  "Pind Daan",
-  "Pitru Paksha Shraddha Puja",
-  "Tripindi Shraddha Puja",
-  "Bharani Shraddha Puja",
-  "Rin Mukti Puja",
-  "Others"
-];
-
-// Price mapping for Pooja types
-const POOJA_PRICE_MAP = {
-  "Rudrabhishek Puja": 5100,
-  "Satyanarayan Puja": 2100,
-  "Mool Puja": 5100,
-  "Bhoomi (Neev) Puja": 3100,
-  "Griha Pravesh Puja": 5100,
-  "Griha Vastu Shanti Puja": 5100,
-  "Namkaran Puja": 3100,
-  "Annaprashan Sanskar Puja": 3100,
-  "Navratri Puja": 3100,
-  "Dhanteras Puja": 5100,
-  "Diwali Puja": 5100,
-  "Engagement Puja": 5100,
-  "Tilak Puja": 5100,
-  "Vivah Puja": 11000,
-  "Sunderkand Path (Mool Path)": 2100,
-  "Saraswati Puja": 3100,
-  "Vishwakarma Puja": 3100,
-  "Krishna Janmashtami Puja": 5100,
-  "Hanuman Janmotsav Puja": 5100,
-  "Ram Navami Puja": 5100,
-  "Akshaya Tritiya Puja": 5100,
-  "Holika Puja": 3100,
-  "Govardhan Puja": 3100,
-  "Mahalakshmi Puja": 5100,
-  "Haritalika Teej Vrat Puja": 2100,
-  "Navagraha Shanti Puja": 5100,
-  "Budh (Mercury) Graha Shanti Puja": 5100,
-  "Shukra (Venus) Graha Shanti Puja": 5100,
-  "Chandra (Moon) Graha Shanti Puja": 5100,
-  "Brihaspati (Jupiter) Graha Shanti Puja": 5100,
-  "Surya (Sun) Graha Shanti Puja": 5100,
-  "Mangal (Mars) Graha Shanti Puja": 5100,
-  "Rahu Graha Shanti Puja": 5100,
-  "Ketu Graha Shanti Puja": 5100,
-  "Shani Graha Shanti Puja": 5100,
-  "Pitrudosh Nivaran Puja": 5100,
-  "Santan Gopal Mantra Jaap": 11000,
-  "Kalsarpa Dosha Nivaran Puja": 5100,
-  "Ganesh Puja": 3100,
-  "Janeu, Yajnopaveet (Upanayana Sanskar)": 5100,
-  "Business Opening Puja": 5100,
-  "Manglik Dosha Nivaran Puja (KumbhArk Marriage)": 21000,
-  "Shanti Puja (Poorvajon ke lie)": 11000,
-  "Marriage Anniversary Puja": 3100,
-  "Varshik Shradh Puja": 3100,
-  "Godh Bharai": 5100,
-  "Kuber Upasana Puja": 5100,
-  "Birthday Puja": 3100,
-  "Shuddhikaran Puja": 5100,
-  "Pind Daan": 5100,
-  "Pitru Paksha Shraddha Puja": 3100,
-  "Tripindi Shraddha Puja": 5100,
-  "Bharani Shraddha Puja": 5100,
-  "Rin Mukti Puja": 5100,
-  "Others": 2100
-};
+// Pooja types now come from the Master Service catalog (Admin -> Master
+// Services) instead of a hardcoded list, so poojaType + price always stay
+// in sync with the single source of truth. Only ACTIVE master services are
+// selectable. Reuses the existing public getHomepagePoojaServicesAll API
+// (already filtered to active-only) instead of adding a new endpoint.
 
 const DURATION_OPTIONS = [
   "1-2 Hour",
@@ -166,6 +54,31 @@ export default function ServiceForm({
   });
 
   const vendors = vendorsData?.data || [];
+
+  // Fetch ACTIVE master services for the poojaType dropdown - this is now
+  // the single source of truth for which poojas can be offered and at
+  // what price. Reuses the existing public homepage services API.
+  const { data: masterServicesData } = useQuery({
+    queryKey: ['active-master-services-for-service-form'],
+    queryFn: () => api.getHomepagePoojaServicesAll('page=1&limit=200')
+  });
+
+  const masterServices = masterServicesData?.data || [];
+
+  // If editing a service whose poojaType is no longer an active master
+  // service (e.g. it was deactivated after this service was created),
+  // still show it in the dropdown so the form doesn't render a blank
+  // Select - it just won't be selectable as a "new" choice with a price.
+  const poojaTypeOptions = React.useMemo(() => {
+    const options = [...masterServices];
+    if (
+      currentService?.poojaType &&
+      !options.some((ms) => ms.name === currentService.poojaType)
+    ) {
+      options.unshift({ name: currentService.poojaType, price: currentService.price, inactive: true });
+    }
+    return options;
+  }, [masterServices, currentService]);
 
   const { mutate: createService, isPending: isCreating } = useMutation({
     mutationFn: isVendor ? api.createServiceByVendor : api.createServiceByAdmin,
@@ -220,16 +133,20 @@ export default function ServiceForm({
 
   const { handleSubmit, values, errors, touched, setFieldValue, getFieldProps } = formik;
 
-  // Handle Pooja Type change and auto-populate price
+  // Handle Pooja Type change and auto-populate price from the matching
+  // active Master Service. Price itself stays read-only in the UI below -
+  // the backend also independently derives it server-side.
   const handlePoojaTypeChange = (event) => {
     const selectedPoojaType = event.target.value;
 
-    // Update poojaType field
     setFieldValue('poojaType', selectedPoojaType);
 
-    // Auto-populate price if mapping exists
-    if (selectedPoojaType && POOJA_PRICE_MAP[selectedPoojaType]) {
-      setFieldValue('price', POOJA_PRICE_MAP[selectedPoojaType]);
+    const matchedMasterService = masterServices.find(
+      (ms) => ms.name === selectedPoojaType
+    );
+
+    if (matchedMasterService) {
+      setFieldValue('price', matchedMasterService.price);
     }
   };
 
@@ -282,14 +199,19 @@ export default function ServiceForm({
                   label="Pooja Type"
                   onChange={handlePoojaTypeChange}
                 >
-                  {POOJA_TYPES.map((type) => (
-                    <MenuItem key={type} value={type}>
-                      {type}
+                  {poojaTypeOptions.map((ms) => (
+                    <MenuItem key={ms.name} value={ms.name} disabled={ms.inactive}>
+                      {ms.name}{ms.inactive ? ' (inactive master service)' : ''}
                     </MenuItem>
                   ))}
                 </Select>
                 {touched.poojaType && errors.poojaType && (
                   <FormHelperText>{errors.poojaType}</FormHelperText>
+                )}
+                {!touched.poojaType && (
+                  <FormHelperText>
+                    Only active Master Services can be selected. Manage the catalog under Admin → Master Services.
+                  </FormHelperText>
                 )}
               </FormControl>
 
@@ -299,8 +221,13 @@ export default function ServiceForm({
                 label="Price (₹)"
                 type="number"
                 error={Boolean(touched.price && errors.price)}
-                helperText={touched.price && errors.price}
-                placeholder="Enter price"
+                helperText={
+                  (touched.price && errors.price) ||
+                  'Auto-filled from the Master Service price. Not editable here.'
+                }
+                placeholder="Select a pooja type to auto-fill the price"
+                disabled
+                slotProps={{ input: { readOnly: true } }}
               />
 
               <FormControl fullWidth error={Boolean(touched.duration && errors.duration)}>
@@ -359,4 +286,3 @@ ServiceForm.propTypes = {
   isLoading: PropTypes.bool,
   isVendor: PropTypes.bool
 };
-

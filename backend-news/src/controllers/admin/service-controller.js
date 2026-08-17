@@ -1,5 +1,6 @@
 const Service = require("../../models/Service");
 const User = require("../../models/User");
+const MasterService = require("../../models/MasterService");
 
 /*     Get All Services by Admin    */
 const getServicesByAdmin = async (req, res) => {
@@ -46,7 +47,7 @@ const getServicesByAdmin = async (req, res) => {
 /*     Create Service by Admin    */
 const createServiceByAdmin = async (req, res) => {
   try {
-    const { poojaType, description, duration, price, vendor } = req.body;
+    const { poojaType, description, duration, vendor } = req.body;
 
     if (!vendor) {
       return res.status(400).json({
@@ -61,6 +62,22 @@ const createServiceByAdmin = async (req, res) => {
       return res.status(400).json({
         success: false,
         message: "Invalid vendor selected",
+      });
+    }
+
+    // poojaType must match an ACTIVE Master Service (exact match).
+    // Price is NEVER trusted from the frontend - it is always derived
+    // from MasterService.price on the server.
+    const masterService = await MasterService.findOne({
+      name: poojaType,
+      status: "active",
+    });
+
+    if (!masterService) {
+      return res.status(400).json({
+        success: false,
+        message:
+          "Selected pooja type is not an active master service. Please choose a valid service.",
       });
     }
 
@@ -81,7 +98,7 @@ const createServiceByAdmin = async (req, res) => {
       poojaType,
       description,
       duration,
-      price,
+      price: masterService.price,
       vendor: vendor,
     });
 
@@ -127,7 +144,7 @@ const getOneServiceByAdmin = async (req, res) => {
 const updateServiceByAdmin = async (req, res) => {
   try {
     const { id } = req.params;
-    const { poojaType, description, duration, price, vendor } = req.body;
+    const { poojaType, description, duration, vendor } = req.body;
 
     const service = await Service.findById(id);
 
@@ -159,6 +176,13 @@ const updateServiceByAdmin = async (req, res) => {
       });
     }
 
+    // Price stays read-only for admin edits too: it is always derived
+    // from the matching active MasterService, never trusted from the
+    // client - unless poojaType is unchanged, in which case the
+    // existing price is left as-is (MasterService price-change cascade
+    // already keeps it in sync separately).
+    let derivedPrice = service.price;
+
     // Check if another service with same poojaType exists (excluding current one)
     if (poojaType && poojaType !== service.poojaType) {
       const duplicateService = await Service.findOne({
@@ -173,13 +197,28 @@ const updateServiceByAdmin = async (req, res) => {
           message: "Service already exists for this pooja type",
         });
       }
+
+      const masterService = await MasterService.findOne({
+        name: poojaType,
+        status: "active",
+      });
+
+      if (!masterService) {
+        return res.status(400).json({
+          success: false,
+          message:
+            "Selected pooja type is not an active master service. Please choose a valid service.",
+        });
+      }
+
+      derivedPrice = masterService.price;
     }
 
     const updateData = {
       poojaType: poojaType || service.poojaType,
       description: description || service.description,
       duration: duration || service.duration,
-      price: price || service.price,
+      price: derivedPrice,
     };
 
     if (vendor) {
@@ -239,4 +278,3 @@ module.exports = {
   updateServiceByAdmin,
   deleteServiceByAdmin,
 };
-

@@ -449,6 +449,37 @@ export const getVendorsByAdmin = async () => {
   return response;
 };
 
+// Admin Master Services API
+export const getMasterServicesByAdmin = async (params) => {
+  const { data: response } = await http.get(`/admin/master-services?${params}`);
+  return response;
+};
+
+export const getMasterServiceByAdmin = async (slug) => {
+  const { data: response } = await http.get(`/admin/master-services/${slug}`);
+  return response;
+};
+
+export const createMasterServiceByAdmin = async (payload) => {
+  const { data: response } = await http.post(`/admin/master-services`, payload);
+  return response;
+};
+
+export const updateMasterServiceByAdmin = async ({ slug, ...payload }) => {
+  const { data: response } = await http.put(`/admin/master-services/${slug}`, payload);
+  return response;
+};
+
+export const deleteMasterServiceByAdmin = async (slug) => {
+  const { data: response } = await http.delete(`/admin/master-services/${slug}`);
+  return response;
+};
+
+export const toggleMasterServiceStatusByAdmin = async (slug) => {
+  const { data: response } = await http.patch(`/admin/master-services/${slug}/toggle-status`);
+  return response;
+};
+
 // Vendor Bookings API
 export const getBookingsByVendor = async (params) => {
   const { data: response } = await http.get(`/vendor/bookings?${params}`);

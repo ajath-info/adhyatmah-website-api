@@ -118,56 +118,26 @@ export default async function IndexPage() {
 
   const categoriesListJson = await categoriesList.json();
 
-  const dummyServices = [
-    {
-      id: '1',
-      name: 'Rudrabhishek Puja',
-      price: 5100,
-      originalPrice: 5901,
-      duration: '3-4 Hrs',
-      views: 2800,
-      image: { url: '/images/poojaas/rudrabhishek-puja.jpeg' }
-    },
-    {
-      id: '2',
-      name: 'Satyanarayan Puja',
-      price: 2100,
-      originalPrice: 2501,
-      duration: '2-3 Hrs',
-      views: 1500,
-      image: { url: '/images/poojaas/satyanarayan-puja.jpeg' }
-    },
-    {
-      id: '4',
-      name: 'Bhoomi (Neev) Puja',
-      price: 3100,
-      originalPrice: 3601,
-      duration: '1-2 Hrs',
-      views: 1200,
-      image: { url: '/images/poojaas/bhoomi-neev-puja.png' }
-    },
-    {
-      id: "5",
-      name: "Griha Pravesh Puja",
-      price: 5100,
-      originalPrice: 5901,
-      duration: "3-4 Hrs",
-      views: 3000,
-      image: {
-        url: '/images/poojaas/griha-pravesh.png',
-      },
-    },
+  // Master Service catalog is now the single source of truth for the
+  // public service listing shown here - was previously a hardcoded array.
+  // PoojaServices/PoojaCard already slice/render this the same way.
+  let dummyServices = [];
 
-    {
-      id: '3',
-      name: 'Mool Puja',
-      price: 5100,
-      originalPrice: 5901,
-      duration: '3-4 Hrs',
-      views: 3000,
-      image: { url: '/images/poojaas/mool-puja.png' }
-    },
-  ];
+  try {
+    const masterServicesRes = await fetch(
+      `${baseUrl}/api/getHomepagePoojaServicesAll?page=1&limit=8`,
+      { next: { revalidate: 60 } }
+    );
+
+    if (masterServicesRes.ok) {
+      const masterServicesJson = await masterServicesRes.json();
+      dummyServices = masterServicesJson?.data || [];
+    }
+  } catch (error) {
+    // Keep the homepage rendering even if this section's data fails to
+    // load - don't break the whole page over one section.
+    dummyServices = [];
+  }
 
   return (
     <Stack gap={5}>

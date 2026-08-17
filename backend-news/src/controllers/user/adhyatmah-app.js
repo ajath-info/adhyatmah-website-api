@@ -20,6 +20,7 @@ const Categories = require("../../models/Category");
 const Service = require("../../models/Service");
 const { sendPush } = require("../../utils/pushNotification");
 const { allServices } = require("../../data/allServices");
+const MasterService = require("../../models/MasterService");
 const { state_arr, s_a } = require("../../data/cities");
 
 
@@ -2030,21 +2031,33 @@ const getHomepagePoojaServicesAll =
       const skip =
         (page - 1) * limit;
 
+      // Data source: MasterService DB (single source of truth for the
+      // public/common service catalog and price). Only ACTIVE master
+      // services are returned here - inactive ones must disappear from
+      // homepage / /services / /offline-puja-services listings.
+      const activeQuery = { status: "active" };
+
       // total services
       const totalServices =
-        allServices.length;
+        await MasterService.countDocuments(activeQuery);
 
       // paginated services
+      // Sort oldest-first (createdAt ascending) so the original priority
+      // order (Rudrabhishek, Satyanarayan, Mool, Bhoomi Neev, Griha
+      // Pravesh, ...) from the legacy catalog / migration is preserved
+      // on the homepage and listing pages - matches how these were
+      // shown before this data moved from a hardcoded array to the DB.
       const services =
-        allServices.slice(
-          skip,
-          skip + limit
-        );
+        await MasterService.find(activeQuery)
+          .sort({ createdAt: 1 })
+          .skip(skip)
+          .limit(limit);
 
       const formattedServices =
         services.map((service) => {
 
-          // random views
+          // random views (kept the same as the previous static-data
+          // behavior; `views` on MasterService itself is not used here)
           const randomViews =
             Math.floor(
               Math.random() *
@@ -2052,19 +2065,18 @@ const getHomepagePoojaServicesAll =
             ) + 500;
 
           return {
-            id: service.id,
+            id: service._id,
 
             name: service.name,
 
-            slug: service.name
-              .toLowerCase()
-              .replace(/\s+/g, "-"),
+            slug: service.slug,
 
             image: {
               url:
                 service.image?.url || "",
 
               altText:
+                service.image?.altText ||
                 service.name
                   .toLowerCase()
                   .replace(/\s+/g, "-"),

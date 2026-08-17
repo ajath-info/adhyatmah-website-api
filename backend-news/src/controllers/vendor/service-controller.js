@@ -1,5 +1,6 @@
 const Service = require("../../models/Service");
 const User = require("../../models/User");
+const MasterService = require("../../models/MasterService");
 
 /*     Get All Services by Vendor    */
 const getServicesByVendor = async (req, res) => {
@@ -45,7 +46,23 @@ const getServicesByVendor = async (req, res) => {
 /*     Create Service by Vendor    */
 const createServiceByVendor = async (req, res) => {
   try {
-    const { poojaType, description, duration, price } = req.body;
+    const { poojaType, description, duration } = req.body;
+
+    // poojaType must match an ACTIVE Master Service (exact match).
+    // Price is NEVER trusted from the frontend - it is always derived
+    // from MasterService.price on the server.
+    const masterService = await MasterService.findOne({
+      name: poojaType,
+      status: "active",
+    });
+
+    if (!masterService) {
+      return res.status(400).json({
+        success: false,
+        message:
+          "Selected pooja type is not an active master service. Please choose a valid service.",
+      });
+    }
 
     // Check if service already exists for this vendor
     const existingService = await Service.findOne({
@@ -64,7 +81,7 @@ const createServiceByVendor = async (req, res) => {
       poojaType,
       description,
       duration,
-      price,
+      price: masterService.price,
       vendor: req.vendor._id.toString(),
     });
 
@@ -113,7 +130,7 @@ const getOneServiceByVendor = async (req, res) => {
 const updateServiceByVendor = async (req, res) => {
   try {
     const { id } = req.params;
-    const { poojaType, description, duration, price } = req.body;
+    const { poojaType, description, duration } = req.body;
 
     // Check if service exists and belongs to vendor
     const existingService = await Service.findOne({
@@ -128,8 +145,12 @@ const updateServiceByVendor = async (req, res) => {
       });
     }
 
-    // Check if another service with same poojaType exists (excluding current one)
+    // Price stays read-only for vendors: it is always derived from the
+    // matching active MasterService, never trusted from the client.
+    let derivedPrice = existingService.price;
+
     if (poojaType && poojaType !== existingService.poojaType) {
+      // Check if another service with same poojaType exists (excluding current one)
       const duplicateService = await Service.findOne({
         poojaType,
         vendor: req.vendor._id.toString(),
@@ -142,11 +163,31 @@ const updateServiceByVendor = async (req, res) => {
           message: "Service already exists for this pooja type",
         });
       }
+
+      const masterService = await MasterService.findOne({
+        name: poojaType,
+        status: "active",
+      });
+
+      if (!masterService) {
+        return res.status(400).json({
+          success: false,
+          message:
+            "Selected pooja type is not an active master service. Please choose a valid service.",
+        });
+      }
+
+      derivedPrice = masterService.price;
     }
 
     const service = await Service.findByIdAndUpdate(
       id,
-      { poojaType, description, duration, price },
+      {
+        poojaType: poojaType || existingService.poojaType,
+        description,
+        duration,
+        price: derivedPrice,
+      },
       { new: true, runValidators: true }
     );
 
@@ -200,3 +241,4 @@ module.exports = {
   updateServiceByVendor,
   deleteServiceByVendor,
 };
+
