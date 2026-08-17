@@ -3,7 +3,7 @@ const User = require("../../models/User");
 const Product = require("../../models/Product");
 const Review = require("../../models/Review");
 const Service = require("../../models/Service");
-const { allServices } = require("../../data/allServices");
+const MasterService = require("../../models/MasterService");
 
 /**
  * Create Service documents for a vendor from selected catalog names (or objects),
@@ -18,6 +18,10 @@ async function syncVendorServicesFromSelection(vendorId, selectedServices) {
   const serviceNames = [];
   const seen = new Set();
 
+  // Escapes regex-special characters so a service name containing them
+  // (e.g. "Griha Pravesh (Full)") can't break the case-insensitive match.
+  const escapeRegex = (str) => str.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+
   for (const selected of selectedServices) {
     const rawName =
       typeof selected === "string"
@@ -26,9 +30,12 @@ async function syncVendorServicesFromSelection(vendorId, selectedServices) {
     const name = String(rawName || "").trim();
     if (!name) continue;
 
-    const catalog = allServices.find(
-      (s) => s.name.toLowerCase() === name.toLowerCase()
-    );
+    // Source of truth is the MasterService DB (not the old static
+    // allServices.js), so newly added/updated services get their real
+    // price and duration instead of silently falling back to defaults.
+    const catalog = await MasterService.findOne({
+      name: { $regex: `^${escapeRegex(name)}$`, $options: "i" },
+    });
     const poojaType = catalog?.name || name;
     if (seen.has(poojaType.toLowerCase())) continue;
     seen.add(poojaType.toLowerCase());

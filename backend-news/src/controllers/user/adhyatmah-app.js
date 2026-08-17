@@ -19,7 +19,6 @@ const { sendEmail } = require("../../utils/mailer-util");
 const Categories = require("../../models/Category");
 const Service = require("../../models/Service");
 const { sendPush } = require("../../utils/pushNotification");
-const { allServices } = require("../../data/allServices");
 const MasterService = require("../../models/MasterService");
 const { state_arr, s_a } = require("../../data/cities");
 
@@ -1868,8 +1867,12 @@ const getHomepageCollections = async (req, res) => {
 const getHomepagePoojaServices = async (req, res) => {
   try {
 
-    // top 8 services
-    const services = allServices.slice(0, 5);
+    // Data source: MasterService DB (single source of truth), same as
+    // getHomepagePoojaServicesAll. Only ACTIVE master services, top 5,
+    // oldest-first so the original priority order is preserved.
+    const services = await MasterService.find({ status: "active" })
+      .sort({ createdAt: 1 })
+      .limit(5);
 
     const formattedServices = services.map(
       (service) => {
@@ -1881,14 +1884,12 @@ const getHomepagePoojaServices = async (req, res) => {
           ) + 500;
 
         return {
-          id: service.id,
+          id: service._id,
           name: service.name,
-          slug: service.name
-            .toLowerCase()
-            .replace(/\s+/g, "-"),
+          slug: service.slug,
           image: {
             url: service.image?.url || "",
-            altText: service.name
+            altText: service.image?.altText || service.name
               .toLowerCase()
               .replace(/\s+/g, "-"),
           },
