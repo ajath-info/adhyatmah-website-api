@@ -1903,11 +1903,11 @@ const getBookingById = async (req, res) => {
       )
       .populate(
         "pujaSamagri.pujaKit",
-        "name price"
+        "name price salePrice"
       )
       .populate(
         "pujaSamagri.instantKit",
-        "name price"
+        "name price salePrice"
       );
 
     if (!booking) {
@@ -1925,7 +1925,7 @@ const getBookingById = async (req, res) => {
           (kit) => ({
             id: kit?._id,
             name: kit?.name,
-            price: kit?.price,
+            price: kit?.salePrice ?? kit?.price,
           })
         ) || [],
 
@@ -1934,7 +1934,7 @@ const getBookingById = async (req, res) => {
           (kit) => ({
             id: kit?._id,
             name: kit?.name,
-            price: kit?.price,
+            price: kit?.salePrice ?? kit?.price,
           })
         ) || [],
     };
