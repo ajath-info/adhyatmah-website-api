@@ -20,6 +20,7 @@ const Categories = require("../../models/Category");
 const Service = require("../../models/Service");
 const { sendPush } = require("../../utils/pushNotification");
 const MasterService = require("../../models/MasterService");
+const Language = require("../../models/Language");
 const { state_arr, s_a } = require("../../data/cities");
 
 
@@ -9091,21 +9092,33 @@ const getPanditRevenue = async (req, res) => {
 
 /* Get All Languages */
 const getAllLanguages = async (req, res) => {
+  // Kept as a fallback only, in case the Language collection is ever
+  // empty (e.g. fresh DB before the initializer seeds it) — the admin
+  // dashboard is now the source of truth for this list.
+  const FALLBACK_LANGUAGES = [
+    "hindi",
+    "english",
+    "marathi",
+    "sanskrit",
+    "bangali",
+    "gujarati",
+    "odia",
+    "tamil",
+    "telugu",
+    "kannada",
+    "malayalam",
+    "others",
+  ];
+
   try {
-    const languages = [
-      "hindi",
-      "english",
-      "marathi",
-      "sanskrit",
-      "bangali",
-      "gujarati",
-      "odia",
-      "tamil",
-      "telugu",
-      "kannada",
-      "malayalam",
-      "others",
-    ];
+    const activeLanguages = await Language.find({ status: "active" })
+      .sort({ order: 1, createdAt: 1 })
+      .select("name -_id")
+      .lean();
+
+    const languages = activeLanguages.length
+      ? activeLanguages.map((lang) => lang.name)
+      : FALLBACK_LANGUAGES;
 
     res.status(200).json({
       error: false,
@@ -9119,11 +9132,16 @@ const getAllLanguages = async (req, res) => {
     });
   } catch (error) {
     console.error("Error in getAllLanguages:", error);
-    res.status(500).json({
-      error: true,
-      code: 500,
-      status: 0,
-      message: error.message,
+    // Fail soft with the fallback list so the vendor/pandit form never breaks.
+    res.status(200).json({
+      error: false,
+      code: 200,
+      status: 1,
+      message: "Languages retrieved successfully",
+      payload: {
+        languages: FALLBACK_LANGUAGES,
+        totalCount: FALLBACK_LANGUAGES.length,
+      },
     });
   }
 };

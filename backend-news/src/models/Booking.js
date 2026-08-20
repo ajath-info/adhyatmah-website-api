@@ -126,21 +126,11 @@ const BookingSchema =
       language: {
         type: [String],
 
-        enum: [
-          "hindi",
-          "english",
-          "marathi",
-          "sanskrit",
-          "bangali",
-          "gujarati",
-          "odia",
-          "tamil",
-          "telugu",
-          "kannada",
-          "malayalam",
-          "others",
-        ],
-
+        // Note: previously restricted to a hardcoded enum list. Languages
+        // are now managed dynamically from the admin Languages page and
+        // validated against the DB in booking-controller.js at request
+        // time, so the schema-level enum was removed to avoid the two
+        // lists going out of sync.
         default: ["hindi"],
       },
 

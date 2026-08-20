@@ -162,20 +162,10 @@ const UserSchema = new mongoose.Schema(
     },
     language: {
       type: [String],
-      enum: [
-        "hindi",
-        "english",
-        "marathi",
-        "sanskrit",
-        "bangali",
-        "gujarati",
-        "odia",
-        "tamil",
-        "telugu",
-        "kannada",
-        "malayalam",
-        "others",
-      ],
+      // Note: previously restricted to a hardcoded enum list. Languages are
+      // now managed dynamically from the admin Languages page, so the enum
+      // validation was removed — any language name saved in that collection
+      // (e.g. a newly added "nepali") is now accepted here.
       default: [],
     },
     experience: {

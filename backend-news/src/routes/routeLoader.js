@@ -22,6 +22,9 @@ const adminMasterServiceRoutes = require("./admin/master-service-routes");
 const adminBookingRoutes = require("./admin/booking-routes");
 const adminBlogRoutes = require("./admin/blogRoutes");
 const articleRoutes = require("./admin/articleRoutes");
+const adminJobRoutes = require("./admin/job-routes");
+const adminJobApplicationRoutes = require("./admin/job-application-routes");
+const adminLanguageRoutes = require("./admin/language-routes");
 
 //////////////// user routes ////////////////////////
 const userAttributeRoutes = require("./user/attribute-routes");
@@ -56,6 +59,7 @@ const userPolicyRoutes = require("./user/policy-routes");
 const userContactRoutes = require("./user/contact-routes");
 const userOrderRoutes = require("./user/order-routes");
 const shopifyRoutes = require("./user/shopify-routes");
+const userJobRoutes = require("./user/job-routes");
 
 /////////////// vendor routes //////////////////////
 const vendorDashboardRoutes = require("./vendor/dashboard-routes");
@@ -92,6 +96,9 @@ router.use("/api", adminMasterServiceRoutes);
 router.use("/api", adminBookingRoutes);
 router.use("/api", adminBlogRoutes);
 router.use("/api", articleRoutes);
+router.use("/api", adminJobRoutes);
+router.use("/api", adminJobApplicationRoutes);
+router.use("/api", adminLanguageRoutes);
 
 //////////////// user routes ////////////////////////
 router.use("/api", userAttributeRoutes);
@@ -125,6 +132,7 @@ router.use("/api", userSettingRoutes);
 router.use("/api", userOrderRoutes);
 router.use("/api", userPolicyRoutes);
 router.use("/api", userContactRoutes);
+router.use("/api", userJobRoutes);
 router.use("/", shopifyRoutes);
 /////////////// vendor routes //////////////////////
 router.use("/api", vendorDashboardRoutes);

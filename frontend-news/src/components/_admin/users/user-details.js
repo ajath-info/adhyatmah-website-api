@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useRef, useState, useEffect } from 'react';
 import PropTypes from 'prop-types';
 
 import { Tabs, Tab, Box } from '@mui/material';
@@ -8,6 +8,7 @@ import { Tabs, Tab, Box } from '@mui/material';
 import AdminUserProfileCard from './admin-user-profile-card';
 import VendorProfileDetails from './vendor-profile-details';
 import UserBookingHistory from './user-booking-history';
+import UserOrderHistory from './user-order-history';
 import PoojaServicesTab from './pooja-services-tab';
 import VendorSeoContentTab from './vendor-seo-content-tab';
 
@@ -38,6 +39,24 @@ TabPanel.propTypes = {
 export default function UserProfile({ id }) {
   const [tabValue, setTabValue] = useState(0);
 
+  // The theme's MuiTab override (src/theme/overrides/tabs.js) adds a
+  // marginRight between tabs via emotion's CSS-in-JS. That stylesheet is
+  // injected asynchronously, slightly after MUI's Tabs component measures
+  // each tab's offsetLeft/offsetWidth to position the orange indicator bar.
+  // The result: the indicator gets placed using pre-margin positions, so it
+  // ends up shifted left of the label text - worse for tabs further to the
+  // right. Explicitly re-running Tabs' own updateIndicator() once after
+  // mount (via the official `action` ref MUI exposes) re-measures the tabs
+  // after all styles have settled and snaps the indicator back under the
+  // correct label.
+  const tabsActionRef = useRef(null);
+  useEffect(() => {
+    const frame = requestAnimationFrame(() => {
+      tabsActionRef.current?.updateIndicator();
+    });
+    return () => cancelAnimationFrame(frame);
+  }, [tabValue]);
+
   const { data, isPending: isLoading } = useQuery({
     queryKey: ['user-details', id],
     queryFn: () => api.getUserByAdmin(id),
@@ -56,14 +75,14 @@ export default function UserProfile({ id }) {
         <Box sx={{ width: '100%', mt: 3 }}>
           <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
             <Tabs
+              action={tabsActionRef}
               value={tabValue}
               onChange={(_, newValue) => setTabValue(newValue)}
               aria-label="vendor details tabs"
               textColor="primary"
               indicatorColor="primary"
               variant="scrollable"
-              scrollButtons="auto"
-              allowScrollButtonsMobile
+              scrollButtons={false}
             >
               <Tab label="Vendor Details" id="vendor-tab-0" aria-controls="vendor-tabpanel-0" />
               <Tab label="Pooja Services" id="vendor-tab-1" aria-controls="vendor-tabpanel-1" />
@@ -86,8 +105,29 @@ export default function UserProfile({ id }) {
           </TabPanel>
         </Box>
       ) : (
-        <Box sx={{ mt: 3 }}>
-          <UserBookingHistory userId={id} isVendorView={false} />
+        <Box sx={{ width: '100%', mt: 3 }}>
+          <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
+            <Tabs
+              action={tabsActionRef}
+              value={tabValue}
+              onChange={(_, newValue) => setTabValue(newValue)}
+              aria-label="user details tabs"
+              textColor="primary"
+              indicatorColor="primary"
+              variant="scrollable"
+              scrollButtons={false}
+            >
+              <Tab label="Booking History" id="user-tab-0" aria-controls="user-tabpanel-0" />
+              <Tab label="Order History" id="user-tab-1" aria-controls="user-tabpanel-1" />
+            </Tabs>
+          </Box>
+
+          <TabPanel value={tabValue} index={0}>
+            <UserBookingHistory userId={id} isVendorView={false} embedded />
+          </TabPanel>
+          <TabPanel value={tabValue} index={1}>
+            <UserOrderHistory userId={id} embedded />
+          </TabPanel>
         </Box>
       )}
     </div>

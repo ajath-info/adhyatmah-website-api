@@ -180,7 +180,7 @@ export default function FaqSection() {
                             }}
                         >
                             <img
-                                src="/images/faq.png"
+                                src="/images/faq.jpg"
                                 alt="Frequently asked questions about Adhyatmah pandit booking"
                                 style={{
                                     width: '100%',

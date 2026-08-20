@@ -1,9 +1,9 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import PropTypes from 'prop-types';
 import toast from 'react-hot-toast';
-import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { useMutation, useQueryClient, useQuery } from '@tanstack/react-query';
 import {
   Card,
   CardContent,
@@ -39,6 +39,8 @@ const DESIGNATION_OPTIONS = [
   'धर्माचार्य'
 ];
 
+// Fallback only — used if the admin-managed Languages list can't be fetched
+// (e.g. API error). Source of truth is now the Languages admin page.
 const LANGUAGE_OPTIONS = [
   'hindi',
   'english',
@@ -217,6 +219,22 @@ export default function VendorProfileDetails({ user, isLoading, embedded = false
   const [isEditing, setIsEditing] = useState(false);
   const [formValues, setFormValues] = useState({});
 
+  // Languages are now managed dynamically from the admin Languages page,
+  // so we fetch the live list here instead of using the hardcoded array.
+  const { data: languagesData } = useQuery({
+    queryKey: ['all-languages'],
+    queryFn: api.getAllLanguages
+  });
+  const languageOptions = languagesData?.payload?.languages || LANGUAGE_OPTIONS;
+
+  const editableFields = useMemo(
+    () =>
+      EDITABLE_USER_FIELDS.map((field) =>
+        field.key === 'language' ? { ...field, options: languageOptions } : field
+      ),
+    [languageOptions]
+  );
+
   const { mutate, isPending: isSaving } = useMutation({
     mutationFn: api.updateUserDetailsByAdmin,
     onSuccess: (res) => {
@@ -231,7 +249,7 @@ export default function VendorProfileDetails({ user, isLoading, embedded = false
 
   const handleEditStart = () => {
     const initial = {};
-    EDITABLE_USER_FIELDS.forEach(({ key }) => {
+    editableFields.forEach(({ key }) => {
       if (key === 'about') {
         initial[key] = user?.about
           ? user.about.split(',').map((item) => item.trim()).filter(Boolean)
@@ -292,56 +310,67 @@ export default function VendorProfileDetails({ user, isLoading, embedded = false
 
   const shopFields = shop
     ? [
-        { label: 'Shop Name', value: shop?.name },
-        { label: 'First Name', value: shop?.firstName },
-        { label: 'Last Name', value: shop?.lastName },
-        { label: 'Designation', value: shop?.designation },
-        { label: 'Shop Email', value: shop?.shopEmail || shop?.email },
-        { label: 'Shop Phone', value: shop?.shopPhone || shop?.phone },
-        { label: 'Gender', value: shop?.gender },
-        { label: 'Date of Birth', value: shop?.dateOfBirth },
-        { label: 'Shop Status', value: shop?.status },
-        { label: 'Experience', value: shop?.experience },
-        { label: 'Languages', value: shop?.language },
-        { label: 'Services', value: shop?.services },
-        { label: 'Gotra', value: shop?.gotra },
-        { label: 'Prawar', value: shop?.pravar },
-        { label: 'Veda', value: shop?.veda },
-        { label: 'Shakha', value: shop?.shakha },
-        { label: 'Pankti', value: shop?.pankti },
-        { label: 'Sutra', value: shop?.sutra },
-        { label: 'Aadhaar', value: shop?.aadharNumber },
-        { label: 'Address', value: shop?.address?.streetAddress },
-        { label: 'City', value: shop?.address?.city },
-        { label: 'State', value: shop?.address?.state },
-        { label: 'Country', value: shop?.address?.country },
-        { label: 'Pincode', value: shop?.pincode },
-        { label: 'Contact Person', value: shop?.contactPerson },
-        { label: 'Website', value: shop?.website },
-        { label: 'Description', value: shop?.description },
-        { label: 'Registration Number', value: shop?.registrationNumber },
-        { label: 'Referral Code', value: shop?.referralCode },
-        { label: 'Tax ID', value: shop?.taxIdentificationNumber },
-        { label: 'VAT Registration', value: shop?.vatRegistrationNumber },
-        { label: 'Payment Method', value: shop?.financialDetails?.paymentMethod },
-        { label: 'PayPal Email', value: shop?.financialDetails?.paypal?.email },
-        { label: 'Bank Name', value: shop?.financialDetails?.bank?.bankName },
-        { label: 'Account Holder', value: shop?.financialDetails?.bank?.holderName },
-        { label: 'Account Number', value: shop?.financialDetails?.bank?.accountNumber },
-        { label: 'Government ID', value: shop?.identityVerification?.governmentId },
-        { label: 'Proof of Address', value: shop?.identityVerification?.proofOfAddress },
-        { label: 'Rating', value: shop?.rating },
-        { label: 'Rating Count', value: shop?.ratingCount },
-        { label: 'Created On', value: shop?.createdAt },
-        { label: 'Last Updated', value: shop?.updatedAt }
-      ]
+      { label: 'Shop Name', value: shop?.name },
+      { label: 'First Name', value: shop?.firstName },
+      { label: 'Last Name', value: shop?.lastName },
+      { label: 'Designation', value: shop?.designation },
+      { label: 'Shop Email', value: shop?.shopEmail || shop?.email },
+      { label: 'Shop Phone', value: shop?.shopPhone || shop?.phone },
+      { label: 'Gender', value: shop?.gender },
+      { label: 'Date of Birth', value: shop?.dateOfBirth },
+      { label: 'Shop Status', value: shop?.status },
+      { label: 'Experience', value: shop?.experience },
+      { label: 'Languages', value: shop?.language },
+      { label: 'Services', value: shop?.services },
+      { label: 'Gotra', value: shop?.gotra },
+      { label: 'Prawar', value: shop?.pravar },
+      { label: 'Veda', value: shop?.veda },
+      { label: 'Shakha', value: shop?.shakha },
+      { label: 'Pankti', value: shop?.pankti },
+      { label: 'Sutra', value: shop?.sutra },
+      { label: 'Aadhaar', value: shop?.aadharNumber },
+      { label: 'Address', value: shop?.address?.streetAddress },
+      { label: 'City', value: shop?.address?.city },
+      { label: 'State', value: shop?.address?.state },
+      { label: 'Country', value: shop?.address?.country },
+      { label: 'Pincode', value: shop?.pincode },
+      { label: 'Contact Person', value: shop?.contactPerson },
+      { label: 'Website', value: shop?.website },
+      { label: 'Description', value: shop?.description },
+      { label: 'Registration Number', value: shop?.registrationNumber },
+      { label: 'Referral Code', value: shop?.referralCode },
+      { label: 'Tax ID', value: shop?.taxIdentificationNumber },
+      { label: 'VAT Registration', value: shop?.vatRegistrationNumber },
+      { label: 'Payment Method', value: shop?.financialDetails?.paymentMethod },
+      { label: 'PayPal Email', value: shop?.financialDetails?.paypal?.email },
+      { label: 'Bank Name', value: shop?.financialDetails?.bank?.bankName },
+      { label: 'Account Holder', value: shop?.financialDetails?.bank?.holderName },
+      { label: 'Account Number', value: shop?.financialDetails?.bank?.accountNumber },
+      { label: 'Government ID', value: shop?.identityVerification?.governmentId },
+      { label: 'Proof of Address', value: shop?.identityVerification?.proofOfAddress },
+      { label: 'Rating', value: shop?.rating },
+      { label: 'Rating Count', value: shop?.ratingCount },
+      { label: 'Created On', value: shop?.createdAt },
+      { label: 'Last Updated', value: shop?.updatedAt }
+    ]
     : [];
+
+  const statusChipColor =
+    user?.status === 'active' ? 'success' : user?.status === 'inactive' ? 'error' : 'default';
 
   const roleChips =
     !isLoading && user?.role ? (
       <Stack direction="row" spacing={1} sx={{ mb: embedded ? 2 : 0.5, mt: embedded ? 0 : 0.5 }}>
         <Chip size="small" label={user.role} color="primary" variant="outlined" />
-        {user?.status && <Chip size="small" label={user.status} variant="outlined" />}
+        {user?.status && (
+          <Chip
+            size="small"
+            label={user.status}
+            color={statusChipColor}
+            variant="filled"
+            sx={{ textTransform: 'capitalize' }}
+          />
+        )}
       </Stack>
     ) : null;
 
@@ -374,7 +403,7 @@ export default function VendorProfileDetails({ user, isLoading, embedded = false
 
       {isEditing ? (
         <Grid container spacing={2} sx={{ mt: 0.5 }}>
-          {EDITABLE_USER_FIELDS.map((field) => (
+          {editableFields.map((field) => (
             <Grid key={field.key} size={{ xs: 12, sm: 6, md: 4 }}>
               <EditableField field={field} value={formValues[field.key]} onChange={handleFieldChange} />
             </Grid>

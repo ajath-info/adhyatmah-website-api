@@ -1,0 +1,74 @@
+[
+    {
+        "name": "hindi",
+        "label": "Hindi",
+        "status": "active",
+        "order": 1
+    },
+    {
+        "name": "english",
+        "label": "English",
+        "status": "active",
+        "order": 2
+    },
+    {
+        "name": "marathi",
+        "label": "Marathi",
+        "status": "active",
+        "order": 3
+    },
+    {
+        "name": "sanskrit",
+        "label": "Sanskrit",
+        "status": "active",
+        "order": 4
+    },
+    {
+        "name": "bangali",
+        "label": "Bangali",
+        "status": "active",
+        "order": 5
+    },
+    {
+        "name": "gujarati",
+        "label": "Gujarati",
+        "status": "active",
+        "order": 6
+    },
+    {
+        "name": "odia",
+        "label": "Odia",
+        "status": "active",
+        "order": 7
+    },
+    {
+        "name": "tamil",
+        "label": "Tamil",
+        "status": "active",
+        "order": 8
+    },
+    {
+        "name": "telugu",
+        "label": "Telugu",
+        "status": "active",
+        "order": 9
+    },
+    {
+        "name": "kannada",
+        "label": "Kannada",
+        "status": "active",
+        "order": 10
+    },
+    {
+        "name": "malayalam",
+        "label": "Malayalam",
+        "status": "active",
+        "order": 11
+    },
+    {
+        "name": "others",
+        "label": "Others",
+        "status": "active",
+        "order": 12
+    }
+]

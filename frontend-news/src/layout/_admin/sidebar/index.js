@@ -44,6 +44,8 @@ import { GoDotFill, GoDot } from 'react-icons/go';
 import { BsCalendarCheck } from 'react-icons/bs';
 import { MdArticle } from "react-icons/md";
 import { BiCategoryAlt } from "react-icons/bi";
+import { BsBriefcase, BsPersonLinesFill } from "react-icons/bs";
+import { MdLanguage } from "react-icons/md";
 
 // components
 import Scrollbar from 'src/components/scrollbar';
@@ -179,6 +181,14 @@ export const navlinks = [
   },
 
   {
+    id: 208,
+    title: 'Languages',
+    slug: 'languages',
+    icon: <MdLanguage />,
+    isSearch: true
+  },
+
+  {
     id: 13,
     title: 'Newsletter',
     slug: 'newsletter',
@@ -203,6 +213,28 @@ export const navlinks = [
         title: "Articles",
         slug: "articles",
         icon: <MdArticle />,
+        isSearch: true
+      }
+    ]
+  },
+  {
+    id: 205,
+    title: "Careers",
+    icon: <BsBriefcase />,
+    isSearch: true,
+    children: [
+      {
+        id: 206,
+        title: "Jobs",
+        slug: "careers/jobs",
+        icon: <BsBriefcase />,
+        isSearch: true
+      },
+      {
+        id: 207,
+        title: "Applications",
+        slug: "careers/applications",
+        icon: <BsPersonLinesFill />,
         isSearch: true
       }
     ]

@@ -37,6 +37,7 @@ exports.getArticles = async (req, res) => {
             total,
             page,
             limit,
+            count: Math.ceil(total / limit) || 1,
             data: articles
         });
 

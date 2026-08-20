@@ -480,6 +480,30 @@ const contactUsSchema = Yup.object().shape({
   message: Yup.string().required('Message is required')
 });
 
+const careerApplicationSchema = Yup.object().shape({
+  name: Yup.string().required('Full name is required'),
+  email: Yup.string().email('Enter a valid email').required('Email is required'),
+  phone: Yup.string().required('Phone number is required'),
+  experience: Yup.string().required('Experience is required'),
+  linkedin: Yup.string().url('Enter a valid URL').nullable(),
+  portfolio: Yup.string().url('Enter a valid URL').nullable(),
+  coverLetter: Yup.string().nullable()
+});
+
+const jobSchema = Yup.object().shape({
+  title: Yup.string().required('Job title is required'),
+  department: Yup.string().required('Department is required'),
+  location: Yup.string().required('Location is required'),
+  employmentType: Yup.string().required('Employment type is required'),
+  experience: Yup.string().required('Experience is required'),
+  description: Yup.string().required('Job description is required'),
+  responsibilities: Yup.string(),
+  requirements: Yup.string(),
+  skills: Yup.string(),
+  openings: Yup.number().min(1, 'At least 1 opening is required'),
+  status: Yup.string()
+});
+
 const couponCodeSchema = Yup.object().shape({
   name: Yup.string().required('Name is required'),
   description: Yup.string().required('Description is required'),
@@ -497,6 +521,11 @@ const couponCodeSchema = Yup.object().shape({
 });
 
 const currencySchema = Yup.object().shape({ rate: Yup.number() });
+
+const languageSchema = Yup.object().shape({
+  name: Yup.string().required('Language name is required'),
+  status: Yup.string().required('Status is required')
+});
 
 const forgetPasswordSchema = Yup.object().shape({
   email: Yup.string().email('Enter valid email').required('Email is required')
@@ -607,6 +636,7 @@ export {
   contactUsSchema,
   couponCodeSchema,
   currencySchema,
+  languageSchema,
   forgetPasswordSchema,
   profileSchema,
   resetPasswordSchema,
@@ -618,5 +648,7 @@ export {
   blogCategorySchema,
   articleSchema,
   masterServiceSchema,
-  accountDeletionSchema
+  accountDeletionSchema,
+  careerApplicationSchema,
+  jobSchema
 };

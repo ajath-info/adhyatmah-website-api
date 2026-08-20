@@ -1,6 +1,6 @@
 'use client';
 // react
-import { useMutation } from '@tanstack/react-query';
+import { useMutation, useQuery } from '@tanstack/react-query';
 import React from 'react';
 import { toast } from 'react-hot-toast';
 import { useRouter } from '@bprogress/next';
@@ -15,7 +15,9 @@ import {
   Button,
   Skeleton,
   CardContent,
-  Box
+  Box,
+  MenuItem,
+  Checkbox
 } from '@mui/material';
 import PhoneInputField from 'src/components/phone-input-field';
 // component
@@ -31,9 +33,38 @@ import { signIn } from 'src/redux/slices/user';
 import { useUploadSingleFile } from '@/hooks/use-upload-file';
 import { profileSchema } from '@/validations';
 
-export default function GeneralProfileForm({ user, isLoading }) {
+const DESIGNATION_OPTIONS = [
+  'आचार्य',
+  'पंडित',
+  'पुरोहित',
+  'पुजारी',
+  'शास्त्री',
+  'ज्योतिषाचार्य',
+  'वेदाचार्य',
+  'कथा वाचक',
+  'यज्ञाचार्य',
+  'धर्माचार्य'
+];
+
+const FALLBACK_LANGUAGE_OPTIONS = [
+  'hindi',
+  'english',
+  'marathi',
+  'sanskrit',
+  'bangali',
+  'gujarati',
+  'odia',
+  'tamil',
+  'telugu',
+  'kannada',
+  'malayalam',
+  'others'
+];
+
+export default function GeneralProfileForm({ user, isLoading, shop, isShopLoading }) {
   const router = useRouter();
   const dispatch = useDispatch();
+  const isVendor = user?.role === 'vendor';
 
   const { mutate, isPending: updateLoading } = useMutation({
     mutationFn: api.updateProfile,
@@ -42,6 +73,23 @@ export default function GeneralProfileForm({ user, isLoading }) {
       toast.success('Updated profile');
     }
   });
+
+  // Designation, Services and Language live on the Pandit/Shop profile
+  // (not the user profile), so they're saved through this mutation instead.
+  const { mutate: mutateShop, isPending: shopUpdateLoading } = useMutation({
+    mutationFn: api.updateShopByVendor,
+    onError: (error) => {
+      toast.error(error?.response?.data?.message || 'Something went wrong while saving pandit details!');
+    }
+  });
+
+  const { data: languagesData, isLoading: languagesLoading } = useQuery({
+    queryKey: ['all-languages'],
+    queryFn: api.getAllLanguages,
+    enabled: isVendor
+  });
+
+  const languageOptions = languagesData?.payload?.languages || FALLBACK_LANGUAGE_OPTIONS;
 
   const { mutateAsync: deleteMutate, isPending: deleteLoading } = useMutation({
     mutationFn: api.singleDeleteFile,
@@ -96,7 +144,6 @@ export default function GeneralProfileForm({ user, isLoading }) {
       email: user?.email || '',
       phone: user?.phone || '',
       gender: user?.gender || '',
-      about: user?.about || '',
       cover: user?.cover,
       address: user?.address || '',
       city: user?.city || '',
@@ -112,13 +159,41 @@ export default function GeneralProfileForm({ user, isLoading }) {
       dateOfBirth: user?.dateOfBirth ? user.dateOfBirth.substring(0, 10) : '',
       aadhar: user?.aadhar || '',
       experience: user?.experience || '',
-      language: user?.language || []
+      language: user?.language || [],
+      // Pandit/Shop profile fields (vendors only)
+      designation: shop?.designation || []
     },
 
     validationSchema: profileSchema,
     onSubmit: async (values) => {
-      const { ...rest } = values;
-      mutate({ ...rest });
+      const { designation, language, ...rest } = values;
+      mutate({ ...rest, language });
+
+      // Keep the linked Pandit/Shop profile's designation and language in
+      // sync, without touching any of its other saved details (services
+      // included — it stays whatever it already was).
+      if (isVendor && shop?.slug) {
+        const {
+          _id,
+          vendor,
+          createdAt,
+          updatedAt,
+          __v,
+          status,
+          rating,
+          ratingCount,
+          products,
+          slug,
+          ...shopRest
+        } = shop;
+
+        mutateShop({
+          currentSlug: shop.slug,
+          ...shopRest,
+          designation,
+          language
+        });
+      }
     }
   });
 
@@ -358,21 +433,121 @@ export default function GeneralProfileForm({ user, isLoading }) {
                       )}
                     </Stack>
                   </Stack>
-                  {/* About */}
-                  <Stack spacing={0.5} width={1}>
-                    <Typography variant="overline" color="text.primary">
-                      {isLoading ? <Skeleton variant="text" width={120} /> : 'About'}
-                    </Typography>
-                    {isLoading ? (
-                      <Skeleton variant="rounded" height={100} />
-                    ) : (
-                      <TextField {...getFieldProps('about')} fullWidth multiline minRows={4} maxRows={4} id="about" />
-                    )}
-                  </Stack>
 
                   {/* Vendor-specific fields */}
-                  {user?.role === 'vendor' && (
+                  {isVendor && (
                     <>
+                      {/* Designation, Total Experience already exists below, so keep Designation on its own row */}
+                      <Stack spacing={0.5} width={1}>
+                        <Typography variant="overline" color="text.primary">
+                          {isLoading || isShopLoading ? <Skeleton variant="text" width={120} /> : 'Designation'}
+                        </Typography>
+                        {isLoading || isShopLoading ? (
+                          <Skeleton variant="rounded" height={56} />
+                        ) : (
+                          <TextField
+                            id="designation"
+                            select
+                            fullWidth
+                            SelectProps={{
+                              multiple: true,
+                              displayEmpty: true,
+                              value: values.designation || [],
+                              onChange: (e) => {
+                                const next =
+                                  typeof e.target.value === 'string' ? e.target.value.split(',') : e.target.value;
+                                setFieldValue('designation', next);
+                              },
+                              renderValue: (selected) =>
+                                selected.length ? (
+                                  <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
+                                    {selected.map((val) => (
+                                      <Box
+                                        key={val}
+                                        sx={{
+                                          px: 1,
+                                          py: 0.25,
+                                          borderRadius: 1,
+                                          bgcolor: 'action.selected',
+                                          fontSize: 13
+                                        }}
+                                      >
+                                        {val}
+                                      </Box>
+                                    ))}
+                                  </Box>
+                                ) : (
+                                  <Typography color="text.disabled">Select Your Designation</Typography>
+                                )
+                            }}
+                            value={values.designation || []}
+                          >
+                            {DESIGNATION_OPTIONS.map((option) => (
+                              <MenuItem key={option} value={option}>
+                                <Checkbox checked={(values.designation || []).indexOf(option) > -1} size="small" />
+                                <Typography>{option}</Typography>
+                              </MenuItem>
+                            ))}
+                          </TextField>
+                        )}
+                      </Stack>
+
+                      {/* Language */}
+                      <Stack spacing={0.5} width={1}>
+                        <Typography variant="overline" color="text.primary">
+                          {isLoading || languagesLoading ? <Skeleton variant="text" width={120} /> : 'Select Language'}
+                        </Typography>
+                        {isLoading || languagesLoading ? (
+                          <Skeleton variant="rounded" height={56} />
+                        ) : (
+                          <TextField
+                            id="language"
+                            select
+                            fullWidth
+                            SelectProps={{
+                              multiple: true,
+                              displayEmpty: true,
+                              value: values.language || [],
+                              onChange: (e) => {
+                                const next =
+                                  typeof e.target.value === 'string' ? e.target.value.split(',') : e.target.value;
+                                setFieldValue('language', next);
+                              },
+                              renderValue: (selected) =>
+                                selected.length ? (
+                                  <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
+                                    {selected.map((val) => (
+                                      <Box
+                                        key={val}
+                                        sx={{
+                                          px: 1,
+                                          py: 0.25,
+                                          borderRadius: 1,
+                                          bgcolor: 'action.selected',
+                                          fontSize: 13,
+                                          textTransform: 'capitalize'
+                                        }}
+                                      >
+                                        {val}
+                                      </Box>
+                                    ))}
+                                  </Box>
+                                ) : (
+                                  <Typography color="text.disabled">Select Language(s)</Typography>
+                                )
+                            }}
+                            value={values.language || []}
+                          >
+                            {languageOptions.map((option) => (
+                              <MenuItem key={option} value={option} sx={{ textTransform: 'capitalize' }}>
+                                <Checkbox checked={(values.language || []).indexOf(option) > -1} size="small" />
+                                {option}
+                              </MenuItem>
+                            ))}
+                          </TextField>
+                        )}
+                      </Stack>
+
                       {/* Gotra, Pravar */}
                       <Stack direction={{ xs: 'column', md: 'row' }} spacing={2}>
                         {/* Gotra */}
@@ -563,7 +738,12 @@ export default function GeneralProfileForm({ user, isLoading }) {
             {isLoading ? (
               <Skeleton height={56} width={81} variant="rounded" />
             ) : (
-              <Button type="submit" variant="contained" size="large" loading={updateLoading || avatarLoading}>
+              <Button
+                type="submit"
+                variant="contained"
+                size="large"
+                loading={updateLoading || avatarLoading || shopUpdateLoading}
+              >
                 Save Setting
               </Button>
             )}

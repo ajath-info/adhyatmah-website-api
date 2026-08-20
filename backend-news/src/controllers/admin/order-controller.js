@@ -1,3 +1,4 @@
+const mongoose = require("mongoose");
 const Notifications = require("../../models/Notification");
 const Orders = require("../../models/Order");
 const User = require("../../models/User");
@@ -81,6 +82,36 @@ const getOrdersByAdmin = async (req, res) => {
       total: totalOrders,
       count: Math.ceil(totalOrders / parseInt(limit)),
       currentPage: page,
+    });
+  } catch (error) {
+    return res.status(400).json({ success: false, message: error.message });
+  }
+};
+
+/*  Get Orders by Customer (Admin) */
+const getOrdersByCustomerByAdmin = async (req, res) => {
+  try {
+    const { customerId } = req.params;
+
+    if (!customerId || !mongoose.Types.ObjectId.isValid(customerId)) {
+      return res.status(400).json({ success: false, message: "Invalid customer id" });
+    }
+
+    // Some older orders were saved with user._id as a string instead of an
+    // ObjectId, so a plain ObjectId match misses them. Match both forms,
+    // same as the admin bookings-by-customer lookup does.
+    const objectId = new mongoose.Types.ObjectId(customerId);
+    const idString = String(customerId);
+
+    const orders = await Orders.find({
+      $or: [{ "user._id": objectId }, { "user._id": idString }],
+    })
+      .sort({ createdAt: -1 })
+      .lean();
+
+    return res.status(200).json({
+      success: true,
+      data: orders,
     });
   } catch (error) {
     return res.status(400).json({ success: false, message: error.message });
@@ -178,6 +209,7 @@ const deleteOrderByAdmin = async (req, res) => {
 
 module.exports = {
   getOrdersByAdmin,
+  getOrdersByCustomerByAdmin,
   getOneOrderByAdmin,
   updateOrderByAdmin,
   deleteOrderByAdmin,

@@ -29,9 +29,10 @@ const SERVICES = [
 
 const QUICK_LINKS = [
   { label: 'About Us', href: '/about' },
-  { label: 'How It Works', href: '/' },
-  { label: 'FAQs', href: '/' },
+  // { label: 'How It Works', href: '/' },
+  // { label: 'FAQs', href: '/' },
   { label: 'Blogs', href: '/blogs' },
+  { label: 'Careers', href: '/careers' },
   { label: 'Contact Us', href: '/contact' },
 ];
 

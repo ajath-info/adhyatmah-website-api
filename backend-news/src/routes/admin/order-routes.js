@@ -5,6 +5,12 @@ const verifyToken = require("../../middlewares/jwt-middleware");
 const { getAdmin } = require("../../middlewares/getAdmin-middleware");
 router.get("/admin/orders", verifyToken, getAdmin, order.getOrdersByAdmin);
 router.get(
+  "/admin/orders/by-customer/:customerId",
+  verifyToken,
+  getAdmin,
+  order.getOrdersByCustomerByAdmin
+);
+router.get(
   "/admin/orders/:id",
   verifyToken,
   getAdmin,

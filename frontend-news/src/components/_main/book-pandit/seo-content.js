@@ -275,6 +275,33 @@ export default function BookPanditSeoContent({ panditCount = 0, cityList = [], p
                   questions families ask most, and the cities and languages Adhyatmah is
                   available in.
                 </Typography>
+
+                {/* Illustration — mirrors the photo card used in the homepage FAQ section's
+                    left column, so this section visually matches instead of leaving the
+                    space empty. Drop the image at public/images/book-pandit-illustration.jpg */}
+                <Box
+                  sx={{
+                    display: { xs: 'none', md: 'block' },
+                    width: '100%',
+                    mt: 1,
+                    borderRadius: '20px',
+                    overflow: 'hidden',
+                    boxShadow: '0 12px 28px rgba(251,139,5,0.18)',
+                    border: '1px solid rgba(251,139,5,0.2)'
+                  }}
+                >
+                  <img
+                    src="/images/book-pandit-illustration.jpg"
+                    alt="Pandit ji performing a traditional Hindu puja with samagri thali"
+                    style={{
+                      width: '100%',
+                      height: 'auto',
+                      aspectRatio: '4 / 3',
+                      objectFit: 'cover',
+                      display: 'block'
+                    }}
+                  />
+                </Box>
               </Stack>
             </Grid>
 

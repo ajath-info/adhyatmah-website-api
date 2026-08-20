@@ -3,6 +3,7 @@ const User = require("../../models/User");
 const Service = require("../../models/Service");
 const VendorReview = require("../../models/VendorReview");
 const Settings = require("../../models/Settings");
+const Language = require("../../models/Language");
 const { singleFileUploader } = require("../../utils/uploader-util");
 const { VENDOR_SEO_CONTENT } = require("../../data/vendorSeoContent");
 const { allServices } = require("../../data/allServices");
@@ -137,7 +138,10 @@ const createBooking = async (
     // ------------------------------------
     // Validate Languages
     // ------------------------------------
-    const validLanguages = [
+    // Languages are now managed dynamically from the admin Languages page.
+    // Fallback list kept only for the rare case the Language collection is
+    // empty/unreachable, so booking creation never breaks.
+    const FALLBACK_LANGUAGES = [
       "hindi",
       "english",
       "marathi",
@@ -151,6 +155,18 @@ const createBooking = async (
       "malayalam",
       "others",
     ];
+
+    let validLanguages = FALLBACK_LANGUAGES;
+    try {
+      const activeLanguages = await Language.find({ status: "active" })
+        .select("name -_id")
+        .lean();
+      if (activeLanguages.length) {
+        validLanguages = activeLanguages.map((lang) => lang.name);
+      }
+    } catch (err) {
+      console.error("Error fetching languages for booking validation:", err);
+    }
 
     if (
       language &&

@@ -68,7 +68,7 @@ const NAVIGATION_ITEMS = [
   //     { label: 'All Online Pujas', href: '/online-puja-services' }
   //   ]
   // },
-  
+
   {
     label: 'Spiritual E-Commerce',
     href: '/products',
@@ -87,6 +87,10 @@ const NAVIGATION_ITEMS = [
   {
     label: 'Blogs',
     href: '/blogs'
+  },
+  {
+    label: 'Careers',
+    href: '/careers'
   }
 ];
 

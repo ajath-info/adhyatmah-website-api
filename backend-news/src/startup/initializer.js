@@ -1,5 +1,6 @@
 const Settings = require("../models/Settings");
 const Currency = require("../models/Currencies");
+const Language = require("../models/Language");
 const fs = require("fs");
 const path = require("path");
 
@@ -27,6 +28,18 @@ const initializeDefaults = async () => {
       );
       await Currency.insertMany(defaultCurrencies);
       console.log("✅ Default Currencies initialized.");
+    }
+
+    const languageCount = await Language.countDocuments();
+    if (languageCount === 0) {
+      const defaultLanguages = JSON.parse(
+        fs.readFileSync(
+          path.join(__dirname, "../constants/languages.json"),
+          "utf-8"
+        )
+      );
+      await Language.insertMany(defaultLanguages);
+      console.log("✅ Default Languages initialized.");
     }
   } catch (error) {
     console.error("❌ Error initializing defaults:", error.message);

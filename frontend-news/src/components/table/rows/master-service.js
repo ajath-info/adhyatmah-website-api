@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { useState } from 'react';
 import PropTypes from 'prop-types';
 import { useRouter } from '@bprogress/next';
 
@@ -16,11 +16,17 @@ import {
     IconButton,
     Tooltip,
     Chip,
-    Switch
+    Switch,
+    Dialog,
+    DialogTitle,
+    DialogContent,
+    DialogContentText,
+    DialogActions,
+    Button
 } from '@mui/material';
 
 // react-query
-import { useMutation } from '@tanstack/react-query';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 
 // toast
 import toast from 'react-hot-toast';
@@ -64,14 +70,21 @@ export default function MasterServiceRow({
     handleClickOpen
 }) {
     const router = useRouter();
+    const queryClient = useQueryClient();
     const { currency } = useSelector((state) => state.settings);
     const fCurrency = useCurrencyFormat('base');
 
-    const { mutate: changeStatus } = useMutation({
+    // confirmation popup state (only used when deactivating a service)
+    const [confirmOpen, setConfirmOpen] = useState(false);
+
+    const { mutate: changeStatus, isPending: isStatusChanging } = useMutation({
         mutationFn: api.toggleMasterServiceStatusByAdmin,
 
         onSuccess: (data) => {
             toast.success(data.message);
+            // refetch the master services list so the updated status
+            // shows up immediately, without needing a hard refresh
+            queryClient.invalidateQueries({ queryKey: ['master-services'] });
             router.refresh();
         },
 
@@ -80,8 +93,25 @@ export default function MasterServiceRow({
                 error?.response?.data?.message ||
                 'Something went wrong!'
             );
+        },
+
+        onSettled: () => {
+            setConfirmOpen(false);
         }
     });
+
+    const handleStatusToggle = () => {
+        // ask for confirmation only when turning an active service inactive
+        if (row?.status === 'active') {
+            setConfirmOpen(true);
+        } else {
+            changeStatus(row?.slug);
+        }
+    };
+
+    const handleConfirmInactive = () => {
+        changeStatus(row?.slug);
+    };
 
     return (
         <TableRow hover>
@@ -183,15 +213,50 @@ export default function MasterServiceRow({
 
                         <Switch
                             checked={row?.status === 'active'}
-                            onChange={() =>
-                                changeStatus(row?.slug)
-                            }
+                            onChange={handleStatusToggle}
                         />
 
                     </Stack>
                 )}
 
             </TableCell>
+
+            {/* Confirm before inactivating a service */}
+
+            <Dialog
+                open={confirmOpen}
+                onClose={() => setConfirmOpen(false)}
+                maxWidth="xs"
+            >
+
+                <DialogTitle>
+                    Inactivate Service
+                </DialogTitle>
+
+                <DialogContent>
+                    <DialogContentText>
+                        Are you sure you want to inactivate this service?
+                    </DialogContentText>
+                </DialogContent>
+
+                <DialogActions>
+
+                    <Button onClick={() => setConfirmOpen(false)}>
+                        Cancel
+                    </Button>
+
+                    <Button
+                        variant="contained"
+                        color="error"
+                        loading={isStatusChanging}
+                        onClick={handleConfirmInactive}
+                    >
+                        Yes, Inactivate
+                    </Button>
+
+                </DialogActions>
+
+            </Dialog>
 
             {/* Date */}
 

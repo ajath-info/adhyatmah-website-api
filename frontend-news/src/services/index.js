@@ -164,6 +164,35 @@ export const getOrderByAdmin = async (id) => {
   const { data } = await http.get(`/admin/orders/${id}`);
   return data;
 };
+
+const filterOrdersByCustomer = (orders, userId) =>
+  orders.filter((order) => {
+    const refId = order?.user?._id || order?.user?.id;
+    return refId && String(refId) === String(userId);
+  });
+
+export const getAdminUserOrders = async (userId) => {
+  try {
+    const { data: response } = await http.get(`/admin/orders/by-customer/${userId}`);
+
+    if (response?.success !== false) {
+      return {
+        success: true,
+        data: Array.isArray(response?.data) ? response.data : []
+      };
+    }
+  } catch (error) {
+    // Fall back to the admin orders feed used on /admin/orders.
+  }
+
+  const allOrdersResponse = await getOrdersByAdmin('');
+  const allOrders = allOrdersResponse?.data || [];
+
+  return {
+    success: true,
+    data: filterOrdersByCustomer(allOrders, userId)
+  };
+};
 export const deleteOrderByAdmin = async (id) => {
   const { data } = await http.delete(`/admin/orders/${id}`);
   return data;
@@ -354,6 +383,27 @@ export const updateCurrencyByAdmin = async ({ _id, ...others }) => {
 };
 export const getCurrencyByAdmin = async (cid) => {
   const { data } = await http.get(`/admin/currencies/${cid}`);
+  return data;
+};
+
+export const getLanguagesByAdmin = async (page, search) => {
+  const { data } = await http.get(`/admin/languages?page=${page || 1}&search=${search || ''}`);
+  return data;
+};
+export const addLanguageByAdmin = async (payload) => {
+  const { data } = await http.post(`/admin/languages`, payload);
+  return data;
+};
+export const deleteLanguageByAdmin = async (id) => {
+  const { data } = await http.delete(`/admin/languages/${id}`);
+  return data;
+};
+export const updateLanguageByAdmin = async ({ _id, ...others }) => {
+  const { data } = await http.put(`/admin/languages/${_id}`, others);
+  return data;
+};
+export const getLanguageByAdmin = async (lid) => {
+  const { data } = await http.get(`/admin/languages/${lid}`);
   return data;
 };
 
@@ -819,6 +869,16 @@ export const getHomepagePoojaServicesAll = async (params = 'page=1&limit=100') =
   return data;
 };
 
+export const getStateList = async (country = 'India') => {
+  const { data } = await http.get(`/stateList?country=${encodeURIComponent(country)}`);
+  return data;
+};
+
+export const getCityList = async (state) => {
+  const { data } = await http.get(`/cityList?state=${encodeURIComponent(state)}`);
+  return data;
+};
+
 export const getAllLanguages = async () => {
   const { data } = await http.get('/getAllLanguages');
   return data;
@@ -1206,5 +1266,96 @@ export const getArticles = async (query = '') => {
 
 export const getArticleByHandle = async (handle) => {
   const { data } = await http.get(`/articles/${handle}`);
+  return data;
+};
+
+/* ==========================================
+   CAREERS (PUBLIC)
+========================================== */
+
+export const getCareerJobs = async (query = '') => {
+  const { data } = await http.get(`/careers/jobs${query}`);
+  return data;
+};
+
+export const getCareerJobBySlug = async (slug) => {
+  const { data } = await http.get(`/careers/jobs/${slug}`);
+  return data;
+};
+
+export const applyToCareerJob = async (formData) => {
+  const { data } = await http.post(`/careers/apply`, formData, {
+    headers: { 'Content-Type': 'multipart/form-data' }
+  });
+  return data;
+};
+
+// Public branding (logo etc.) - same public endpoint used by the root layout server fetch.
+export const getPublicBranding = async () => {
+  const { data } = await http.get(`/settings/branding`);
+  return data;
+};
+
+/* ==========================================
+   CAREERS ADMIN
+========================================== */
+
+export const getCareerJobsByAdmin = async (params) => {
+  const { data } = await http.get(`/admin/careers/jobs?${params}`);
+  return data;
+};
+
+export const getCareerJobByAdmin = async (id) => {
+  const { data } = await http.get(`/admin/careers/jobs/${id}`);
+  return data;
+};
+
+export const addCareerJobByAdmin = async (payload) => {
+  const { data } = await http.post(`/admin/careers/jobs`, payload);
+  return data;
+};
+
+export const updateCareerJobByAdmin = async ({ id, ...payload }) => {
+  const { data } = await http.put(`/admin/careers/jobs/${id}`, payload);
+  return data;
+};
+
+export const deleteCareerJobByAdmin = async (id) => {
+  const { data } = await http.delete(`/admin/careers/jobs/${id}`);
+  return data;
+};
+
+export const changeCareerJobStatusByAdmin = async (id) => {
+  const { data } = await http.patch(`/admin/careers/jobs/status/${id}`);
+  return data;
+};
+
+export const getCareerApplicationsByAdmin = async (params) => {
+  const { data } = await http.get(`/admin/careers/applications?${params}`);
+  return data;
+};
+
+export const getCareerApplicationByAdmin = async (id) => {
+  const { data } = await http.get(`/admin/careers/applications/${id}`);
+  return data;
+};
+
+export const getCareerApplicationResumeUrl = async (id) => {
+  const { data } = await http.get(`/admin/careers/applications/${id}/resume`);
+  return data;
+};
+
+export const updateCareerApplicationStatusByAdmin = async ({ id, status }) => {
+  const { data } = await http.patch(`/admin/careers/applications/status/${id}`, { status });
+  return data;
+};
+
+export const deleteCareerApplicationByAdmin = async (id) => {
+  const { data } = await http.delete(`/admin/careers/applications/${id}`);
+  return data;
+};
+
+export const getCareerStatsByAdmin = async () => {
+  const { data } = await http.get(`/admin/careers/stats`);
   return data;
 };

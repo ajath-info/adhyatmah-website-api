@@ -209,12 +209,40 @@ export default function PanditDetailsForm({ formik, isLoading, showPassword: sho
     queryFn: api.getAllLanguages
   });
 
+  // Same stateList/cityList APIs used by the Adhyatmah mobile app —
+  // country is fixed to India, so states load right away, and cities
+  // load only once a state has been picked.
+  const { data: statesData, isLoading: statesLoading } = useQuery({
+    queryKey: ['india-states'],
+    queryFn: () => api.getStateList('India')
+  });
+
+  const selectedState = values?.address?.state;
+
+  const { data: citiesData, isLoading: citiesLoading } = useQuery({
+    queryKey: ['india-cities', selectedState],
+    queryFn: () => api.getCityList(selectedState),
+    enabled: Boolean(selectedState)
+  });
+
   const serviceOptions = useMemo(
     () => (servicesData?.data || []).map((service) => service.name).filter(Boolean),
     [servicesData]
   );
 
   const languageOptions = languagesData?.payload?.languages || FALLBACK_LANGUAGE_OPTIONS;
+
+  const stateOptions = useMemo(() => (statesData?.payload || []).map((state) => state.name), [statesData]);
+
+  const cityOptions = useMemo(() => (citiesData?.payload || []).map((city) => city.name), [citiesData]);
+
+  const handleStateChange = (event) => {
+    const newState = event.target.value;
+    setFieldValue('address.state', newState);
+    // Reset city whenever state changes, same as the app, so a stale
+    // city from the previous state never gets submitted.
+    setFieldValue('address.city', '');
+  };
 
   const renderLabel = (label, required = false) =>
     isLoading ? (
@@ -536,13 +564,59 @@ export default function PanditDetailsForm({ formik, isLoading, showPassword: sho
           <Grid size={{ xs: 12, md: 6 }}>
             <Stack gap={1}>
               {renderLabel('State')}
-              {renderTextField('address.state', { ...getFieldProps('address.state') })}
+              {isLoading || statesLoading ? (
+                <Skeleton variant="rounded" height={56} width="100%" />
+              ) : (
+                <TextField
+                  id="address.state"
+                  select
+                  fullWidth
+                  displayEmpty
+                  value={selectedState || ''}
+                  onChange={handleStateChange}
+                  error={Boolean(touched?.address?.state && errors?.address?.state)}
+                  helperText={touched?.address?.state && errors?.address?.state}
+                >
+                  <MenuItem value="">
+                    <Typography color="text.disabled">Select Your State</Typography>
+                  </MenuItem>
+                  {stateOptions.map((option) => (
+                    <MenuItem key={option} value={option}>
+                      {option}
+                    </MenuItem>
+                  ))}
+                </TextField>
+              )}
             </Stack>
           </Grid>
           <Grid size={{ xs: 12, md: 6 }}>
             <Stack gap={1}>
               {renderLabel('City')}
-              {renderTextField('address.city', { ...getFieldProps('address.city') })}
+              {isLoading || (selectedState && citiesLoading) ? (
+                <Skeleton variant="rounded" height={56} width="100%" />
+              ) : (
+                <TextField
+                  id="address.city"
+                  select
+                  fullWidth
+                  displayEmpty
+                  disabled={!selectedState}
+                  {...getFieldProps('address.city')}
+                  error={Boolean(touched?.address?.city && errors?.address?.city)}
+                  helperText={touched?.address?.city && errors?.address?.city}
+                >
+                  <MenuItem value="">
+                    <Typography color="text.disabled">
+                      {selectedState ? 'Select Your City' : 'Select a state first'}
+                    </Typography>
+                  </MenuItem>
+                  {cityOptions.map((option) => (
+                    <MenuItem key={option} value={option}>
+                      {option}
+                    </MenuItem>
+                  ))}
+                </TextField>
+              )}
             </Stack>
           </Grid>
           <Grid size={{ xs: 12, md: 6 }}>

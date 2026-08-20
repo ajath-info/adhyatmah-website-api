@@ -207,6 +207,46 @@ export default function ViewBooking(props) {
 
             <Divider />
 
+            {(booking?.pujaSamagri?.pujaKit?.length > 0 || booking?.pujaSamagri?.instantKit?.length > 0) && (
+              <>
+                <Box>
+                  <Typography variant="subtitle1" fontWeight={700} gutterBottom>
+                    Puja Kit
+                  </Typography>
+
+                  <Stack spacing={2} sx={{ mt: 1 }}>
+                    {booking?.pujaSamagri?.pujaKit?.length > 0 && (
+                      <Box>
+                        <Typography variant="caption" color="text.secondary">
+                          Puja Kit
+                        </Typography>
+                        <Stack direction="row" flexWrap="wrap" gap={1} sx={{ mt: 0.5 }}>
+                          {booking.pujaSamagri.pujaKit.map((kitName, index) => (
+                            <Chip key={`puja-kit-${index}`} label={kitName} variant="outlined" color="primary" />
+                          ))}
+                        </Stack>
+                      </Box>
+                    )}
+
+                    {booking?.pujaSamagri?.instantKit?.length > 0 && (
+                      <Box>
+                        <Typography variant="caption" color="text.secondary">
+                          Instant Kit
+                        </Typography>
+                        <Stack direction="row" flexWrap="wrap" gap={1} sx={{ mt: 0.5 }}>
+                          {booking.pujaSamagri.instantKit.map((kitName, index) => (
+                            <Chip key={`instant-kit-${index}`} label={kitName} variant="outlined" color="secondary" />
+                          ))}
+                        </Stack>
+                      </Box>
+                    )}
+                  </Stack>
+                </Box>
+
+                <Divider />
+              </>
+            )}
+
             <BookingDetails data={booking} isLoading={isLoading} hideVendorDetails hidePaymentMethod />
           </Stack>
         </CardContent>
