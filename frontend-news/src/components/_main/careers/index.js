@@ -98,22 +98,66 @@ function CareersHero() {
                 borderRadius: { xs: 3, md: 4 },
                 px: { xs: 3, md: 8 },
                 py: { xs: 6, md: 9 },
-                textAlign: 'center'
+                textAlign: 'center',
+                border: '1px solid',
+                borderColor: alpha(ORANGE, 0.12),
+                boxShadow: '0 20px 48px rgba(232,119,34,0.08)'
             }}
         >
-            <Box sx={{ position: 'absolute', top: -60, right: -60, width: 220, height: 220, borderRadius: '50%', bgcolor: alpha(ORANGE, 0.12), pointerEvents: 'none' }} />
-            <Box sx={{ position: 'absolute', bottom: -50, left: -50, width: 180, height: 180, borderRadius: '50%', bgcolor: alpha(ORANGE, 0.1), pointerEvents: 'none' }} />
+            <Box
+                sx={{
+                    position: 'absolute',
+                    top: -60,
+                    right: -60,
+                    width: 220,
+                    height: 220,
+                    borderRadius: '50%',
+                    background: `radial-gradient(circle at 30% 30%, ${alpha(ORANGE, 0.22)}, ${alpha(ORANGE, 0.06)})`,
+                    pointerEvents: 'none'
+                }}
+            />
+            <Box
+                sx={{
+                    position: 'absolute',
+                    bottom: -50,
+                    left: -50,
+                    width: 180,
+                    height: 180,
+                    borderRadius: '50%',
+                    background: `radial-gradient(circle at 70% 70%, ${alpha(ORANGE, 0.18)}, ${alpha(ORANGE, 0.05)})`,
+                    pointerEvents: 'none'
+                }}
+            />
 
-            <Stack spacing={2} alignItems="center" sx={{ position: 'relative', zIndex: 1 }}>
-                <Chip
-                    label="We're Hiring"
+            <Stack spacing={2.25} alignItems="center" sx={{ position: 'relative', zIndex: 1 }}>
+                <Stack
+                    direction="row"
+                    alignItems="center"
+                    spacing={1.25}
                     sx={{
-                        bgcolor: alpha(ORANGE, 0.14),
-                        color: ORANGE_DARK,
-                        fontWeight: 700,
-                        fontSize: 12.5
+                        bgcolor: 'background.paper',
+                        border: '1px solid',
+                        borderColor: alpha(ORANGE, 0.35),
+                        borderRadius: 50,
+                        px: 2.75,
+                        py: 1.1,
+                        boxShadow: '0 6px 18px rgba(232,119,34,0.14)'
                     }}
-                />
+                >
+                    <Box
+                        sx={{
+                            width: 10,
+                            height: 10,
+                            borderRadius: '50%',
+                            bgcolor: ORANGE,
+                            flexShrink: 0,
+                            boxShadow: `0 0 0 5px ${alpha(ORANGE, 0.18)}`
+                        }}
+                    />
+                    <Typography sx={{ fontSize: { xs: 14, md: 15.5 }, fontWeight: 800, color: ORANGE_DARK, letterSpacing: 0.3 }}>
+                        We&apos;re Hiring
+                    </Typography>
+                </Stack>
 
                 <Typography
                     sx={{
@@ -148,13 +192,19 @@ function CareersHero() {
                         href="#openings"
                         variant="contained"
                         size="large"
+                        endIcon={<IoArrowForward size={17} />}
                         sx={{
                             bgcolor: ORANGE,
                             textTransform: 'none',
                             fontWeight: 700,
                             px: 3.5,
-                            boxShadow: 'none',
-                            '&:hover': { bgcolor: '#d06a1a', boxShadow: 'none' }
+                            boxShadow: '0 10px 24px rgba(232,119,34,0.28)',
+                            transition: 'all .25s',
+                            '&:hover': {
+                                bgcolor: '#d06a1a',
+                                boxShadow: '0 12px 28px rgba(232,119,34,0.36)',
+                                transform: 'translateY(-1px)'
+                            }
                         }}
                     >
                         View Open Roles
@@ -674,11 +724,11 @@ function CareersListing() {
                         <TextField
                             select
                             fullWidth
-                            label="Department"
+                            label="Job Category"
                             value={department}
                             onChange={(e) => setDepartment(e.target.value)}
                         >
-                            <MenuItem value="">All Departments</MenuItem>
+                            <MenuItem value="">All Job Categories</MenuItem>
                             {departments.map((dept) => (
                                 <MenuItem key={dept} value={dept}>{dept}</MenuItem>
                             ))}

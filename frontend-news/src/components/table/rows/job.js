@@ -114,7 +114,7 @@ export default function JobRow({
 
             </TableCell>
 
-            {/* Department */}
+            {/* Job Category */}
 
             <TableCell>
                 {isLoading ? (

@@ -849,6 +849,14 @@ export const getAllPandit = async () => {
   return data;
 };
 
+// Used by the global search bar to look up Pandit Ji by name.
+// Reuses the existing /getAllPandit endpoint's `name` query param
+// (already supported server-side) - no backend change needed.
+export const searchPanditsByName = async (name) => {
+  const { data } = await http.get(`/getAllPandit?name=${encodeURIComponent(name)}`);
+  return data;
+};
+
 export const getPanditProfile = async (vendorId) => {
   const { data } = await http.get(`/panditProfile?vendorId=${vendorId}`);
   return data;

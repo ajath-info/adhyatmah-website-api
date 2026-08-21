@@ -17,6 +17,9 @@ import MenuItem from '@mui/material/MenuItem';
 import ListItemIcon from '@mui/material/ListItemIcon';
 import CircularProgress from '@mui/material/CircularProgress';
 import Divider from '@mui/material/Divider';
+import Avatar from '@mui/material/Avatar';
+import { GiPrayer } from 'react-icons/gi';
+import { MdOutlineSpa } from 'react-icons/md';
 
 // components
 import NoDataFound from '@/illustrations/data-not-found';
@@ -82,6 +85,88 @@ export default function Search({ ...props }) {
 
   const [focus, setFocus] = React.useState(true);
 
+  // ---- Pandit Ji / Puja Service suggestions (additive, same as web search bar) ----
+  // Only shown for the plain search flow. The admin `multiSelect` product-picker
+  // (used inside dialogs elsewhere in the app) is left completely untouched.
+  const [panditResults, setPanditResults] = React.useState([]);
+  const [serviceResults, setServiceResults] = React.useState([]);
+  const [suggestionsLoading, setSuggestionsLoading] = React.useState(false);
+  const allServicesCacheRef = React.useRef(null); // caches full active service list, fetched once
+  const suggestionsRequestIdRef = React.useRef(0);
+
+  const fetchAllServicesOnce = React.useCallback(async () => {
+    if (allServicesCacheRef.current) return allServicesCacheRef.current;
+    try {
+      const res = await api.getHomepagePoojaServicesAll('page=1&limit=100');
+      const list = res?.data || res?.payload?.services || [];
+      allServicesCacheRef.current = list;
+      return list;
+    } catch (error) {
+      console.error('Service list fetch error:', error);
+      return [];
+    }
+  }, []);
+
+  React.useEffect(() => {
+    if (multiSelect) return; // never touch the admin product-picker flow
+
+    const trimmed = search.trim();
+    if (trimmed.length < 2) {
+      setPanditResults([]);
+      setServiceResults([]);
+      return undefined;
+    }
+
+    const currentRequestId = ++suggestionsRequestIdRef.current;
+    setSuggestionsLoading(true);
+
+    const delayDebounceFn = setTimeout(async () => {
+      try {
+        const [panditRes, allServices] = await Promise.all([
+          api.searchPanditsByName(trimmed).catch((error) => {
+            console.error('Pandit search error:', error);
+            return null;
+          }),
+          fetchAllServicesOnce()
+        ]);
+
+        // Ignore stale responses (older than the latest keystroke)
+        if (currentRequestId !== suggestionsRequestIdRef.current) return;
+
+        const pandits = panditRes?.payload?.vendors || [];
+        const lowerQuery = trimmed.toLowerCase();
+        const matchedServices = (allServices || [])
+          .filter((service) => service?.name?.toLowerCase().includes(lowerQuery))
+          .slice(0, 5);
+
+        setPanditResults(pandits.slice(0, 5));
+        setServiceResults(matchedServices);
+      } finally {
+        if (currentRequestId === suggestionsRequestIdRef.current) {
+          setSuggestionsLoading(false);
+        }
+      }
+    }, 300);
+
+    return () => clearTimeout(delayDebounceFn);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [search, multiSelect]);
+
+  const handlePanditSelect = (vendor) => {
+    if (!vendor?.slug) return;
+    !mobile && onClose(vendor);
+    router.push(`/${vendor.slug}`);
+  };
+
+  const handleServiceSelect = (service) => {
+    const serviceId = service?.id || service?._id;
+    if (!serviceId) return;
+    !mobile && onClose(service);
+    router.push(`/offline-puja-services/${serviceId}?name=${encodeURIComponent(service.name || '')}`);
+  };
+
+  const hasSuggestions = !multiSelect && (panditResults.length > 0 || serviceResults.length > 0);
+
   const handleListItemClick = (prop) => {
     if (multiSelect) {
       const matched = state.selected.filter((v) => prop._id === v._id);
@@ -121,7 +206,7 @@ export default function Search({ ...props }) {
       <TextField
         id="standard-basic"
         variant="standard"
-        placeholder="Search products"
+        placeholder={multiSelect ? 'Search products' : 'Search Pandit Ji, Puja Services or Products'}
         onFocus={() => setFocus(true)}
         onKeyDown={onKeyDown}
         onChange={(e) => {
@@ -227,10 +312,74 @@ export default function Search({ ...props }) {
         </FormControl>
       </Stack> */}
       <Divider />
+
+      {/* Pandit Ji / Puja Service suggestions - additive, mirrors the website search bar.
+          Never rendered for the admin multiSelect product-picker flow. */}
+      {!multiSelect && search.trim().length >= 2 && (
+        <Box sx={{ maxHeight: mobile ? 'none' : 260, overflow: 'auto' }}>
+          {suggestionsLoading && !hasSuggestions && (
+            <Stack alignItems="center" justifyContent="center" py={2}>
+              <CircularProgress size={20} />
+            </Stack>
+          )}
+
+          {panditResults.length > 0 && (
+            <>
+              <Typography variant="overline" sx={{ px: 2, pt: 1, display: 'block', color: 'text.secondary' }}>
+                Pandit Ji
+              </Typography>
+              <MenuList sx={{ py: 0 }}>
+                {panditResults.map((vendor) => (
+                  <MenuItem key={vendor._id} onClick={() => handlePanditSelect(vendor)}>
+                    <ListItemIcon>
+                      <Avatar src={vendor?.image?.url} sx={{ bgcolor: 'rgba(251,139,5,0.12)', color: 'primary.main' }}>
+                        <GiPrayer size={18} />
+                      </Avatar>
+                    </ListItemIcon>
+                    <ListItemText
+                      primary={`${vendor.firstName || ''} ${vendor.lastName || ''}`.trim()}
+                      secondary={vendor.city || 'Pandit Ji'}
+                    />
+                  </MenuItem>
+                ))}
+              </MenuList>
+            </>
+          )}
+
+          {panditResults.length > 0 && serviceResults.length > 0 && <Divider />}
+
+          {serviceResults.length > 0 && (
+            <>
+              <Typography variant="overline" sx={{ px: 2, pt: 1, display: 'block', color: 'text.secondary' }}>
+                Puja Services
+              </Typography>
+              <MenuList sx={{ py: 0 }}>
+                {serviceResults.map((service) => (
+                  <MenuItem key={service.id || service._id} onClick={() => handleServiceSelect(service)}>
+                    <ListItemIcon>
+                      <Avatar
+                        src={service?.image?.url}
+                        variant="rounded"
+                        sx={{ bgcolor: 'rgba(251,139,5,0.12)', color: 'primary.main' }}
+                      >
+                        <MdOutlineSpa size={18} />
+                      </Avatar>
+                    </ListItemIcon>
+                    <ListItemText primary={service.name} secondary={service.duration} />
+                  </MenuItem>
+                ))}
+              </MenuList>
+            </>
+          )}
+
+          {hasSuggestions && <Divider />}
+        </Box>
+      )}
+
       <Box className="scroll-main">
         <Box sx={{ height: mobile ? 'auto' : '342px', overflow: 'auto' }}>
-          {/* Show no data found only when initialized and no products */}
-          {state.initialized && !isLoading && !Boolean(state.products.length) && (
+          {/* Show no data found only when initialized and nothing found anywhere (products, pandits, services) */}
+          {state.initialized && !isLoading && !suggestionsLoading && !Boolean(state.products.length) && !hasSuggestions && (
             <>
               <Stack justifyContent="center" alignItems="center" sx={{ svg: { width: 300, height: 380 } }}>
                 <NoDataFound className="svg" />
@@ -239,6 +388,11 @@ export default function Search({ ...props }) {
           )}
 
           {/* Show loading or results */}
+          {!multiSelect && hasSuggestions && (isLoading || state.products.length > 0) && (
+            <Typography variant="overline" sx={{ px: 2, pt: 1, display: 'block', color: 'text.secondary' }}>
+              Products
+            </Typography>
+          )}
           {(isLoading || state.products.length > 0) && (
             <MenuList
               sx={{

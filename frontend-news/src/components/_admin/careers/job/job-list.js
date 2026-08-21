@@ -14,7 +14,7 @@ import JobRow from 'src/components/table/rows/job';
 
 const TABLE_HEAD = [
     { id: 'title', label: 'Job' },
-    { id: 'department', label: 'Department' },
+    { id: 'department', label: 'Job Category', nowrap: true },
     { id: 'location', label: 'Location' },
     { id: 'applicationsCount', label: 'Applications' },
     { id: 'status', label: 'Status' },

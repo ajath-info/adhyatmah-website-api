@@ -492,7 +492,7 @@ const careerApplicationSchema = Yup.object().shape({
 
 const jobSchema = Yup.object().shape({
   title: Yup.string().required('Job title is required'),
-  department: Yup.string().required('Department is required'),
+  department: Yup.string().required('Job Category is required'),
   location: Yup.string().required('Location is required'),
   employmentType: Yup.string().required('Employment type is required'),
   experience: Yup.string().required('Experience is required'),

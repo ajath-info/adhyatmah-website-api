@@ -54,7 +54,9 @@ export default function SecondaryHeader({ categories = [] }) {
 
   // Don't show the search bar / categories bar on auth pages
   // (sign-in, sign-up, forget-password, verify-otp, reset-password, etc.)
-  if (pathname?.startsWith('/auth')) {
+  // and on careers pages — the careers page has its own job search/filter
+  // bar (JobListPanel), so this global product search bar is redundant there.
+  if (pathname?.startsWith('/auth') || pathname?.startsWith('/careers')) {
     return null;
   }
 

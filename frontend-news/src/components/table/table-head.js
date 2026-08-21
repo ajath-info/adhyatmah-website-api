@@ -28,7 +28,8 @@ export default function TableHeadMain({ ...props }) {
               bgcolor: 'transparent',
               fontSize: 16,
               py: 2,
-              textTransform: 'capitalize'
+              textTransform: 'capitalize',
+              whiteSpace: headCell.nowrap ? 'nowrap' : 'normal'
             }}
           >
             {headCell.label}

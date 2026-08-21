@@ -69,6 +69,80 @@ function ListSection({ title, items }) {
     );
 }
 
+/* ---------------- TOP: FULL-WIDTH SEARCH & FILTER BAR ---------------- */
+function JobSearchFilterBar({ total, search, setSearch, department, setDepartment, location, setLocation, departments, locations }) {
+    return (
+        <Box
+            sx={{
+                border: '1px solid',
+                borderColor: 'divider',
+                borderRadius: 3,
+                bgcolor: 'background.paper',
+                p: { xs: 2, sm: 2.5 },
+                mb: { xs: 3, md: 3.5 }
+            }}
+        >
+            <Stack spacing={1.5}>
+                <Stack direction="row" alignItems="center" spacing={1}>
+                    <Box sx={{ width: 7, height: 7, borderRadius: '50%', bgcolor: ORANGE, flexShrink: 0 }} />
+                    <Typography sx={{ fontSize: 11.5, fontWeight: 800, color: 'text.secondary', letterSpacing: 0.6, textTransform: 'uppercase' }}>
+                        <Box component="span" sx={{ color: ORANGE_DARK, fontSize: 14, fontWeight: 900, letterSpacing: 0, textTransform: 'none', mr: 0.5 }}>
+                            {total}
+                        </Box>
+                        Open {total === 1 ? 'Position' : 'Positions'}
+                    </Typography>
+                </Stack>
+
+                <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1.25}>
+                    <TextField
+                        fullWidth
+                        size="small"
+                        placeholder="Search for jobs or keywords..."
+                        value={search}
+                        onChange={(e) => setSearch(e.target.value)}
+                        sx={{ flex: { sm: 2 } }}
+                        InputProps={{
+                            startAdornment: (
+                                <InputAdornment position="start">
+                                    <FiSearch size={15} color="#9e9e9e" />
+                                </InputAdornment>
+                            )
+                        }}
+                    />
+                    <TextField
+                        select
+                        fullWidth
+                        size="small"
+                        label="Job Category"
+                        value={department}
+                        onChange={(e) => setDepartment(e.target.value)}
+                        sx={{ flex: 1 }}
+                    >
+                        <MenuItem value="">All Job Categories</MenuItem>
+                        {departments.map((dept) => (
+                            <MenuItem key={dept} value={dept}>{dept}</MenuItem>
+                        ))}
+                    </TextField>
+                    <TextField
+                        select
+                        fullWidth
+                        size="small"
+                        label="Location"
+                        value={location}
+                        onChange={(e) => setLocation(e.target.value)}
+                        sx={{ flex: 1 }}
+                    >
+                        <MenuItem value="">All Locations</MenuItem>
+                        {locations.map((loc) => (
+                            <MenuItem key={loc} value={loc}>{loc}</MenuItem>
+                        ))}
+                    </TextField>
+                </Stack>
+            </Stack>
+        </Box>
+    );
+}
+
 /* ---------------- LEFT: JOB LIST PANEL ---------------- */
 function JobListItemSkeleton() {
     return (
@@ -152,37 +226,7 @@ function JobListItem({ job, selected, onSelect }) {
     );
 }
 
-function JobListPanel({ selectedSlug, onSelect }) {
-    const [search, setSearch] = React.useState('');
-    const [department, setDepartment] = React.useState('');
-    const [location, setLocation] = React.useState('');
-    const [page, setPage] = React.useState(1);
-
-    const queryString = React.useMemo(() => {
-        const params = new URLSearchParams();
-        params.set('page', page);
-        params.set('limit', LIST_LIMIT);
-        if (search) params.set('search', search);
-        if (department) params.set('department', department);
-        if (location) params.set('location', location);
-        return `?${params.toString()}`;
-    }, [page, search, department, location]);
-
-    const { data, isPending: isLoading } = useQuery({
-        queryKey: ['careers-split-list', page, search, department, location],
-        queryFn: () => api.getCareerJobs(queryString)
-    });
-
-    React.useEffect(() => {
-        setPage(1);
-    }, [search, department, location]);
-
-    const jobs = data?.data || [];
-    const total = data?.total || 0;
-    const departments = data?.departments || [];
-    const locations = data?.locations || [];
-    const totalPages = Math.ceil(total / LIST_LIMIT) || 1;
-
+function JobListPanel({ jobs, isLoading, selectedSlug, onSelect, page, totalPages, setPage }) {
     return (
         <Box
             sx={{
@@ -193,55 +237,6 @@ function JobListPanel({ selectedSlug, onSelect }) {
                 overflow: 'hidden'
             }}
         >
-            {/* Search & Filters */}
-            <Stack spacing={1.25} sx={{ p: 2, borderBottom: '1px solid', borderColor: 'divider' }}>
-                <Typography sx={{ fontSize: 13.5, fontWeight: 800, color: 'text.primary' }}>
-                    {total} open {total === 1 ? 'position' : 'positions'}
-                </Typography>
-                <TextField
-                    fullWidth
-                    size="small"
-                    placeholder="Search roles..."
-                    value={search}
-                    onChange={(e) => setSearch(e.target.value)}
-                    InputProps={{
-                        startAdornment: (
-                            <InputAdornment position="start">
-                                <FiSearch size={14} color="#9e9e9e" />
-                            </InputAdornment>
-                        )
-                    }}
-                />
-                <Stack direction="row" spacing={1}>
-                    <TextField
-                        select
-                        fullWidth
-                        size="small"
-                        label="Department"
-                        value={department}
-                        onChange={(e) => setDepartment(e.target.value)}
-                    >
-                        <MenuItem value="">All Departments</MenuItem>
-                        {departments.map((dept) => (
-                            <MenuItem key={dept} value={dept}>{dept}</MenuItem>
-                        ))}
-                    </TextField>
-                    <TextField
-                        select
-                        fullWidth
-                        size="small"
-                        label="Location"
-                        value={location}
-                        onChange={(e) => setLocation(e.target.value)}
-                    >
-                        <MenuItem value="">All Locations</MenuItem>
-                        {locations.map((loc) => (
-                            <MenuItem key={loc} value={loc}>{loc}</MenuItem>
-                        ))}
-                    </TextField>
-                </Stack>
-            </Stack>
-
             {/* Job list — flows naturally with the page, no inner scrollbar; pagination below handles going past this page's items */}
             <Box>
                 {isLoading ? (
@@ -463,6 +458,39 @@ export default function CareerJobDetail({ slug }) {
         setSelectedSlug(slug);
     }, [slug]);
 
+    // Search/filter state for the job list — lifted here so the search bar can
+    // sit full-width at the top of the page while the list itself stays in the
+    // left sidebar.
+    const [search, setSearch] = React.useState('');
+    const [department, setDepartment] = React.useState('');
+    const [location, setLocation] = React.useState('');
+    const [page, setPage] = React.useState(1);
+
+    const queryString = React.useMemo(() => {
+        const params = new URLSearchParams();
+        params.set('page', page);
+        params.set('limit', LIST_LIMIT);
+        if (search) params.set('search', search);
+        if (department) params.set('department', department);
+        if (location) params.set('location', location);
+        return `?${params.toString()}`;
+    }, [page, search, department, location]);
+
+    const { data, isPending: isListLoading } = useQuery({
+        queryKey: ['careers-split-list', page, search, department, location],
+        queryFn: () => api.getCareerJobs(queryString)
+    });
+
+    React.useEffect(() => {
+        setPage(1);
+    }, [search, department, location]);
+
+    const jobs = data?.data || [];
+    const total = data?.total || 0;
+    const departments = data?.departments || [];
+    const locations = data?.locations || [];
+    const totalPages = Math.ceil(total / LIST_LIMIT) || 1;
+
     const handleSelectJob = (job) => {
         if (!job?.slug || job.slug === selectedSlug) return;
 
@@ -490,6 +518,18 @@ export default function CareerJobDetail({ slug }) {
                 Back to all openings
             </Button>
 
+            <JobSearchFilterBar
+                total={total}
+                search={search}
+                setSearch={setSearch}
+                department={department}
+                setDepartment={setDepartment}
+                location={location}
+                setLocation={setLocation}
+                departments={departments}
+                locations={locations}
+            />
+
             <Box
                 sx={{
                     display: 'flex',
@@ -500,7 +540,15 @@ export default function CareerJobDetail({ slug }) {
             >
                 {/* Left: job list */}
                 <Box sx={{ width: { xs: '100%', md: 360 }, flexShrink: 0, position: { md: 'sticky' }, top: { md: 24 } }}>
-                    <JobListPanel selectedSlug={selectedSlug} onSelect={handleSelectJob} />
+                    <JobListPanel
+                        jobs={jobs}
+                        isLoading={isListLoading}
+                        selectedSlug={selectedSlug}
+                        onSelect={handleSelectJob}
+                        page={page}
+                        totalPages={totalPages}
+                        setPage={setPage}
+                    />
                 </Box>
 
                 {/* Right: selected job detail */}

@@ -4920,8 +4920,9 @@ const search = async (req, res) => {
         };
       }
 
-      // Calculate price range
-      let minPrice = product.price || 0;
+      // Calculate price range - prefer salePrice (the actual discounted
+      // price shown elsewhere on the site) over the original price.
+      let minPrice = product.salePrice || product.price || 0;
       if (
         product.type === "variable" &&
         product.variants &&

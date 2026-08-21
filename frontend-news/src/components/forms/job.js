@@ -139,7 +139,7 @@ export default function JobForm({
                                                     <Skeleton variant="text" width={100} />
                                                 ) : (
                                                     <Typography variant="overline" color="text.primary" htmlFor="department" component={'label'}>
-                                                        Department
+                                                        Job Category
                                                     </Typography>
                                                 )}
                                                 {jobLoading ? (
