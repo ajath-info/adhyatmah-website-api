@@ -31,6 +31,18 @@ export default function Dashboard({ isVendor }) {
     queryFn: api[isVendor ? 'vendorDashboardAnalytics' : 'adminDashboardAnalytics'],
     refetchInterval: 30000
   });
+
+  // Determine whether this vendor's shop is a product-selling shop
+  // (shopType: "seller") vs a Pandit shop, same logic as the vendor sidebar.
+  // Only affects label text below for vendor dashboards; admin view is unaffected.
+  const { data: shopData } = useQuery({
+    queryKey: ['vendor-shop-type'],
+    queryFn: api.getShopByUser,
+    enabled: !!isVendor,
+    staleTime: 5 * 60 * 1000,
+    retry: false
+  });
+  const isSellerShop = isVendor && shopData?.data?.shopType === 'seller';
   const data = dashboard?.data || {};
   const daily_earning = data?.dailyEarning;
   const daily_bookings = data?.dailyBookings;
@@ -74,7 +86,7 @@ export default function Dashboard({ isVendor }) {
             value={isVendor ? daily_bookings : daily_orders}
             icon={<FiFileText size={24} />}
             isLoading={isLoading}
-            onClick={() => router.push(isVendor ? '/vendor/bookings' : '/admin/orders')}
+            onClick={() => router.push(isVendor ? '/vendor/orders' : '/admin/orders')}
           />
         </Grid>
 
@@ -96,11 +108,15 @@ export default function Dashboard({ isVendor }) {
         <Grid size={{ md: isVendor ? 3 : 4, sm: 6, xs: 12 }}>
           <DashboardCard
             color="error"
-            title={isVendor ? 'Total Services' : 'Total Products'}
-            value={isVendor ? totalServices : totalProducts}
+            title={isVendor ? (isSellerShop ? 'Products' : 'Total Services') : 'Total Products'}
+            value={isVendor ? (isSellerShop ? totalProducts : totalServices) : totalProducts}
             icon={<BiSolidShoppingBags size={24} />}
             isLoading={isLoading}
-            onClick={() => router.push(isVendor ? '/vendor/services' : '/admin/products')}
+            onClick={() =>
+              router.push(
+                isVendor ? (isSellerShop ? '/vendor/products' : '/vendor/services') : '/admin/products'
+              )
+            }
           />
         </Grid>
 
@@ -122,12 +138,12 @@ export default function Dashboard({ isVendor }) {
         <Grid size={{ xs: 12, sm: 6, md: isVendor ? 3 : 4 }}>
           <DashboardCard
             color="#01838F"
-            title={isVendor ? 'Pending Bookings' : 'Pending Orders'}
+            title={isVendor ? (isSellerShop ? 'Product Bookings' : 'Pending Bookings') : 'Pending Orders'}
             value={isVendor ? totalPendingBookings : totalPendingOrders}
             icon={<LuFileClock size={24} />}
             isLoading={isLoading}
             onClick={() =>
-              router.push(isVendor ? '/vendor/bookings?status=pending' : '/admin/orders?status=pending')
+              router.push(isVendor ? '/vendor/orders?status=pending' : '/admin/orders?status=pending')
             }
           />
         </Grid>

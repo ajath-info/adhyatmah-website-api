@@ -1,17 +1,31 @@
 'use client';
-import React from 'react';
+import React, { useState } from 'react';
 import { useRouter } from '@bprogress/next';
 import { Typography, Card, Box, Skeleton, Stack, Button } from '@mui/material';
 import Image from '@/components/blur-image';
 import { FiEye } from 'react-icons/fi';
 import { MdAccessTime } from 'react-icons/md';
 import { getPricingInfo } from '@/utils/pricing-utils';
+import PujaVariantsDialog from '@/components/dialog/puja-variants-dialog';
 
-export default function PoojaCard({ service, isLoading, singleAction = false, actionLabel = 'View Details & Book', actionUrl = '', compact = false }) {
+export default function PoojaCard({ service, isLoading, singleAction = false, actionLabel = 'View Details & Book', actionUrl = '', compact = false, variants = null, onVariantSelect = null }) {
     const router = useRouter();
     const serviceName = service?.name || '';
     const serviceListingUrl = `/offline-puja-services/${service?.id}?name=${encodeURIComponent(serviceName)}`;
     const targetUrl = actionUrl || serviceListingUrl;
+
+    // Pujas that have admin-defined options (e.g. Navratri) open a popup first.
+    // 1) Puja listing cards: options come with the service (service.variants).
+    // 2) Pandit profile cards (singleAction): the parent passes `variants` +
+    //    `onVariantSelect` only for pujas that have options.
+    // Every other card keeps the original navigation.
+    const [variantsOpen, setVariantsOpen] = useState(false);
+    const profileVariants =
+        singleAction && typeof onVariantSelect === 'function' && Array.isArray(variants) ? variants : [];
+    const listingVariants =
+        !actionUrl && !singleAction && Array.isArray(service?.variants) ? service.variants : [];
+    const hasVariants = profileVariants.length > 0 || listingVariants.length > 0;
+    const handleOpen = () => (hasVariants ? setVariantsOpen(true) : router.push(targetUrl));
     const imageUrl = service?.image?.url || service?.imageUrl || service?.thumbnail || '';
 
     const views = service?.views >= 1000
@@ -153,7 +167,7 @@ export default function PoojaCard({ service, isLoading, singleAction = false, ac
                             <Button
                                 fullWidth
                                 variant="contained"
-                                onClick={() => router.push(targetUrl)}
+                                onClick={handleOpen}
                                 sx={{
                                     borderRadius: '50px',
                                     textTransform: 'none',
@@ -178,7 +192,7 @@ export default function PoojaCard({ service, isLoading, singleAction = false, ac
                                 <Button
                                     fullWidth
                                     variant="outlined"
-                                    onClick={() => router.push(targetUrl)}
+                                    onClick={handleOpen}
                                     sx={{
                                         borderRadius: '50px',
                                         textTransform: 'none',
@@ -200,7 +214,7 @@ export default function PoojaCard({ service, isLoading, singleAction = false, ac
                                 <Button
                                     fullWidth
                                     variant="contained"
-                                    onClick={() => router.push(targetUrl)}
+                                    onClick={handleOpen}
                                     sx={{
                                         borderRadius: '50px',
                                         textTransform: 'none',
@@ -223,6 +237,15 @@ export default function PoojaCard({ service, isLoading, singleAction = false, ac
                         )
                 }
             </Stack>
+
+            {hasVariants && variantsOpen && (
+                <PujaVariantsDialog
+                    open={variantsOpen}
+                    onClose={() => setVariantsOpen(false)}
+                    service={service}
+                    {...(profileVariants.length > 0 ? { variants: profileVariants, onSelect: onVariantSelect } : {})}
+                />
+            )}
         </Card>
     );
 }

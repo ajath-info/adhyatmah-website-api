@@ -38,11 +38,11 @@ const getOrdersByAdmin = async (req, res) => {
 
     const searchCondition = searchQuery
       ? {
-          $or: [
-            { "user.firstName": { $regex: searchQuery, $options: "i" } },
-            { "user.lastName": { $regex: searchQuery, $options: "i" } },
-          ],
-        }
+        $or: [
+          { "user.firstName": { $regex: searchQuery, $options: "i" } },
+          { "user.lastName": { $regex: searchQuery, $options: "i" } },
+        ],
+      }
       : {};
 
     const totalOrders = await Orders.countDocuments({
@@ -58,6 +58,7 @@ const getOrdersByAdmin = async (req, res) => {
       {
         $project: {
           paymentMethod: 1,
+          orderNo: 1,
           "user.firstName": 1,
           "user.lastName": 1,
           total: 1,

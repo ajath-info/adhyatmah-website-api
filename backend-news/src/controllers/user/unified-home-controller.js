@@ -7,6 +7,7 @@ const ServiceReview = require("../../models/ServiceReview");
 const VendorReview = require("../../models/VendorReview");
 const Settings = require("../../models/Settings");
 const User = require("../../models/User");
+const { getSellerVendorIds } = require("../../utils/shop-util");
 
 // Helper function to get products with variants and reviews
 const getProductsWithVariants = async (matchQuery, limit = 8) => {
@@ -187,6 +188,12 @@ const getCategoryProducts = async (categoryId, limit = 4) => {
 const getUnifiedHomeData = async (req, res) => {
   try {
     // Fetch all data in parallel for better performance
+    const sellerVendorIds = await getSellerVendorIds();
+    const panditUserFilter =
+      sellerVendorIds.length > 0
+        ? { role: "vendor", _id: { $nin: sellerVendorIds } }
+        : { role: "vendor" };
+
     const [bannersData, categoriesData, vendorsData, productReviewsData, serviceReviewsData, vendorReviewsData] =
       await Promise.all([
         // 1. Banners and slides
@@ -198,7 +205,7 @@ const getUnifiedHomeData = async (req, res) => {
           .sort({ name: 1 }),
 
         // 3. Best Pandits/Vendors (top 4 for homepage)
-        User.find({ role: "vendor" })
+        User.find(panditUserFilter)
           .select(
             "firstName lastName email phone about services cover address city language gotra experience"
           )

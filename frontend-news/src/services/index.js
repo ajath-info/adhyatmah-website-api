@@ -336,9 +336,18 @@ export const getLowStockProductsByAdmin = async (page) => {
   const { data: response } = await http.get(`/admin/low-stock-products?page=${page}`);
   return response;
 };
-export const getShopsByAdmin = async (page, search) => {
-  const { data: response } = await http.get(`/admin/shops?search=${search}&page=${page}`);
+export const getShopsByAdmin = async (page, search, shopType, status) => {
+  const shopTypeParam = shopType ? `&shopType=${shopType}` : '';
+  const statusParam = status ? `&status=${status}` : '';
+  const { data: response } = await http.get(`/admin/shops?search=${search}&page=${page}${shopTypeParam}${statusParam}`);
   return response;
+};
+// Used by the new admin "Shops" (Product Sellers) page to Activate a
+// pending seller shop. Reuses the existing shop status endpoint/system —
+// same one the Pandit approval flow is built on.
+export const updateShopStatusByAdmin = async ({ slug, status }) => {
+  const { data } = await http.put(`/admin/shops/status/${slug}`, { status });
+  return data;
 };
 export const getShopIncomeByAdmin = async (slug, page) => {
   const { data } = await http.get(`/admin/shops/${slug}/income?page=${page || 1}`);
@@ -982,6 +991,50 @@ export const createPanditProfileAsGuest = async (payload) => {
   };
 };
 
+/** Guest "Sell Products" flow: sign up → create a simple product-selling shop → vendor dashboard.
+ *  Mirrors createPanditProfileAsGuest but sends none of the Pandit-specific fields. */
+export const createSellerShopAsGuest = async (payload) => {
+  const { firstName, lastName, email, password, phone } = payload;
+
+  let token;
+  let user;
+
+  try {
+    const { data: signUpData } = await http.post(`/auth/sign-up`, {
+      firstName,
+      lastName,
+      email,
+      password,
+      phone
+    });
+    token = signUpData?.token;
+    user = signUpData?.user;
+  } catch (signUpError) {
+    // Recover if a previous attempt created the user but shop create failed
+    const msg = signUpError?.response?.data?.message || '';
+    if (!String(msg).toLowerCase().includes('already exists')) {
+      throw signUpError;
+    }
+    const { data: signInData } = await http.post(`/auth/sign-in`, { email, password });
+    token = signInData?.token;
+    user = signInData?.user;
+  }
+
+  if (!token) {
+    throw new Error('Failed to create account');
+  }
+
+  const { data: shopData } = await http.post(`/shops`, payload, {
+    headers: { Authorization: `Bearer ${token}` }
+  });
+
+  return {
+    ...shopData,
+    token,
+    user: { ...user, role: 'vendor', isVerified: true }
+  };
+};
+
 export const getStripePublishableKey = async () => {
   const { data } = await http.get(`/settings/stripe-key`);
   return data;
@@ -1365,5 +1418,51 @@ export const deleteCareerApplicationByAdmin = async (id) => {
 
 export const getCareerStatsByAdmin = async () => {
   const { data } = await http.get(`/admin/careers/stats`);
+  return data;
+};
+
+// ---------------- Puja Combos ----------------
+export const getPujaCombosByAdmin = async (params) => {
+  const { data } = await http.get(`/admin/puja-combos?${params}`);
+  return data;
+};
+export const getPujaComboByAdmin = async (slug) => {
+  const { data } = await http.get(`/admin/puja-combos/${slug}`);
+  return data;
+};
+export const getPujaComboPreviewByAdmin = async (slug) => {
+  const { data } = await http.get(`/admin/puja-combos/${slug}/preview`);
+  return data;
+};
+export const getPujaComboOptionsByAdmin = async (masterServiceId = '') => {
+  const { data } = await http.get(`/admin/puja-combos/options?masterServiceId=${masterServiceId}`);
+  return data;
+};
+export const createPujaComboByAdmin = async (payload) => {
+  const { data } = await http.post(`/admin/puja-combos`, payload);
+  return data;
+};
+export const updatePujaComboByAdmin = async ({ slug, ...payload }) => {
+  const { data } = await http.put(`/admin/puja-combos/${slug}`, payload);
+  return data;
+};
+export const togglePujaComboStatusByAdmin = async (slug) => {
+  const { data } = await http.patch(`/admin/puja-combos/${slug}/toggle-status`);
+  return data;
+};
+export const togglePujaComboFeaturedByAdmin = async (slug) => {
+  const { data } = await http.patch(`/admin/puja-combos/${slug}/toggle-featured`);
+  return data;
+};
+export const deletePujaComboByAdmin = async (slug) => {
+  const { data } = await http.delete(`/admin/puja-combos/${slug}`);
+  return data;
+};
+export const getPujaCombos = async (params = '') => {
+  const { data } = await http.get(`/puja-combos?${params}`);
+  return data;
+};
+export const getPujaComboBySlug = async (slug) => {
+  const { data } = await http.get(`/puja-combos/${encodeURIComponent(slug)}`);
   return data;
 };

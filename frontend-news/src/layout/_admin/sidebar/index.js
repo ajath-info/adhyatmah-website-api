@@ -38,6 +38,7 @@ import { IoSettingsOutline } from 'react-icons/io5';
 import { RiCoupon5Line } from 'react-icons/ri';
 import { AiOutlineDollarCircle } from 'react-icons/ai';
 import { BsCashCoin } from 'react-icons/bs';
+import { HiOutlineShoppingBag } from 'react-icons/hi2';
 import { PiShootingStarBold } from 'react-icons/pi';
 import { IoChevronDown } from 'react-icons/io5';
 import { GoDotFill, GoDot } from 'react-icons/go';
@@ -144,6 +145,28 @@ export const navlinks = [
     isSearch: true
   },
   {
+    id: 205,
+    title: 'Puja Combos',
+    icon: <BsListStars />,
+    isSearch: true,
+    children: [
+      {
+        id: 2051,
+        title: 'All Combos',
+        slug: 'puja-combos',
+        icon: <BsListStars />,
+        isSearch: true
+      },
+      {
+        id: 2052,
+        title: 'Add New Combo',
+        slug: 'puja-combos/add',
+        icon: <BsListStars />,
+        isSearch: false
+      }
+    ]
+  },
+  {
     id: 8,
     title: 'Users',
     slug: 'users',
@@ -155,6 +178,13 @@ export const navlinks = [
     title: 'Vendors',
     slug: 'vendors',
     icon: <LuUserCog />,
+    isSearch: true
+  },
+  {
+    id: 205,
+    title: 'Shops',
+    slug: 'product-shops',
+    icon: <HiOutlineShoppingBag />,
     isSearch: true
   },
   {
@@ -218,7 +248,7 @@ export const navlinks = [
     ]
   },
   {
-    id: 205,
+    id: 209,
     title: "Careers",
     icon: <BsBriefcase />,
     isSearch: true,

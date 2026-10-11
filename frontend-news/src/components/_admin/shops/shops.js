@@ -31,7 +31,10 @@ function AdminProducts() {
 
   const { data, isPending: isLoading } = useQuery({
     queryKey: ['admin-shops', apicall, searchParam, pageParam],
-    queryFn: () => api.getShopsByAdmin(+pageParam || 1, searchParam || '')
+    // Scoped to shopType: 'pandit' so Product Seller shops (created via the
+    // "Sell Products" flow) don't show up mixed into this Pandit list —
+    // they have their own page at /admin/product-shops.
+    queryFn: () => api.getShopsByAdmin(+pageParam || 1, searchParam || '', 'pandit')
   });
   const handleClickOpen = (prop) => () => {
     setId(prop);

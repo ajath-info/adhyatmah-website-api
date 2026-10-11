@@ -1,8 +1,8 @@
 import React from 'react';
 
 // components
-import HeaderBreadcrumbs from '@/components/header-breadcrumbs';
-import VendorBookingsMain from '@/components/_admin/bookings/bookings';
+import BookingsHeader from './bookings-header';
+import BookingsOrOrders from './bookings-or-orders';
 
 // Meta information
 export const metadata = {
@@ -13,20 +13,8 @@ export const metadata = {
 export default function page() {
   return (
     <div>
-      <HeaderBreadcrumbs
-        admin
-        heading="Pandit Bookings"
-        links={[
-          {
-            name: 'Dashboard',
-            href: '/vendor/dashboard'
-          },
-          {
-            name: 'Pandit Bookings'
-          }
-        ]}
-      />
-      <VendorBookingsMain isVendor />
+      <BookingsHeader />
+      <BookingsOrOrders />
     </div>
   );
 }

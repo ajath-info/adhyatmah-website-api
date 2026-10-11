@@ -10,9 +10,9 @@ import { Box, Typography, Container, Card, Skeleton, Stack, alpha } from '@mui/m
 import { IoIosArrowForward } from 'react-icons/io';
 import BlurImageAvatar from '@/components/avatar';
 
-const RootStyle = styled(Card)(({ theme }) => ({
+const RootStyle = styled(Card, { shouldForwardProp: (prop) => prop !== 'compact' })(({ theme, compact }) => ({
   backgroundColor: theme.palette.primary.main,
-  height: 300,
+  height: compact ? 190 : 300,
   position: 'relative',
   overflow: 'hidden',
   borderWidth: 0,
@@ -22,7 +22,7 @@ const RootStyle = styled(Card)(({ theme }) => ({
   }
 }));
 
-const InfoStyle = styled('div')(({ theme }) => ({
+const InfoStyle = styled('div', { shouldForwardProp: (prop) => prop !== 'compact' })(({ theme, compact }) => ({
   left: 0,
   right: 0,
   zIndex: 99,
@@ -33,7 +33,7 @@ const InfoStyle = styled('div')(({ theme }) => ({
     display: 'flex',
     alignItems: 'center',
     left: theme.spacing(3),
-    bottom: theme.spacing(3)
+    bottom: compact ? theme.spacing(2) : theme.spacing(3)
   }
 }));
 
@@ -45,26 +45,25 @@ const CoverImgStyle = styled('div')({
   position: 'absolute'
 });
 
-export default function ShopDetailCover({ data, isLoading, isUser, page }) {
+export default function ShopDetailCover({ data, isLoading, isUser, page, compact = false, fallbackAvatar }) {
   return (
-    <RootStyle>
+    <RootStyle compact={compact}>
       <div>
         <Container maxWidth="xl">
-          <InfoStyle>
+          <InfoStyle compact={compact}>
             <BlurImageAvatar
-              src={data?.logo?.url || '/images/default-shop.png'}
+              src={data?.logo?.url || fallbackAvatar?.url || '/images/default-shop.png'}
               alt={data?.name || 'Pandit photo'}
               sx={{
                 mx: 'auto',
                 borderWidth: 2,
                 borderStyle: 'solid',
                 borderColor: 'common.white',
-                width: { xs: 80, md: 128 },
-                height: { xs: 80, md: 128 },
+                width: compact ? { xs: 64, md: 88 } : { xs: 80, md: 128 },
+                height: compact ? { xs: 64, md: 88 } : { xs: 80, md: 128 },
                 boxShadow: (theme) => `inset -1px 1px 2px ${alpha(theme.palette.common.black, 0.24)}`
               }}
             />
-
             <Box
               sx={{
                 ml: { md: 3 },
@@ -127,5 +126,8 @@ ShopDetailCover.propTypes = {
     email: PropTypes.string.isRequired
   }).isRequired,
   isLoading: PropTypes.bool.isRequired,
-  isUser: PropTypes.bool
+  isUser: PropTypes.bool,
+  fallbackAvatar: PropTypes.shape({
+    url: PropTypes.string
+  })
 };

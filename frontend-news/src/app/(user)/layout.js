@@ -5,6 +5,7 @@ import { Toolbar } from '@mui/material';
 import Navbar from 'src/layout/_main/navbar';
 import Footer from '@/layout/_main/footer';
 import SecondaryHeader from '@/components/_main/secondary-header';
+import AnnouncementBar from '@/components/_main/announcement-bar';
 
 const baseUrl = process.env.NEXT_PUBLIC_API_URL;
 
@@ -42,6 +43,7 @@ export default async function RootLayout({ children }) {
     // markup/logic/behavior changes here. Mobile/tablet are unaffected
     // (see the media query in global-styles.js).
     <div className="zoom-scope">
+      <AnnouncementBar />
       <Navbar branding={branding} />
       <SecondaryHeader categories={categories} />
 

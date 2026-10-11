@@ -232,10 +232,14 @@ const createShopByUser = async (req, res) => {
       shopPhone: others.shopPhone || others.phone,
       logo: logo?.url
         ? {
-            ...logo,
-          }
+          ...logo,
+        }
         : undefined,
       status: "pending",
+      // Only the Sell Products flow explicitly sends shopType: "seller".
+      // Any other/missing value (including the existing Become a Pandit
+      // flow, which never sends this field) stays "pandit".
+      shopType: others.shopType === "seller" ? "seller" : "pandit",
     };
 
     delete shopPayload.registrationNumber;

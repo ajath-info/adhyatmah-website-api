@@ -512,6 +512,19 @@ export default function VendorDetailPage() {
   const vendor = vendorData?.payload?.vendor;
   const services = servicesData?.payload?.services || [];
 
+  // Puja options (variants) set by admin, keyed by puja name. Only used to show
+  // the options popup on service cards of pujas that have them.
+  const { data: pujaCatalogData } = useQuery({
+    queryKey: ['puja-variants-all'],
+    queryFn: () => api.getHomepagePoojaServicesAll('page=1&limit=100')
+  });
+  const variantsByName = {};
+  (pujaCatalogData?.data || []).forEach((item) => {
+    if (item?.name && Array.isArray(item.variants) && item.variants.length) {
+      variantsByName[item.name] = item.variants;
+    }
+  });
+
   // Admin-filled SEO content (saved on the vendor's profile in the admin
   // dashboard) takes priority; falls back to the hardcoded per-slug content
   // below so pandits that haven't been configured in the dashboard yet keep
@@ -838,6 +851,12 @@ export default function VendorDetailPage() {
                               singleAction
                               actionLabel="View Details & Book"
                               actionUrl={`/${slug}/services/${service._id || service.id}`}
+                              variants={variantsByName[service.poojaType] || null}
+                              onVariantSelect={(variant) =>
+                                router.push(
+                                  `/${slug}/services/${service._id || service.id}?variant=${encodeURIComponent(variant.key)}`
+                                )
+                              }
                               service={{
                                 id: service._id || service.id,
                                 name: service.poojaType,

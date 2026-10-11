@@ -4,13 +4,13 @@ import PropTypes from 'prop-types';
 import { useRouter } from '@bprogress/next';
 // mui
 import { alpha } from '@mui/material/styles';
-import { 
-  Card, 
-  CardHeader, 
-  CardContent, 
-  Stack, 
-  Typography, 
-  Button, 
+import {
+  Card,
+  CardHeader,
+  CardContent,
+  Stack,
+  Typography,
+  Button,
   Box,
   Chip,
   Skeleton,
@@ -74,16 +74,28 @@ export default function ViewBooking(props) {
 
   const booking = data?.data;
 
+  // Same shopType check the vendor sidebar uses to tell a product-selling
+  // shop (shopType: "seller") apart from a Pandit shop.
+  const { data: shopData } = useQuery({
+    queryKey: ['vendor-shop-type'],
+    queryFn: api.getShopByUser,
+    staleTime: 5 * 60 * 1000,
+    retry: false
+  });
+  const isSellerShop = shopData?.data?.shopType === 'seller';
+  const bookingsHeading = isSellerShop ? 'Product Bookings' : 'Pandit Bookings';
+  const detailsHeading = isSellerShop ? 'Product Booking Details' : 'Pandit Booking Details';
+
   if (isLoading) {
     return (
       <div>
         <HeaderBreadcrumbs
           admin
-          heading="Pandit Booking Details"
+          heading={detailsHeading}
           links={[
             { name: 'Dashboard', href: '/vendor/dashboard' },
-            { name: 'Pandit Bookings', href: '/vendor/orders' },
-            { name: 'Pandit Booking Details' }
+            { name: bookingsHeading, href: '/vendor/orders' },
+            { name: detailsHeading }
           ]}
         />
         <Card>
@@ -116,11 +128,11 @@ export default function ViewBooking(props) {
     <div>
       <HeaderBreadcrumbs
         admin
-        heading="Pandit Booking Details"
+        heading={detailsHeading}
         links={[
           { name: 'Dashboard', href: '/vendor/dashboard' },
-          { name: 'Pandit Bookings', href: '/vendor/orders' },
-          { name: 'Pandit Booking Details' }
+          { name: bookingsHeading, href: '/vendor/orders' },
+          { name: detailsHeading }
         ]}
       />
 

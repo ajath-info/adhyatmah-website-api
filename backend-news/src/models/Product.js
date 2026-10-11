@@ -11,7 +11,11 @@ const productSchema = new mongoose.Schema(
 
     status: {
       type: String,
-      enum: ["published", "draft", "pending"],
+      // "inactive" is set automatically when a product's seller shop is
+      // deactivated/rejected by the admin (see admin shop-controller), so
+      // the product stops showing on the storefront without losing its
+      // data. It's restored to "published" if the shop is approved again.
+      enum: ["published", "draft", "pending", "inactive"],
     },
     isFeatured: {
       type: Boolean,

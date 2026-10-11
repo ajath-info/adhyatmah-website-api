@@ -429,6 +429,29 @@ const panditProfileSchema = Yup.object().shape({
   referralCode: Yup.string()
 });
 
+// Lightweight schema for the "Sell Products" flow — a normal shop owner who
+// only wants to list products, not a Pandit. Deliberately excludes every
+// Pandit-specific field (designation, gotra, pravar, veda, shakha, pankti,
+// sutra, aadhaar, services, language, experience) that panditProfileSchema
+// requires, so this flow stays independent from the Become a Pandit flow.
+const sellerShopSchema = Yup.object().shape({
+  firstName: Yup.string().trim().required('First name is required'),
+  lastName: Yup.string().trim().required('Last name is required'),
+  phone: Yup.string()
+    .required('Phone number is required')
+    .test('is-valid-phone', 'Phone number is not valid', (value) => isValidPhoneNumber(value || '')),
+  email: Yup.string().email('Enter valid email').required('Email is required'),
+  password: Yup.string().required('Password is required').min(8, 'Password should be 8 characters or longer.'),
+  name: Yup.string().trim().required('Shop name is required'),
+  address: Yup.object().shape({
+    streetAddress: Yup.string(),
+    country: Yup.string(),
+    state: Yup.string(),
+    city: Yup.string()
+  }),
+  pincode: Yup.string()
+});
+
 const attributeSchema = Yup.object().shape({
   name: Yup.string().required('Attribute name is required'),
   values: Yup.array().of(Yup.string().trim().required('Value is required')).min(1, 'At least one value is required')
@@ -612,7 +635,11 @@ const editPaymentSchema = Yup.object().shape({
   totalIncome: Yup.string().required('Total Income is required'),
   totalCommission: Yup.string().required('Total Commission is required'),
   status: Yup.string().required('Status is required'),
-  paidAt: Yup.date().when('eventStartDate', (eventStartDate, schema) => schema.min(new Date(), 'Date is required'))
+  paidAt: Yup.date().when('status', {
+    is: 'paid',
+    then: (schema) => schema.typeError('Enter a valid date').required('Date is required'),
+    otherwise: (schema) => schema.nullable()
+  })
 });
 
 const accountDeletionSchema = Yup.object().shape({
@@ -628,6 +655,7 @@ export {
   changePasswordSchema,
   shopSettingsSchema,
   panditProfileSchema,
+  sellerShopSchema,
   attributeSchema,
   brandSchema,
   categorySchema,

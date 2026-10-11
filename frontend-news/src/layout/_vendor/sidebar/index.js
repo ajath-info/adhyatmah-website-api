@@ -2,6 +2,7 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import { usePathname } from 'next/navigation';
 import { useRouter } from '@bprogress/next';
+import { useQuery } from '@tanstack/react-query';
 
 // mui
 import {
@@ -31,6 +32,7 @@ import { IoSettingsOutline } from 'react-icons/io5';
 // components
 
 import Scrollbar from 'src/components/scrollbar';
+import * as api from 'src/services';
 
 // Dashboard Side NevLinks
 export const navlinks = [
@@ -51,13 +53,20 @@ export const navlinks = [
 
   {
     id: 3,
+    title: 'Products',
+    slug: 'products',
+    icon: <HiOutlineShoppingBag />,
+    isSearch: true
+  },
+  {
+    id: 4,
     title: 'Bookings',
     slug: 'orders',
     icon: <BsCart3 />,
     isSearch: true
   },
   {
-    id: 4,
+    id: 5,
     title: 'Settings',
     slug: 'settings',
     icon: <IoSettingsOutline />,
@@ -128,6 +137,22 @@ export default function Sidebar({ handleDrawerToggle, open }) {
   const [active, setActive] = React.useState('');
   const [initial, setInitial] = React.useState(false);
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
+
+  // Determine whether this vendor's shop is a product-selling shop
+  // (shopType: "seller") vs a Pandit shop. Defaults to showing every link
+  // (i.e. treated as Pandit) until the shop loads, and for any shop that
+  // predates the shopType field, since that field defaults to "pandit".
+  const { data: shopData } = useQuery({
+    queryKey: ['vendor-shop-type'],
+    queryFn: api.getShopByUser,
+    staleTime: 5 * 60 * 1000,
+    retry: false
+  });
+  const isSellerShop = shopData?.data?.shopType === 'seller';
+  const visibleNavlinks = isSellerShop
+    ? navlinks.filter((item) => item.slug !== 'services')
+    : navlinks.filter((item) => item.slug !== 'products');
+
   React.useEffect(() => {
     setActive(pathname);
     setInitial(true);
@@ -198,7 +223,7 @@ export default function Sidebar({ handleDrawerToggle, open }) {
               py: 2
             }}
           >
-            {navlinks.map((item) => (
+            {visibleNavlinks.map((item) => (
               <ListItem
                 key={item.id}
                 disablePadding
@@ -208,13 +233,13 @@ export default function Sidebar({ handleDrawerToggle, open }) {
                   border: `1px solid transparent`,
                   ...(active === '/vendor/' + item.slug &&
                     initial && {
-                      bgcolor: (theme) => alpha(theme.palette.primary.main, 0.2),
-                      border: (theme) => `1px solid ${theme.palette.primary.main}`,
-                      color: theme.palette.primary.main,
-                      '& .MuiTypography-root': {
-                        fontWeight: 600
-                      }
-                    })
+                    bgcolor: (theme) => alpha(theme.palette.primary.main, 0.2),
+                    border: (theme) => `1px solid ${theme.palette.primary.main}`,
+                    color: theme.palette.primary.main,
+                    '& .MuiTypography-root': {
+                      fontWeight: 600
+                    }
+                  })
                 }}
               >
                 <Tooltip title={open ? '' : item.title} placement="left" arrow leaveDelay={200}>

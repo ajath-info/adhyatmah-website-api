@@ -2,7 +2,7 @@ import React from 'react';
 import { fCurrency } from '@/utils/format-number';
 
 import { Stack, TextField, Typography, InputAdornment, CardContent } from '@mui/material';
-export default function SimpleProduct({ formik }) {
+export default function SimpleProduct({ formik, isVendor }) {
   const { getFieldProps, touched, errors, values } = formik;
   const isDigital = values.deliveryType === 'digital';
   return (
@@ -69,55 +69,63 @@ export default function SimpleProduct({ formik }) {
               helperText={touched.salePrice && errors.salePrice}
             />
           </Stack>
-          <Stack gap={1}>
-            <Typography variant="overline" component={'label'} htmlFor="sku">
-              {'SKU'}
-            </Typography>
-            <TextField
-              id="sku"
-              fullWidth
-              {...getFieldProps('sku')}
-              error={Boolean(touched.sku && errors.sku)}
-              helperText={touched.sku && errors.sku}
-            />
-          </Stack>
-          <Stack gap={1}>
-            <Typography variant="overline" component={'label'} htmlFor="width">
-              {'Width'}
-            </Typography>
-            <TextField
-              id="width"
-              fullWidth
-              {...getFieldProps('width')}
-              error={Boolean(touched.width && errors.width)}
-              helperText={touched.width && errors.width}
-            />
-          </Stack>
-          <Stack gap={1}>
-            <Typography variant="overline" component={'label'} htmlFor="height">
-              {'Height'}
-            </Typography>
-            <TextField
-              id="height"
-              fullWidth
-              {...getFieldProps('height')}
-              error={Boolean(touched.height && errors.height)}
-              helperText={touched.height && errors.height}
-            />
-          </Stack>
-          <Stack gap={1}>
-            <Typography variant="overline" component={'label'} htmlFor="length">
-              {'Length'}
-            </Typography>
-            <TextField
-              id="length"
-              fullWidth
-              {...getFieldProps('length')}
-              error={Boolean(touched.length && errors.length)}
-              helperText={touched.length && errors.length}
-            />
-          </Stack>
-          {isDigital ? (
+          {!isVendor && (
+            <Stack gap={1}>
+              <Typography variant="overline" component={'label'} htmlFor="sku">
+                {'SKU'}
+              </Typography>
+              <TextField
+                id="sku"
+                fullWidth
+                {...getFieldProps('sku')}
+                error={Boolean(touched.sku && errors.sku)}
+                helperText={touched.sku && errors.sku}
+              />
+            </Stack>
+          )}
+          {!isVendor && (
+            <Stack gap={1}>
+              <Typography variant="overline" component={'label'} htmlFor="width">
+                {'Width'}
+              </Typography>
+              <TextField
+                id="width"
+                fullWidth
+                {...getFieldProps('width')}
+                error={Boolean(touched.width && errors.width)}
+                helperText={touched.width && errors.width}
+              />
+            </Stack>
+          )}
+          {!isVendor && (
+            <Stack gap={1}>
+              <Typography variant="overline" component={'label'} htmlFor="height">
+                {'Height'}
+              </Typography>
+              <TextField
+                id="height"
+                fullWidth
+                {...getFieldProps('height')}
+                error={Boolean(touched.height && errors.height)}
+                helperText={touched.height && errors.height}
+              />
+            </Stack>
+          )}
+          {!isVendor && (
+            <Stack gap={1}>
+              <Typography variant="overline" component={'label'} htmlFor="length">
+                {'Length'}
+              </Typography>
+              <TextField
+                id="length"
+                fullWidth
+                {...getFieldProps('length')}
+                error={Boolean(touched.length && errors.length)}
+                helperText={touched.length && errors.length}
+              />
+            </Stack>
+          )}
+          {!isVendor && isDigital ? (
             <Stack gap={1}>
               <Typography variant="overline" component={'label'} htmlFor="downloadLink">
                 {'Download Link'}

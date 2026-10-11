@@ -15,19 +15,19 @@ export default async function AdminProducts() {
     <div>
       <HeaderBreadcrumbs
         admin
-        heading="Pandit Products"
+        heading="Products"
         links={[
           {
             name: 'Dashboard',
             href: '/vendor/dashboard'
           },
           {
-            name: 'Pandit Products'
+            name: 'Products'
           }
         ]}
         action={{
           href: `/vendor/products/add`,
-          title: 'Add Pandit Product'
+          title: 'Add Product'
         }}
       />
       <ProductList isVendor />

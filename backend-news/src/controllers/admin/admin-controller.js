@@ -1,6 +1,7 @@
 const User = require("../../models/User");
 const Order = require("../../models/Order");
 const Shop = require("../../models/Shop");
+const { getSellerVendorIds } = require("../../utils/shop-util");
 
 const getUsersByAdmin = async (req, res) => {
   try {
@@ -33,6 +34,16 @@ const getUsersByAdmin = async (req, res) => {
         andConditions.push({
           role: role.trim(),
         });
+        // Product Sellers (Sell Products flow) have their own dedicated
+        // "Shops" admin section now, so keep them out of the Vendors list.
+        if (role.trim() === "vendor") {
+          const sellerVendorIds = await getSellerVendorIds();
+          if (sellerVendorIds.length > 0) {
+            andConditions.push({
+              _id: { $nin: sellerVendorIds },
+            });
+          }
+        }
       }
     } else {
       // Default Users list should not include vendors — vendors have their

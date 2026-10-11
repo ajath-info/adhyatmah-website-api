@@ -277,6 +277,19 @@ export default function VendorDetailPage() {
     enabled: !!vendorId
   });
 
+  // Puja options (variants) set by admin, keyed by puja name. Only used to show
+  // the options popup on service cards of pujas that have them.
+  const { data: pujaCatalogData } = useQuery({
+    queryKey: ['puja-variants-all'],
+    queryFn: () => api.getHomepagePoojaServicesAll('page=1&limit=100')
+  });
+  const variantsByName = {};
+  (pujaCatalogData?.data || []).forEach((item) => {
+    if (item?.name && Array.isArray(item.variants) && item.variants.length) {
+      variantsByName[item.name] = item.variants;
+    }
+  });
+
   function getAgeFromDOB(dob) {
     if (!dob) return '';
     const birthDate = new Date(dob);
@@ -493,6 +506,12 @@ export default function VendorDetailPage() {
                               singleAction
                               actionLabel="View Details & Book"
                               actionUrl={`/vendors/${vendor.id}/services/${service.id}`}
+                              variants={variantsByName[service.poojaType] || null}
+                              onVariantSelect={(variant) =>
+                                router.push(
+                                  `/vendors/${vendor.id}/services/${service.id}?variant=${encodeURIComponent(variant.key)}`
+                                )
+                              }
                               service={{
                                 id: service.id,
                                 name: service.poojaType,

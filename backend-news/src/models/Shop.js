@@ -16,8 +16,18 @@ const ShopSchema = new mongoose.Schema(
         "action required",
         "blocked",
         "rejected",
+        "inactive",
       ],
       required: true,
+    },
+    // Distinguishes a Pandit-service shop from a plain product-selling
+    // shop (Sell Products flow). Defaults to "pandit" so every shop that
+    // already existed before this field was added keeps behaving exactly
+    // as it did — nothing needs to be backfilled.
+    shopType: {
+      type: String,
+      enum: ["pandit", "seller"],
+      default: "pandit",
     },
     products: [
       {

@@ -20,6 +20,7 @@ const Categories = require("../../models/Category");
 const Service = require("../../models/Service");
 const { sendPush } = require("../../utils/pushNotification");
 const MasterService = require("../../models/MasterService");
+const { toPublicVariants } = require("../../utils/master-service-variants");
 const Language = require("../../models/Language");
 const { state_arr, s_a } = require("../../data/cities");
 
@@ -2096,6 +2097,12 @@ const getHomepagePoojaServicesAll =
             duration:
               service.duration ||
               "2-3 Hrs",
+
+            // Only present for pujas that have active admin-defined
+            // variants; every other service keeps the exact old shape.
+            ...(toPublicVariants(service).length
+              ? { variants: toPublicVariants(service) }
+              : {}),
           };
         });
 

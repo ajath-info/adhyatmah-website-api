@@ -3,6 +3,7 @@ const Shop = require("../../models/Shop");
 const Category = require("../../models/Category");
 const SubCategory = require("../../models/SubCategory");
 const User = require("../../models/User");
+const { getSellerVendorIds } = require("../../utils/shop-util");
 
 /*     Global Search (Products / Shops / Categories)    */
 const Search = async (req, res) => {
@@ -146,7 +147,13 @@ const getFilters = async (req, res) => {
         select: ["_id", "name", "slug"],
       });
 
-    const pandits = await User.find({ role: "vendor" }).select([
+    const sellerVendorIds = await getSellerVendorIds();
+    const panditFilter =
+      sellerVendorIds.length > 0
+        ? { role: "vendor", _id: { $nin: sellerVendorIds } }
+        : { role: "vendor" };
+
+    const pandits = await User.find(panditFilter).select([
       "_id",
       "firstName",
       "lastName",

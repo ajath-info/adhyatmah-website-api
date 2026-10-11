@@ -1,5 +1,5 @@
 'use client';
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useMutation } from '@tanstack/react-query';
 import { useRouter } from '@bprogress/next';
 import PropTypes from 'prop-types';
@@ -20,6 +20,7 @@ import {
 } from '@mui/material';
 // components
 import UploadSingleFile from '@/components/upload/upload-single-file';
+import MasterServiceVariantsEditor from '@/components/forms/master-service-variants-editor';
 // toast
 import toast from 'react-hot-toast';
 // formik
@@ -43,6 +44,32 @@ export default function MasterServiceForm({
     const router = useRouter();
 
     const [state, setstate] = useState({ loading: false });
+
+    // Optional puja options (variants). Kept outside formik and only sent to
+    // the API when the admin actually edits them, so saving any other field
+    // can never touch the stored variants.
+    const [variants, setVariants] = useState([]);
+    const [variantsDirty, setVariantsDirty] = useState(false);
+
+    useEffect(() => {
+        if (!variantsDirty) {
+            setVariants(
+                (currentMasterService?.variants || []).map((variant) => ({
+                    key: variant.key,
+                    name: variant.name || '',
+                    price: variant.price ?? '',
+                    originalPrice: variant.originalPrice || '',
+                    duration: variant.duration || '',
+                    status: variant.status || 'active'
+                }))
+            );
+        }
+    }, [currentMasterService, variantsDirty]);
+
+    const handleVariantsChange = (next) => {
+        setVariantsDirty(true);
+        setVariants(next);
+    };
 
     const mutationFn =
         currentMasterService
@@ -108,6 +135,29 @@ export default function MasterServiceForm({
                 price: parseFloat(values.price),
                 originalPrice: values.originalPrice === '' ? 0 : parseFloat(values.originalPrice)
             };
+
+            // Variants are sent only if the admin touched them.
+            if (variantsDirty) {
+                for (let i = 0; i < variants.length; i += 1) {
+                    const row = variants[i];
+                    if (!String(row.name || '').trim()) {
+                        toast.error(`Option #${i + 1}: name is required`);
+                        return;
+                    }
+                    if (!(Number(row.price) > 0)) {
+                        toast.error(`Option #${i + 1}: price must be greater than 0`);
+                        return;
+                    }
+                }
+                payload.variants = variants.map((row) => ({
+                    key: row.key || undefined,
+                    name: String(row.name).trim(),
+                    price: Number(row.price),
+                    originalPrice: row.originalPrice === '' ? 0 : Number(row.originalPrice),
+                    duration: String(row.duration || '').trim(),
+                    status: row.status || 'active'
+                }));
+            }
 
             mutate({
                 ...payload,
@@ -303,6 +353,13 @@ export default function MasterServiceForm({
                                             Changing the price here will automatically update this price on every
                                             existing Pandit/Vendor service for this pooja.
                                         </Typography>
+                                    )}
+                                    {!masterServiceLoading && (
+                                        <MasterServiceVariantsEditor
+                                            variants={variants}
+                                            onChange={handleVariantsChange}
+                                            defaultDuration={values.duration}
+                                        />
                                     )}
                                 </Stack>
                             </Card>

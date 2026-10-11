@@ -15,6 +15,9 @@ function PoojaServicePanditsPage() {
   const searchParams = useSearchParams();
   const serviceId = params.serviceId;
   const serviceName = searchParams.get('name') || '';
+  // Set only when the user picked an option in the puja variants popup.
+  const variantKey = searchParams.get('variant') || '';
+  const variantLabel = searchParams.get('vname') || '';
 
   const { data, isPending: isLoading } = useQuery({
     queryKey: ['get-vendors'],
@@ -56,11 +59,11 @@ function PoojaServicePanditsPage() {
     <Container maxWidth="xl">
       <Stack sx={{ gap: 3 }}>
         <HeaderBreadcrumbs
-          heading={serviceName ? `${serviceName} Pandits` : 'Pooja Service Pandits'}
+          heading={variantLabel ? `${variantLabel} Pandits` : serviceName ? `${serviceName} Pandits` : 'Pooja Service Pandits'}
           links={[
             { name: 'Home', href: '/' },
             { name: 'Pooja Services', href: '/offline-puja-services' },
-            { name: serviceName || 'Service' }
+            { name: variantLabel || serviceName || 'Service' }
           ]}
         />
 
@@ -74,7 +77,7 @@ function PoojaServicePanditsPage() {
               // the Service coupon module instead of the Pandit one.
               const bookingHref =
                 !isLoading && vendor
-                  ? (vendorServiceId ? `/vendors/${vendor.id}/services/${vendorServiceId}?from=service` : `/vendors/${vendor.id}`)
+                  ? (vendorServiceId ? `/vendors/${vendor.id}/services/${vendorServiceId}?from=service${variantKey ? `&variant=${encodeURIComponent(variantKey)}` : ''}` : `/vendors/${vendor.id}`)
                   : undefined;
 
               return (

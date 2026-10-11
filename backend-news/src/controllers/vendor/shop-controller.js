@@ -186,8 +186,12 @@ const deleteOneShopByVendor = async (req, res) => {
         .status(404)
         .json({ success: false, message: "Pandit Profile Not Found" });
     }
-    await singleFilesDelete(req, shop.logo._id);
-    await Shop.deleteOne({ _id: slug, vendor: req.vendor._id });
+    if (shop.logo?._id) {
+      await singleFilesDelete(req, shop.logo._id);
+    }
+    // Was `_id: slug`, which is not a valid ObjectId and never matches —
+    // the delete silently failed while the endpoint reported success.
+    await Shop.deleteOne({ slug: slug, vendor: req.vendor._id });
     return res.status(204).json({
       success: true,
       message: "Shop Deleted Successfully",

@@ -308,51 +308,74 @@ export default function VendorProfileDetails({ user, isLoading, embedded = false
     { label: 'Last Updated', value: user?.updatedAt }
   ];
 
+  const isSellerShop = shop?.shopType === 'seller';
+
   const shopFields = shop
-    ? [
-      { label: 'Shop Name', value: shop?.name },
-      { label: 'First Name', value: shop?.firstName },
-      { label: 'Last Name', value: shop?.lastName },
-      { label: 'Designation', value: shop?.designation },
-      { label: 'Shop Email', value: shop?.shopEmail || shop?.email },
-      { label: 'Shop Phone', value: shop?.shopPhone || shop?.phone },
-      { label: 'Gender', value: shop?.gender },
-      { label: 'Date of Birth', value: shop?.dateOfBirth },
-      { label: 'Shop Status', value: shop?.status },
-      { label: 'Experience', value: shop?.experience },
-      { label: 'Languages', value: shop?.language },
-      { label: 'Services', value: shop?.services },
-      { label: 'Gotra', value: shop?.gotra },
-      { label: 'Prawar', value: shop?.pravar },
-      { label: 'Veda', value: shop?.veda },
-      { label: 'Shakha', value: shop?.shakha },
-      { label: 'Pankti', value: shop?.pankti },
-      { label: 'Sutra', value: shop?.sutra },
-      { label: 'Aadhaar', value: shop?.aadharNumber },
-      { label: 'Address', value: shop?.address?.streetAddress },
-      { label: 'City', value: shop?.address?.city },
-      { label: 'State', value: shop?.address?.state },
-      { label: 'Country', value: shop?.address?.country },
-      { label: 'Pincode', value: shop?.pincode },
-      { label: 'Contact Person', value: shop?.contactPerson },
-      { label: 'Website', value: shop?.website },
-      { label: 'Description', value: shop?.description },
-      { label: 'Registration Number', value: shop?.registrationNumber },
-      { label: 'Referral Code', value: shop?.referralCode },
-      { label: 'Tax ID', value: shop?.taxIdentificationNumber },
-      { label: 'VAT Registration', value: shop?.vatRegistrationNumber },
-      { label: 'Payment Method', value: shop?.financialDetails?.paymentMethod },
-      { label: 'PayPal Email', value: shop?.financialDetails?.paypal?.email },
-      { label: 'Bank Name', value: shop?.financialDetails?.bank?.bankName },
-      { label: 'Account Holder', value: shop?.financialDetails?.bank?.holderName },
-      { label: 'Account Number', value: shop?.financialDetails?.bank?.accountNumber },
-      { label: 'Government ID', value: shop?.identityVerification?.governmentId },
-      { label: 'Proof of Address', value: shop?.identityVerification?.proofOfAddress },
-      { label: 'Rating', value: shop?.rating },
-      { label: 'Rating Count', value: shop?.ratingCount },
-      { label: 'Created On', value: shop?.createdAt },
-      { label: 'Last Updated', value: shop?.updatedAt }
-    ]
+    ? isSellerShop
+      ? [
+        { label: 'Shop Name', value: shop?.name },
+        { label: 'First Name', value: shop?.firstName },
+        { label: 'Last Name', value: shop?.lastName },
+        { label: 'Shop Email', value: shop?.shopEmail || shop?.email },
+        { label: 'Shop Phone', value: shop?.shopPhone || shop?.phone },
+        { label: 'Shop Status', value: shop?.status },
+        { label: 'Address', value: shop?.address?.streetAddress },
+        { label: 'City', value: shop?.address?.city },
+        { label: 'State', value: shop?.address?.state },
+        { label: 'Country', value: shop?.address?.country },
+        { label: 'Pincode', value: shop?.pincode },
+        { label: 'Contact Person', value: shop?.contactPerson },
+        { label: 'Website', value: shop?.website },
+        { label: 'Description', value: shop?.description },
+        { label: 'Rating', value: shop?.rating },
+        { label: 'Rating Count', value: shop?.ratingCount },
+        { label: 'Created On', value: shop?.createdAt },
+        { label: 'Last Updated', value: shop?.updatedAt }
+      ]
+      : [
+        { label: 'Shop Name', value: shop?.name },
+        { label: 'First Name', value: shop?.firstName },
+        { label: 'Last Name', value: shop?.lastName },
+        { label: 'Designation', value: shop?.designation },
+        { label: 'Shop Email', value: shop?.shopEmail || shop?.email },
+        { label: 'Shop Phone', value: shop?.shopPhone || shop?.phone },
+        { label: 'Gender', value: shop?.gender },
+        { label: 'Date of Birth', value: shop?.dateOfBirth },
+        { label: 'Shop Status', value: shop?.status },
+        { label: 'Experience', value: shop?.experience },
+        { label: 'Languages', value: shop?.language },
+        { label: 'Services', value: shop?.services },
+        { label: 'Gotra', value: shop?.gotra },
+        { label: 'Prawar', value: shop?.pravar },
+        { label: 'Veda', value: shop?.veda },
+        { label: 'Shakha', value: shop?.shakha },
+        { label: 'Pankti', value: shop?.pankti },
+        { label: 'Sutra', value: shop?.sutra },
+        { label: 'Aadhaar', value: shop?.aadharNumber },
+        { label: 'Address', value: shop?.address?.streetAddress },
+        { label: 'City', value: shop?.address?.city },
+        { label: 'State', value: shop?.address?.state },
+        { label: 'Country', value: shop?.address?.country },
+        { label: 'Pincode', value: shop?.pincode },
+        { label: 'Contact Person', value: shop?.contactPerson },
+        { label: 'Website', value: shop?.website },
+        { label: 'Description', value: shop?.description },
+        { label: 'Registration Number', value: shop?.registrationNumber },
+        { label: 'Referral Code', value: shop?.referralCode },
+        { label: 'Tax ID', value: shop?.taxIdentificationNumber },
+        { label: 'VAT Registration', value: shop?.vatRegistrationNumber },
+        { label: 'Payment Method', value: shop?.financialDetails?.paymentMethod },
+        { label: 'PayPal Email', value: shop?.financialDetails?.paypal?.email },
+        { label: 'Bank Name', value: shop?.financialDetails?.bank?.bankName },
+        { label: 'Account Holder', value: shop?.financialDetails?.bank?.holderName },
+        { label: 'Account Number', value: shop?.financialDetails?.bank?.accountNumber },
+        { label: 'Government ID', value: shop?.identityVerification?.governmentId },
+        { label: 'Proof of Address', value: shop?.identityVerification?.proofOfAddress },
+        { label: 'Rating', value: shop?.rating },
+        { label: 'Rating Count', value: shop?.ratingCount },
+        { label: 'Created On', value: shop?.createdAt },
+        { label: 'Last Updated', value: shop?.updatedAt }
+      ]
     : [];
 
   const statusChipColor =
@@ -420,7 +443,7 @@ export default function VendorProfileDetails({ user, isLoading, embedded = false
       {shopFields.length > 0 && (
         <>
           <Typography variant="h6" sx={{ mt: 3, mb: 2 }}>
-            Pandit Profile (Shop)
+            {isSellerShop ? 'Shop Details' : 'Pandit Profile (Shop)'}
           </Typography>
           <Grid container spacing={2}>
             {shopFields.map((field) => (

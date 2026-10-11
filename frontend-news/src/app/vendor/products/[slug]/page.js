@@ -16,18 +16,18 @@ export default async function page(props) {
     <div>
       <HeaderBreadcrumbs
         admin
-        heading="Edit Pandit Product"
+        heading="Edit Product"
         links={[
           {
             name: 'Dashboard',
             href: '/vendor/dashboard'
           },
           {
-            name: 'Pandit Products',
+            name: 'Products',
             href: '/vendor/products'
           },
           {
-            name: 'Edit Pandit Product'
+            name: 'Edit Product'
           }
         ]}
       />

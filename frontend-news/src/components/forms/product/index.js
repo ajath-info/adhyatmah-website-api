@@ -22,6 +22,32 @@ import { productSchema } from '@/validations';
 const STATUS_OPTIONS = ['pending', 'draft', 'published'];
 
 // ----------------------------------------------------------------------
+// Finds a category -> subCategory -> childCategory chain to silently pre-fill
+// these (required) fields for vendors, who no longer see the category
+// pickers in the UI. The real category/sub/child gets set by an admin during
+// approval (vendor products are created with status "pending" and only go
+// live once an admin reviews and publishes them). We prefer a chain that's
+// obviously a placeholder ("Uncategorized" / "General" / "Others" / "Misc")
+// if the catalog has one, so admins immediately recognise it needs fixing
+// instead of mistaking a random real category for the right one.
+const isPlaceholderName = (name = '') => /uncategor|general|misc|other/i.test(name);
+
+const getDefaultCategoryChain = (categories = []) => {
+  let fallback = null;
+  for (const cat of categories) {
+    for (const sub of cat?.subCategories || []) {
+      if (!sub?.childCategories?.length) continue;
+      const child = sub.childCategories[0];
+      const chain = { category: cat._id, subCategory: sub._id, childCategory: child._id };
+      if (isPlaceholderName(cat.name) || isPlaceholderName(sub.name) || isPlaceholderName(child.name)) {
+        return chain;
+      }
+      if (!fallback) fallback = chain;
+    }
+  }
+  return fallback || { category: '', subCategory: '', childCategory: '' };
+};
+
 const getVariants = (param) => {
   const converted = param.reduce((acc, item) => {
     const attributes = item.name.split('/');
@@ -74,6 +100,12 @@ export default function ProductForm({
   const [count, setCount] = React.useState(0);
   const [initialized, setInitialized] = React.useState(false);
 
+  // Computed ONCE per mount (not on every render) — putting Date.now() directly
+  // inside initialValues would change identity every render and, combined with
+  // enableReinitialize, reset the whole form (wiping out typing) on every keystroke.
+  const autoSkuRef = React.useRef(`SKU${Date.now()}`);
+  const defaultCategoryChainRef = React.useRef(getDefaultCategoryChain(categories));
+
   const formik = useFormik({
     enableReinitialize: true,
     initialValues: {
@@ -83,18 +115,24 @@ export default function ProductForm({
       metaTitle: currentProduct?.metaTitle || '',
       metaDescription: currentProduct?.metaDescription || '',
       demo: currentProduct?.demo || '',
-      tags: currentProduct?.tags || [],
+      tags: currentProduct?.tags?.length ? currentProduct.tags : isVendor && !currentProduct ? ['general'] : [],
       deliveryType: currentProduct?.deliveryType || 'physical',
       gender: currentProduct?.gender || '',
       content: currentProduct?.content || '',
       brand: currentProduct?.brand?._id || '',
       shop: currentProduct?.shop?._id || '',
-      category: currentProduct?.category?._id || '',
-      subCategory: currentProduct?.subCategory?._id || '',
-      childCategory: currentProduct?.childCategory?._id || '',
+      category:
+        currentProduct?.category?._id ||
+        (isVendor && !currentProduct ? defaultCategoryChainRef.current.category : ''),
+      subCategory:
+        currentProduct?.subCategory?._id ||
+        (isVendor && !currentProduct ? defaultCategoryChainRef.current.subCategory : ''),
+      childCategory:
+        currentProduct?.childCategory?._id ||
+        (isVendor && !currentProduct ? defaultCategoryChainRef.current.childCategory : ''),
       blob: currentProduct?.images || [],
       isFeatured: currentProduct?.isFeatured || false,
-      sku: currentProduct?.sku || '',
+      sku: currentProduct?.sku || (isVendor && !currentProduct ? autoSkuRef.current : ''),
       type: currentProduct?.type || 'simple',
       downloadLink: currentProduct?.downloadLink || 'simple',
       selectedVariants: getVariants(currentProduct?.variants || []),
@@ -117,10 +155,14 @@ export default function ProductForm({
 
     validationSchema: productSchema(isVendor),
     onSubmit: async (values) => {
-      const { blob: _blob, selectedVariants: _selectedVariants, ...rest } = values;
+      const { blob: _blob, selectedVariants: _selectedVariants, brand, ...rest } = values;
       try {
         mutate({
           ...rest,
+          // brand is an optional ObjectId ref on the backend — sending an empty
+          // string makes Mongo try to cast "" to an ObjectId and throw a
+          // CastError, so only include it when an actual brand was chosen.
+          ...(brand && { brand }),
           salePrice: values.salePrice || values.price,
           ...(currentProduct && { currentSlug: currentProduct.slug })
         });
@@ -129,7 +171,27 @@ export default function ProductForm({
       }
     }
   });
-  const { values, handleSubmit } = formik;
+  const { values, handleSubmit, setFieldValue } = formik;
+
+  // Vendors only fill in Name / Description / Images / Stock / Price / Sale Price.
+  // Everything else the admin flow needs (meta title, meta description, long
+  // description, tags) is quietly kept in sync in the background so nothing
+  // else about product creation/validation/backend behaviour changes.
+  React.useEffect(() => {
+    if (!isVendor || !values.name) return;
+    setFieldValue('metaTitle', values.name);
+    if (!values.tags?.length) {
+      setFieldValue('tags', [values.name]);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isVendor, values.name]);
+
+  React.useEffect(() => {
+    if (!isVendor || !values.description) return;
+    setFieldValue('metaDescription', values.description.slice(0, 160));
+    setFieldValue('content', values.description);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isVendor, values.description]);
 
   const handleTitleChange = (event) => {
     const title = event.target.value;
@@ -146,25 +208,34 @@ export default function ProductForm({
       <FormikProvider value={formik}>
         <Form noValidate autoComplete="off" onSubmit={handleSubmit}>
           <Stack spacing={3}>
-            <Card>
-              <CardHeader title={<>{isLoading ? <Skeleton variant="text" width={140} /> : 'Group and category'}</>} />
-
-              <CardContent>
-                <GroupAndCategory
-                  formik={formik}
-                  isVendor={isVendor}
-                  shops={shops}
-                  brands={brands}
-                  categories={categories}
-                  options={STATUS_OPTIONS}
-                  isLoading={isLoading}
+            {!isVendor && (
+              <Card>
+                <CardHeader
+                  title={<>{isLoading ? <Skeleton variant="text" width={140} /> : 'Group and category'}</>}
                 />
-              </CardContent>
-            </Card>
+
+                <CardContent>
+                  <GroupAndCategory
+                    formik={formik}
+                    isVendor={isVendor}
+                    shops={shops}
+                    brands={brands}
+                    categories={categories}
+                    options={STATUS_OPTIONS}
+                    isLoading={isLoading}
+                  />
+                </CardContent>
+              </Card>
+            )}
             <Card>
               <CardHeader title={<>{isLoading ? <Skeleton variant="text" width={140} /> : 'Product Information'}</>} />
               <CardContent>
-                <ProductInfo formik={formik} handleTitleChange={handleTitleChange} isLoading={isLoading} />
+                <ProductInfo
+                  formik={formik}
+                  isVendor={isVendor}
+                  handleTitleChange={handleTitleChange}
+                  isLoading={isLoading}
+                />
               </CardContent>
             </Card>
             {!isLoading && (
@@ -181,7 +252,7 @@ export default function ProductForm({
                   }
                 />
                 <Collapse in={Boolean(values.type === 'simple')}>
-                  <SimpleProductForm formik={formik} isLoading={isLoading} />
+                  <SimpleProductForm formik={formik} isVendor={isVendor} isLoading={isLoading} />
                 </Collapse>
                 <Collapse in={Boolean(values.type !== 'simple')}>
                   <VariableProductForm

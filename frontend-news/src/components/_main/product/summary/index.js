@@ -1,4 +1,3 @@
-// react
 'use client';
 import Link from 'next/link';
 import { useState, useEffect } from 'react';
@@ -86,7 +85,7 @@ export default function ProductDetailsSumary({ ...props }) {
     toast.success('Added to cart');
     dispatch(addCart(param));
     // Best-effort sync to the account cart so the same item shows up on the app too
-    syncAddToCart(param.pid, param.quantity).catch(() => {});
+    syncAddToCart(param.pid, param.quantity).catch(() => { });
   };
   const formik = useFormik({
     enableReinitialize: true,
@@ -226,16 +225,18 @@ export default function ProductDetailsSumary({ ...props }) {
       <FormikProvider value={formik}>
         <Form autoComplete="off" noValidate onSubmit={handleSubmit}>
           <Stack gap={1}>
-            <Typography
-              noWrap
-              variant="subtitle1"
-              color="primary.main"
-              sx={{
-                textTransform: 'uppercase'
-              }}
-            >
-              Brand: {product.brand.name}
-            </Typography>
+            {product.brand?.name && (
+              <Typography
+                noWrap
+                variant="subtitle1"
+                color="primary.main"
+                sx={{
+                  textTransform: 'uppercase'
+                }}
+              >
+                Brand: {product.brand.name}
+              </Typography>
+            )}
 
             <Typography variant="h3" component={'h1'} lineHeight={1}>
               {product.name}

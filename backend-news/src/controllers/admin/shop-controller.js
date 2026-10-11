@@ -70,7 +70,7 @@ const getAllShopsByAdmin = async (req, res) => {
 /*     Get All Shops (Admin)    */
 const getShopsByAdmin = async (req, res) => {
   try {
-    const { limit = 10, page = 1, search = "", status } = req.query;
+    const { limit = 10, page = 1, search = "", status, shopType } = req.query;
 
     const skip = (parseInt(page) - 1) * parseInt(limit);
     const query = {
@@ -79,6 +79,13 @@ const getShopsByAdmin = async (req, res) => {
 
     if (status) {
       query.status = status;
+    }
+
+    // Only applied when a caller explicitly asks for it (e.g. the new
+    // admin "Shops" page for Product Sellers). Existing callers that don't
+    // send shopType keep seeing every shop, exactly as before.
+    if (shopType) {
+      query.shopType = shopType;
     }
 
     const totalShop = await Shop.countDocuments(query);
@@ -140,9 +147,23 @@ const getOneShopByAdmin = async (req, res) => {
       "items.shop": shop._id,
     });
 
+    // Product-seller shops have no shop-logo upload flow of their own yet —
+    // the vendor instead uploads a profile photo from Settings, which saves
+    // to User.cover. Surface that here as a fallback avatar so the admin
+    // Shop Details page isn't stuck on the default placeholder for those
+    // shops. Sent as a separate field (not merged into `data`) so
+    // `data.vendor` stays the plain ObjectId the pandit-shop UserProfile
+    // view relies on.
+    let vendorCover = null;
+    if (shop.vendor) {
+      const vendorUser = await User.findById(shop.vendor).select("cover");
+      vendorCover = vendorUser?.cover || null;
+    }
+
     return res.status(200).json({
       success: true,
       data: shop,
+      vendorCover,
       totalOrders,
       totalEarnings,
       totalCommission,
@@ -246,11 +267,11 @@ const updateOneShopByAdmin = async (req, res) => {
 /*     Update Shop Status by ID (Admin)    */
 const updateShopStatusByAdmin = async (req, res) => {
   try {
-    const { sid } = req.params;
+    const { slug } = req.params;
     const { status } = req.body;
     const updateStatus = await Shop.findOneAndUpdate(
       {
-        _id: sid,
+        slug,
       },
       {
         status,
@@ -260,6 +281,27 @@ const updateShopStatusByAdmin = async (req, res) => {
         runValidators: true,
       }
     );
+
+    // When a seller shop is marked Inactive/Rejected, hide its published
+    // products from the storefront too by flipping them to "inactive".
+    // Draft/pending products are left alone since they weren't visible
+    // anyway. If the shop is later Approved again, those same products
+    // (and only those — draft/pending ones stay untouched) are restored
+    // to "published". This only affects products of this shop; nothing
+    // else in the product listing/query flow is touched.
+    if (updateStatus) {
+      if (status === "inactive" || status === "rejected") {
+        await Product.updateMany(
+          { shop: updateStatus._id, status: "published" },
+          { $set: { status: "inactive" } }
+        );
+      } else if (status === "approved") {
+        await Product.updateMany(
+          { shop: updateStatus._id, status: "inactive" },
+          { $set: { status: "published" } }
+        );
+      }
+    }
 
     return res.status(200).json({
       success: true,
@@ -274,14 +316,20 @@ const updateShopStatusByAdmin = async (req, res) => {
 const deleteOneShopByAdmin = async (req, res) => {
   try {
     const { slug } = req.params;
-    const shop = await Shop.findOne({ slug, vendor: req.admin._id });
+    // Admin deletion is not scoped to a "vendor" — the shop being deleted
+    // belongs to the seller/pandit, not the admin. Filtering by
+    // `vendor: req.admin._id` (the admin's own id) meant this query could
+    // never match a real shop, so admin delete always 404'd.
+    const shop = await Shop.findOne({ slug });
     if (!shop) {
       return res
         .status(404)
         .json({ success: false, message: "Pandit Profile Not Found" });
     }
 
-    await singleFilesDelete(req, shop.logo._id);
+    if (shop.logo?._id) {
+      await singleFilesDelete(req, shop.logo._id);
+    }
 
     await Shop.deleteOne({ slug });
     return res.status(204).json({

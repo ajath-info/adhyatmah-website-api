@@ -174,7 +174,7 @@ export default function VendorReviewForm({ ...props }) {
                         >
                             {eligibleBookings.map((booking) => (
                                 <MenuItem key={booking._id} value={booking._id}>
-                                    {booking.service?.poojaType || 'Puja Booking'} —{' '}
+                                    {booking.poojaType || booking.service?.poojaType || 'Puja Booking'} —{' '}
                                     {new Date(booking.dateTime).toLocaleDateString()}
                                 </MenuItem>
                             ))}

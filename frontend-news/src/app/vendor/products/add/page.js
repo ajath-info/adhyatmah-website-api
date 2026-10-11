@@ -20,18 +20,18 @@ export default async function page() {
     <div>
       <HeaderBreadcrumbs
         admin
-        heading="Add Pandit Product"
+        heading="Add Product"
         links={[
           {
             name: 'Dashboard',
             href: '/vendor/dashboard'
           },
           {
-            name: 'Pandit Products',
+            name: 'Products',
             href: '/vendor/products'
           },
           {
-            name: 'Add Pandit Product'
+            name: 'Add Product'
           }
         ]}
       />

@@ -7,6 +7,11 @@ const Language = require("../../models/Language");
 const { singleFileUploader } = require("../../utils/uploader-util");
 const { VENDOR_SEO_CONTENT } = require("../../data/vendorSeoContent");
 const { allServices } = require("../../data/allServices");
+const { getSellerVendorIds } = require("../../utils/shop-util");
+const MasterService = require("../../models/MasterService");
+const VariantProduct = require("../../models/Product");
+const VariantObjectId = require("mongoose").Types.ObjectId;
+const { findActiveVariant } = require("../../utils/master-service-variants");
 const {
   validateCouponForModule,
   calculateDiscount,
@@ -111,6 +116,7 @@ const createBooking = async (
       language,
       couponCode,
       module,
+      variantKey,
     } = req.body;
 
     // ------------------------------------
@@ -236,6 +242,115 @@ const createBooking = async (
     }
 
     // ------------------------------------
+    // Optional puja variant (admin-defined option inside a MasterService)
+    // ------------------------------------
+    // Runs ONLY when the client sends `variantKey` (the Navratri-style
+    // popup flow). Without it, nothing below executes and the booking is
+    // created exactly as before. With it, the variant name/duration are
+    // taken from the DB (never from the client) and the amount is checked
+    // against the variant's DB price, so it cannot be tampered with.
+    let bookingPoojaType = poojaType;
+    let bookingPackage = package;
+    let bookingDuration = duration;
+
+    if (variantKey) {
+      const variantMaster = await MasterService.findOne({
+        name: service.poojaType,
+      });
+      const variant = findActiveVariant(variantMaster, variantKey);
+
+      if (!variantMaster || !variant) {
+        return res.status(400).json({
+          error: true,
+          code: 400,
+          status: 0,
+          errorCode: "INVALID_VARIANT",
+          message:
+            "This puja option is no longer available. Please choose again.",
+        });
+      }
+
+      // Kit total from the DB. Product price vs salePrice can differ in
+      // what the storefront shows, so use a min/max range per unit.
+      const kitIds = [
+        ...(Array.isArray(pujaSamagri?.pujaKit) ? pujaSamagri.pujaKit : []),
+        ...(Array.isArray(pujaSamagri?.instantKit)
+          ? pujaSamagri.instantKit
+          : []),
+      ]
+        .filter(Boolean)
+        .map(String);
+
+      let kitMin = 0;
+      let kitMax = 0;
+      const validKitIds = [...new Set(kitIds)].filter((id) =>
+        VariantObjectId.isValid(id)
+      );
+      if (validKitIds.length) {
+        const kitProducts = await VariantProduct.find({
+          _id: { $in: validKitIds },
+        })
+          .select("price salePrice")
+          .lean();
+        const unitRange = new Map(
+          kitProducts.map((product) => {
+            const prices = [product.price, product.salePrice]
+              .map(Number)
+              .filter((value) => Number.isFinite(value) && value > 0);
+            return [
+              String(product._id),
+              prices.length
+                ? [Math.min(...prices), Math.max(...prices)]
+                : [0, 0],
+            ];
+          })
+        );
+        kitIds.forEach((id) => {
+          const range = unitRange.get(id);
+          if (range) {
+            kitMin += range[0];
+            kitMax += range[1];
+          }
+        });
+      }
+
+      // Customer pays EITHER the full price OR the 30% advance (same rule
+      // as the booking page), plus kits. +/-1 for rounding. Any other
+      // amount (e.g. something in between) is rejected.
+      const variantPrice = Number(variant.price);
+      const advancePrice = Math.round(variantPrice * 0.3);
+      const sentAmount = Number(paymentAmount);
+      const matchesMode = (servicePart) =>
+        sentAmount >= servicePart + kitMin - 1 &&
+        sentAmount <= servicePart + kitMax + 1;
+
+      if (
+        !Number.isFinite(sentAmount) ||
+        !(matchesMode(variantPrice) || matchesMode(advancePrice))
+      ) {
+        return res.status(409).json({
+          error: true,
+          code: 409,
+          status: 0,
+          errorCode: "PRICE_CHANGED",
+          message:
+            "The price for this puja option has changed. Please review the updated price and try again.",
+          payload: {
+            variant: {
+              key: variant.key,
+              name: variant.name,
+              price: variantPrice,
+            },
+          },
+        });
+      }
+
+      bookingPoojaType = variant.name;
+      bookingPackage = variant.name;
+      bookingDuration = variant.duration || variantMaster.duration || duration;
+    }
+
+    // ------------------------------------
     // Validate Customer
     // ------------------------------------
     const customer =
@@ -337,14 +452,14 @@ const createBooking = async (
         service:
           serviceId,
 
-        poojaType,
+        poojaType: bookingPoojaType,
 
-        package,
+        package: bookingPackage,
 
         dateTime:
           new Date(dateTime),
 
-        duration,
+        duration: bookingDuration,
 
         address:
           normalizedAddress,
@@ -1374,6 +1489,13 @@ const getPanditList = async (req, res) => {
       role: "vendor",
       status: "active",
     };
+
+    // Product Sellers (Sell Products flow) must never appear in the
+    // Pandit Ji listing/search/filter.
+    const sellerVendorIds = await getSellerVendorIds();
+    if (sellerVendorIds.length > 0) {
+      query._id = { $nin: sellerVendorIds };
+    }
     if (name) {
       query.$or = [
         {

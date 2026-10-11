@@ -7,6 +7,7 @@ import TopBanners from '@/components/_main/home/banners';
 import CategoriesWithProducts from '@/components/_main/home/categories-with-products';
 import Vendors from '@/components/_main/home/shops';
 import PoojaServices from '@/components/_main/home/pooja-services';
+import PujaCombos from '@/components/_main/home/puja-combos';
 import Testimonials from 'src/components/_main/home/testimonials';
 import HowItWorks from '@/components/_main/home/how-it-works';
 import SpiritualEcommerce from '@/components/_main/home/spiritual-ecommerce';
@@ -139,6 +140,23 @@ export default async function IndexPage() {
     dummyServices = [];
   }
 
+  // Featured, active Puja Combos created from Admin -> Puja Combos.
+  // Same 60s revalidate as the other homepage data; failure must not break the page.
+  let pujaCombos = [];
+
+  try {
+    const combosRes = await fetch(`${baseUrl}/api/puja-combos?featured=true&limit=5`, {
+      next: { revalidate: 60 },
+    });
+
+    if (combosRes.ok) {
+      const combosJson = await combosRes.json();
+      pujaCombos = combosJson?.data || [];
+    }
+  } catch (error) {
+    pujaCombos = [];
+  }
+
   return (
     <Stack gap={5}>
       <script
@@ -253,6 +271,8 @@ export default async function IndexPage() {
           <Vendors data={vendors || []} />
 
           <PoojaServices services={dummyServices} />
+
+          <PujaCombos combos={pujaCombos} />
 
           <HowItWorks />
 

@@ -1,7 +1,7 @@
 'use client';
 // react
 import { useMutation, useQuery } from '@tanstack/react-query';
-import React from 'react';
+import React, { useMemo } from 'react';
 import { toast } from 'react-hot-toast';
 import { useRouter } from '@bprogress/next';
 // mui
@@ -26,6 +26,8 @@ import UploadAvatar from '@/components/upload/upload-avatar';
 import * as api from 'src/services';
 // formik
 import { Form, FormikProvider, useFormik } from 'formik';
+// yup
+import * as Yup from 'yup';
 // redux
 import { useDispatch } from 'react-redux';
 import { signIn } from 'src/redux/slices/user';
@@ -65,6 +67,19 @@ export default function GeneralProfileForm({ user, isLoading, shop, isShopLoadin
   const router = useRouter();
   const dispatch = useDispatch();
   const isVendor = user?.role === 'vendor';
+  // A "Sell Products" shop has none of the Pandit sign-up fields (designation,
+  // gotra, veda, aadhaar, etc.) — those only apply to the "Become a Pandit"
+  // flow, so this settings form should only show them for pandit shops.
+  const isSellerShop = shop?.shopType === 'seller';
+
+  // The seller ("Sell Products") signup form never asks for Gender, so
+  // an existing seller's account can genuinely have no gender saved.
+  // Only relax that one requirement for sellers — everything else (and
+  // the pandit flow, where Gender is collected) keeps requiring it.
+  const validationSchema = useMemo(
+    () => (isSellerShop ? profileSchema.shape({ gender: Yup.string() }) : profileSchema),
+    [isSellerShop]
+  );
 
   const { mutate, isPending: updateLoading } = useMutation({
     mutationFn: api.updateProfile,
@@ -93,7 +108,7 @@ export default function GeneralProfileForm({ user, isLoading, shop, isShopLoadin
 
   const { mutateAsync: deleteMutate, isPending: deleteLoading } = useMutation({
     mutationFn: api.singleDeleteFile,
-    onSuccess: () => {},
+    onSuccess: () => { },
     onError: (error) => {
       toast.error(error?.response?.data?.message || 'Something went wrong!');
     }
@@ -104,7 +119,7 @@ export default function GeneralProfileForm({ user, isLoading, shop, isShopLoadin
       // onSuccess
 
       // delete previous if exists
-       if (Boolean(values.cover?._id)) {
+      if (Boolean(values.cover?._id)) {
         try {
           await deleteMutate(values.cover._id);
         } catch (err) {
@@ -164,15 +179,16 @@ export default function GeneralProfileForm({ user, isLoading, shop, isShopLoadin
       designation: shop?.designation || []
     },
 
-    validationSchema: profileSchema,
+    validationSchema: validationSchema,
     onSubmit: async (values) => {
       const { designation, language, ...rest } = values;
       mutate({ ...rest, language });
 
       // Keep the linked Pandit/Shop profile's designation and language in
       // sync, without touching any of its other saved details (services
-      // included — it stays whatever it already was).
-      if (isVendor && shop?.slug) {
+      // included — it stays whatever it already was). Seller shops have no
+      // designation field on their form, so skip this sync for them.
+      if (isVendor && shop?.slug && !isSellerShop) {
         const {
           _id,
           vendor,
@@ -345,6 +361,9 @@ export default function GeneralProfileForm({ user, isLoading, shop, isShopLoadin
                           error={Boolean(touched.gender && errors.gender)}
                           helperText={touched.gender && errors.gender}
                         >
+                          <option value="" disabled>
+                            Select Gender
+                          </option>
                           <option value="male">Male</option>
                           <option value="female">Female</option>
                         </TextField>
@@ -434,8 +453,8 @@ export default function GeneralProfileForm({ user, isLoading, shop, isShopLoadin
                     </Stack>
                   </Stack>
 
-                  {/* Vendor-specific fields */}
-                  {isVendor && (
+                  {/* Vendor-specific fields — Pandit shops only, not sellers */}
+                  {isVendor && !isShopLoading && !isSellerShop && (
                     <>
                       {/* Designation, Total Experience already exists below, so keep Designation on its own row */}
                       <Stack spacing={0.5} width={1}>

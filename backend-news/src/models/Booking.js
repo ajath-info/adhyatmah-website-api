@@ -97,6 +97,9 @@ const BookingSchema =
         zip: {
           type: String,
         },
+
+        landmark: { type: String, default: "" },
+        addressType: { type: String, default: "" },
       },
 
       // ------------------------------------
@@ -172,6 +175,13 @@ const BookingSchema =
       discount: {
         type: Number,
         default: 0,
+      },
+
+      // Set only when booked through a Puja Combo (optional, additive)
+      pujaCombo: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "PujaCombo",
+        default: null,
       },
 
       bookingID: {

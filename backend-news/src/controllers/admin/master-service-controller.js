@@ -2,6 +2,26 @@ const mongoose = require("mongoose");
 const MasterService = require("../../models/MasterService");
 const Service = require("../../models/Service");
 const slugify = require("../../utils/slugify");
+const { sanitizeVariantsInput } = require("../../utils/master-service-variants");
+
+/**
+ * A variant name must not clash with any master service name (case
+ * insensitive) so pandit-list matching and reports stay unambiguous.
+ */
+const findVariantNameClash = async (variants, ownMasterId = null) => {
+    if (!variants || !variants.length) return null;
+    const names = variants.map((variant) => variant.name);
+    const query = {
+        $or: names.map((name) => ({
+            name: {
+                $regex: `^${name.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}$`,
+                $options: "i",
+            },
+        })),
+    };
+    if (ownMasterId) query._id = { $ne: ownMasterId };
+    return MasterService.findOne(query).select("name").lean();
+};
 
 /**
  * Cascade a MasterService price change to every matching vendor/pandit
@@ -78,6 +98,7 @@ const createMasterServiceByAdmin = async (req, res) => {
             originalPrice,
             image,
             status,
+            variants,
         } = req.body;
 
         if (!name || !duration || price === undefined || price === null) {
@@ -100,6 +121,23 @@ const createMasterServiceByAdmin = async (req, res) => {
             });
         }
 
+        let cleanVariants;
+        try {
+            cleanVariants = sanitizeVariantsInput(variants, []);
+        } catch (variantError) {
+            return res
+                .status(400)
+                .json({ success: false, message: variantError.message });
+        }
+
+        const clash = await findVariantNameClash(cleanVariants);
+        if (clash) {
+            return res.status(400).json({
+                success: false,
+                message: `Variant name clashes with existing service "${clash.name}"`,
+            });
+        }
+
         const masterService = await MasterService.create({
             name,
             slug: finalSlug,
@@ -109,6 +147,9 @@ const createMasterServiceByAdmin = async (req, res) => {
             originalPrice: originalPrice ? Number(originalPrice) : 0,
             image: image || { url: "", altText: "" },
             status: status || "active",
+            ...(cleanVariants && cleanVariants.length
+                ? { variants: cleanVariants }
+                : {}),
         });
 
         res.status(201).json({
@@ -199,6 +240,7 @@ const updateMasterServiceByAdmin = async (req, res) => {
             originalPrice,
             image,
             status,
+            variants,
         } = req.body;
 
         const masterService = await MasterService.findOne({ slug });
@@ -252,6 +294,37 @@ const updateMasterServiceByAdmin = async (req, res) => {
             masterService.originalPrice = Number(originalPrice);
         if (image !== undefined) masterService.image = image;
         if (status !== undefined) masterService.status = status;
+
+        // Variants: only touched when the request explicitly sends them,
+        // so every other caller keeps the stored variants as they are.
+        // Variant prices are independent of the base price and are NEVER
+        // cascaded to pandit Service rows (those keep the base price).
+        if (variants !== undefined) {
+            let cleanVariants;
+            try {
+                cleanVariants = sanitizeVariantsInput(
+                    variants,
+                    masterService.variants
+                );
+            } catch (variantError) {
+                return res
+                    .status(400)
+                    .json({ success: false, message: variantError.message });
+            }
+
+            const clash = await findVariantNameClash(
+                cleanVariants,
+                masterService._id
+            );
+            if (clash) {
+                return res.status(400).json({
+                    success: false,
+                    message: `Variant name clashes with existing service "${clash.name}"`,
+                });
+            }
+
+            masterService.variants = cleanVariants;
+        }
 
         let newPrice = oldPrice;
         if (price !== undefined && price !== null && price !== "") {

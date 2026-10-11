@@ -1,5 +1,6 @@
 const Booking = require("../../models/Booking");
 const Service = require("../../models/Service");
+const Product = require("../../models/Product");
 
 const moment = require("moment");
 const Shop = require("../../models/Shop");
@@ -17,6 +18,11 @@ const getVendorAnalytics = async (req, res) => {
     const totalServices = await Service.countDocuments({
       vendor: vendorId,
     });
+
+    const shop = await Shop.findOne({ vendor: vendorId });
+    const totalProducts = shop
+      ? await Product.countDocuments({ shop: shop._id })
+      : 0;
 
     const mostBookedServices = await Booking.aggregate([
       {
@@ -149,7 +155,7 @@ const getVendorAnalytics = async (req, res) => {
       vendor: vendorId,
       createdAt: { $gt: lastYearDate, $lt: todayDate },
     }).select(["createdAt", "status"]);
-    
+
     const totalPendingBookings = await Booking.countDocuments({
       vendor: vendorId,
       status: "pending",
@@ -161,6 +167,7 @@ const getVendorAnalytics = async (req, res) => {
         dailyEarning: dailyEarningsByVendor,
         dailyBookings: totalBookings,
         totalServices,
+        totalProducts,
         totalPendingBookings,
         bookingReport,
 

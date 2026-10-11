@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import toast from 'react-hot-toast';
 import PropTypes from 'prop-types';
 // formik
@@ -39,7 +39,6 @@ FormDialog.propTypes = {
   setCount: PropTypes.func
 };
 export default function FormDialog({ open, handleClose, data, setCount }) {
-  const [status, setStatus] = useState(data?.status || 'pending');
   const { mutate, isPending: isLoading } = useMutation({
     mutationFn: api[data?._id ? 'editPaymentByAdmin' : 'createPaymentByAdmin'],
     onSuccess: () => {
@@ -51,9 +50,6 @@ export default function FormDialog({ open, handleClose, data, setCount }) {
       toast.error('Something went wrong!');
     }
   });
-  useEffect(() => {
-    setStatus(data?.status);
-  }, [data]);
 
   // formik
 
@@ -69,8 +65,7 @@ export default function FormDialog({ open, handleClose, data, setCount }) {
     enableReinitialize: true,
     validationSchema: editPaymentSchema,
 
-    onSubmit: async (event, values) => {
-      event.preventDefault();
+    onSubmit: async (values) => {
       const { ...rest } = values;
       await mutate({ ...rest, shop: data.shop, orders: data.orders, date: data?.date, pid: data?._id || null });
     }
@@ -82,29 +77,31 @@ export default function FormDialog({ open, handleClose, data, setCount }) {
       <Dialog
         open={open}
         onClose={() => handleClose()}
-        // PaperProps={{
-        //   component: 'form',
-        //   onSubmit: async (event) => {
-        //     event.preventDefault();
-        //     const formData = new FormData(event.currentTarget);
-        //     const formJson = Object.fromEntries(formData.entries());
+      // PaperProps={{
+      //   component: 'form',
+      //   onSubmit: async (event) => {
+      //     event.preventDefault();
+      //     const formData = new FormData(event.currentTarget);
+      //     const formJson = Object.fromEntries(formData.entries());
 
-        //     await mutate({
-        //       ...formJson,
-        //       shop: data.shop,
-        //       orders: data.orders,
-        //       date: data?.date,
-        //       pid: data?._id || null
-        //     });
-        //   }
-        // }}
+      //     await mutate({
+      //       ...formJson,
+      //       shop: data.shop,
+      //       orders: data.orders,
+      //       date: data?.date,
+      //       pid: data?._id || null
+      //     });
+      //   }
+      // }}
       >
         <FormikProvider value={formik}>
           <Form autoComplete="off" noValidate onSubmit={handleSubmit}>
-            <DialogTitle>Edit Payment</DialogTitle>
+            <DialogTitle>{data?._id ? 'Edit Payment' : 'Add Payment'}</DialogTitle>
             <DialogContent>
               <DialogContentText>
-                To subscribe to this website, please enter your email address here. We will send updates occasionally.
+                {data?._id
+                  ? 'Update the sale, income, commission or status for this payout entry.'
+                  : 'Create a new payout entry for this shop with the sale, income and commission details.'}
               </DialogContentText>
 
               <Stack gap={2} mt={4}>
@@ -160,7 +157,6 @@ export default function FormDialog({ open, handleClose, data, setCount }) {
                       id="status"
                       {...getFieldProps('status')}
                       error={Boolean(touched.status && errors.status)}
-                      onChange={(e) => setStatus(e.target.value)}
                     >
                       <MenuItem value="pending">Pending</MenuItem>
                       <MenuItem value="paid">Paid</MenuItem>
@@ -173,7 +169,7 @@ export default function FormDialog({ open, handleClose, data, setCount }) {
                     )}
                   </FormControl>
                 </Stack>
-                {status === 'paid' && (
+                {formik.values.status === 'paid' && (
                   <Stack gap={2} direction="row">
                     <TextField
                       required
@@ -183,7 +179,6 @@ export default function FormDialog({ open, handleClose, data, setCount }) {
                       type="date"
                       fullWidth
                       variant="outlined"
-                      defaultValue={data?.paidAt}
                       {...getFieldProps('paidAt')}
                       error={Boolean(touched.paidAt && errors.paidAt)}
                       helperText={touched.paidAt && errors.paidAt}

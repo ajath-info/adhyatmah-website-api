@@ -1,7 +1,7 @@
 'use client';
 
-import React, { useEffect, useMemo, useState } from 'react';
-import { useParams, useRouter } from 'next/navigation';
+import React, { Suspense, useEffect, useMemo, useState } from 'react';
+import { useParams, useRouter, useSearchParams } from 'next/navigation';
 import { useSelector } from 'react-redux';
 import toast from 'react-hot-toast';
 import { useQuery } from '@tanstack/react-query';
@@ -78,9 +78,10 @@ const decodeSlugParam = (value) => {
   }
 };
 
-export default function VendorServiceBookingPage() {
+function VendorServiceBookingPage() {
   const params = useParams();
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { isAuthenticated } = useSelector(({ user }) => user);
 
   const slug = decodeSlugParam(params.slug);
@@ -188,6 +189,43 @@ export default function VendorServiceBookingPage() {
     setInstantKitImageBroken(false);
   }, [instantKitImageUrl]);
 
+  // ── Optional puja variant (admin-defined option, e.g. Navratri) ──
+  // Only active when the URL carries ?variant=<key>. Without it nothing below
+  // changes and the page behaves exactly as before. Price/name always come
+  // from a fresh fetch of the puja's variants, never from the URL.
+  const variantKey = searchParams.get('variant') || '';
+  const {
+    data: variantListData,
+    isPending: variantQueryPending,
+    refetch: refetchVariants
+  } = useQuery({
+    queryKey: ['puja-variants', service?.poojaType],
+    enabled: Boolean(variantKey && service?.poojaType),
+    queryFn: () => api.getHomepagePoojaServicesAll('page=1&limit=100'),
+    staleTime: 0,
+    refetchOnMount: 'always'
+  });
+  const variantLoading = Boolean(variantKey) && variantQueryPending;
+
+  const variant = useMemo(() => {
+    if (!variantKey) return null;
+    const master = (variantListData?.data || []).find((item) => item.name === service?.poojaType);
+    return (master?.variants || []).find((item) => item.key === variantKey) || null;
+  }, [variantKey, variantListData, service]);
+
+  // Service as shown/booked: the variant's name, price and duration when a
+  // variant is selected, otherwise the pandit's Service untouched. Kits and
+  // reviews keep using `service` (the pandit's real Service) above.
+  const activeService = useMemo(() => {
+    if (!service || !variant) return service;
+    return {
+      ...service,
+      poojaType: variant.name,
+      price: variant.price,
+      duration: variant.duration || service.duration
+    };
+  }, [service, variant]);
+
   useEffect(() => {
     if (!selectedDate) {
       const tomorrow = new Date();
@@ -233,7 +271,7 @@ export default function VendorServiceBookingPage() {
   const handleProceedToPayment = () => {
     if (!isAuthenticated) {
       toast.error('Please login to proceed with payment');
-      const redirectUrl = `/${slug}/services/${serviceId}`;
+      const redirectUrl = `/${slug}/services/${serviceId}${variantKey ? `?variant=${encodeURIComponent(variantKey)}` : ''}`;
       router.push(`/auth/sign-in?redirect=${encodeURIComponent(redirectUrl)}`);
       return;
     }
@@ -294,9 +332,38 @@ export default function VendorServiceBookingPage() {
     );
   }
 
-  const minAdvance = Math.round(service.price * 0.3);
-  const payableAmount = paymentMode === 'full' ? service.price : minAdvance;
-  const remainingAmount = service.price - payableAmount;
+  if (variantKey && variantLoading) {
+    return (
+      <Container maxWidth="xl">
+        <Stack gap={3}>
+          <HeaderBreadcrumbs heading="Loading..." links={[{ name: 'Home', href: '/' }, { name: 'Pandits', href: '/book-pandit-online' }]} />
+          <Typography>Loading puja option...</Typography>
+        </Stack>
+      </Container>
+    );
+  }
+
+  if (variantKey && !variant) {
+    return (
+      <Container maxWidth="xl">
+        <Stack gap={3}>
+          <HeaderBreadcrumbs heading="Puja option unavailable" links={[{ name: 'Home', href: '/' }, { name: 'Pandits', href: '/book-pandit-online' }]} />
+          <Alert severity="warning">
+            This puja option is no longer available or could not be loaded. Please choose the puja again.
+          </Alert>
+          <Box>
+            <Button variant="contained" onClick={() => router.push(`/${slug}`)}>
+              Choose puja again
+            </Button>
+          </Box>
+        </Stack>
+      </Container>
+    );
+  }
+
+  const minAdvance = Math.round(activeService.price * 0.3);
+  const payableAmount = paymentMode === 'full' ? activeService.price : minAdvance;
+  const remainingAmount = activeService.price - payableAmount;
 
   const poojaKitTotal = !poojaKitSkipped && poojaKit.price != null ? poojaKit.price * poojaKitCount : 0;
   const instantKitTotal = !instantKitSkipped && instantKit.price != null ? instantKit.price * instantKitCount : 0;
@@ -352,12 +419,12 @@ export default function VendorServiceBookingPage() {
     <Container maxWidth="xl" sx={{ pb: { xs: 4, md: 6 } }}>
       <Stack gap={3}>
         <HeaderBreadcrumbs
-          heading={service.poojaType}
+          heading={activeService.poojaType}
           links={[
             { name: 'Home', href: '/' },
             { name: 'Pandits', href: '/book-pandit-online' },
             { name: `${vendor.firstName} ${vendor.lastName}`, href: `/${slug}` },
-            { name: service.poojaType }
+            { name: activeService.poojaType }
           ]}
         />
 
@@ -382,24 +449,24 @@ export default function VendorServiceBookingPage() {
                     Description
                   </Typography>
                   <Typography variant="body2" color="text.secondary">
-                    {service.poojaType} / {service.description || service.poojaType}
+                    {activeService.poojaType} / {service.description || activeService.poojaType}
                   </Typography>
                 </Box>
                 <Stack direction="row" spacing={1} sx={{ mb: 2 }}>
                   <Chip
                     icon={<MdAccessTime size={16} />}
-                    label={service.duration}
+                    label={activeService.duration}
                     size="small"
                     color="info"
                     variant="outlined"
                   />
-                  <Chip label={`₹${service.price}`} size="small" color="success" variant="outlined" />
+                  <Chip label={`₹${activeService.price}`} size="small" color="success" variant="outlined" />
                 </Stack>
                 <Typography variant="subtitle2" color="text.secondary">
                   Base Price
                 </Typography>
                 <Typography variant="h5" color="primary">
-                  ₹{service.price}
+                  ₹{activeService.price}
                 </Typography>
               </CardContent>
             </Card>
@@ -986,7 +1053,7 @@ export default function VendorServiceBookingPage() {
                     <FormControlLabel
                       value="full"
                       control={<Radio />}
-                      label={`Pay Full Service Price (₹${service.price})`}
+                      label={`Pay Full Service Price (₹${activeService.price})`}
                     />
                     <FormControlLabel
                       value="advance"
@@ -1061,7 +1128,7 @@ export default function VendorServiceBookingPage() {
                         </Typography>
                       </Stack>
                       <Typography variant="body2" fontWeight={500} sx={{ color: '#1a1a1a' }}>
-                        ₹{service.price}
+                        ₹{activeService.price}
                       </Typography>
                     </Stack>
 
@@ -1247,7 +1314,10 @@ export default function VendorServiceBookingPage() {
       {paymentDialogOpen && selectedDate && selectedTime && streetAddress && city && district && state && country && (
         <BookingPaymentDialog
           open={paymentDialogOpen}
-          onClose={() => setPaymentDialogOpen(false)}
+          onClose={() => {
+            setPaymentDialogOpen(false);
+            if (variantKey) refetchVariants();
+          }}
           bookingData={{
             vendorId: vendor.id,
             serviceId: service.id,
@@ -1255,10 +1325,11 @@ export default function VendorServiceBookingPage() {
             // (VendorProfileClient.js), so the coupon module is always
             // "pandit" here - never "service".
             module: 'pandit',
-            poojaType: service.poojaType,
-            package: service.poojaType,
+            ...(variant ? { variantKey: variant.key } : {}),
+            poojaType: activeService.poojaType,
+            package: activeService.poojaType,
             dateTime: new Date(`${selectedDate}T${selectedTime}`).toISOString(),
-            duration: service.duration,
+            duration: activeService.duration,
             address: { streetAddress, landmark, city, district, state, country, zip },
             pujaSamagri: buildPujaSamagriPayload({
               pujaKit: poojaKit,
@@ -1269,7 +1340,7 @@ export default function VendorServiceBookingPage() {
               instantSkipped: instantKitSkipped
             }),
             paymentAmount: grandTotal,
-            totalAmount: service.price,
+            totalAmount: activeService.price,
             addons: {
               poojaKit:
                 poojaKitCount > 0 && !poojaKitSkipped && poojaKit.id
@@ -1296,5 +1367,15 @@ export default function VendorServiceBookingPage() {
         />
       )}
     </Container>
+  );
+}
+
+// Suspense boundary: this component reads useSearchParams(); Next.js requires a
+// <Suspense> wrapper on statically rendered routes (CSR bailout rule).
+export default function VendorServiceBookingPageSuspenseWrapper(props) {
+  return (
+    <Suspense fallback={null}>
+      <VendorServiceBookingPage {...props} />
+    </Suspense>
   );
 }
