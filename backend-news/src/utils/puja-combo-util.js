@@ -26,7 +26,7 @@ const getEligiblePandits = async (masterName) => {
     const ids = [...new Set(services.map((s) => String(s.vendor)))];
     if (!ids.length) return [];
     return User.find({ _id: { $in: ids }, role: "vendor", status: "active" })
-        .select("firstName lastName cover experience language")
+        .select("firstName lastName cover experience language city about")
         .lean();
 };
 

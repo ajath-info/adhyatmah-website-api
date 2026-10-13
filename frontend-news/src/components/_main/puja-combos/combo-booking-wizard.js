@@ -5,7 +5,8 @@ import { useRouter } from 'next/navigation';
 import { useSelector } from 'react-redux';
 import toast from 'react-hot-toast';
 import { keyframes } from '@mui/system';
-import { Alert, Box, Breadcrumbs, Button, CircularProgress, Container, Grid, Skeleton, Stack, TextField, Typography } from '@mui/material';
+import { Alert, Box, Breadcrumbs, Button, CircularProgress, Container, Dialog, Grid, IconButton, Skeleton, Stack, TextField, Typography } from '@mui/material';
+import { MdClose, MdDeliveryDining, MdCreditCard, MdShoppingBag, MdReceipt, MdReceiptLong, MdLocalOffer, MdAccountBalanceWallet, MdInfoOutline } from 'react-icons/md';
 import { MdAccessTime, MdCheckCircle, MdChevronLeft, MdChevronRight, MdHome, MdBusiness, MdLocationOn, MdLock, MdEvent, MdWbTwilight, MdWbSunny, MdNightlightRound, MdVerified, MdOutlineRadioButtonUnchecked, MdInventory2, MdTouchApp, MdArrowForward, MdArrowBack } from 'react-icons/md';
 import { FaUserTie } from 'react-icons/fa';
 import Image from '@/components/blur-image';
@@ -143,7 +144,7 @@ function SummaryCard({ combo, date, time, address, mode, panditId, panditName, s
     <Box sx={{ ...cardSx, p: 0, overflow: 'hidden', position: { md: 'sticky' }, top: { md: 100 } }}>
       <Box sx={{ position: 'relative', height: 130, background: '#f0e0d0' }}>
         {img ? <Image alt={combo.name} src={img} fill style={{ objectFit: 'cover' }} /> : <Stack alignItems="center" justifyContent="center" sx={{ height: '100%', fontSize: 44 }}>🪔</Stack>}
-        {saving > 0 && <Box sx={{ position: 'absolute', top: 10, right: 10, background: '#e8380d', color: '#fff', fontSize: 11, fontWeight: 700, px: 1.2, py: 0.4, borderRadius: '20px' }}>SAVE {inr(saving)}</Box>}
+        {saving > 0 && <Box sx={{ position: 'absolute', top: 10, right: 10, background: '#e8380d', color: '#fff', fontSize: 11, fontWeight: 700, px: 1.2, py: 0.5, borderRadius: '20px', border: '1.5px solid rgba(255,255,255,0.85)', boxShadow: '0 3px 8px rgba(232,56,13,0.35)' }}>{(() => { const percent = combo.discountPercent > 0 ? combo.discountPercent : Math.round((saving / combo.originalPrice) * 100); return percent > 0 ? `${percent}% OFF` : `SAVE ${inr(saving)}`; })()}</Box>}
       </Box>
       <Box sx={{ p: 2.2 }}>
         <Typography sx={{ fontWeight: 800, fontSize: 16, color: '#2d1a06', lineHeight: 1.3 }}>{combo.name}</Typography>
@@ -420,6 +421,8 @@ function AddressStep({ address, setAddress, errors }) {
 
 /* ---------------- Step 3: pandit ---------------- */
 function PanditStep({ mode, setMode, panditId, setPanditId, pandits, loading, availableCount }) {
+  const [profileId, setProfileId] = React.useState('');
+  const profile = pandits.find((x) => x.id === profileId) || null;
   const optionSx = (on) => ({ flex: 1, p: 2.2, borderRadius: '16px', cursor: 'pointer', border: `1.5px solid ${on ? ORANGE : BORDER}`, background: on ? '#fff3e0' : '#fff', boxShadow: on ? '0 8px 22px rgba(251,139,5,0.18)' : 'none', transition: 'all .2s ease', '&:hover': { borderColor: ORANGE, transform: 'translateY(-3px)' } });
   const radio = (on) => (
     <Box sx={{ width: 22, height: 22, borderRadius: '50%', border: `2px solid ${ORANGE}`, background: on ? ORANGE : '#fff', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 13, flexShrink: 0 }}>{on ? '✓' : ''}</Box>
@@ -427,6 +430,15 @@ function PanditStep({ mode, setMode, panditId, setPanditId, pandits, loading, av
   return (
     <Stack spacing={3}>
       <Stack direction={{ xs: 'column', md: 'row' }} spacing={2}>
+        <Box onClick={() => setMode('choose')} sx={optionSx(mode === 'choose')}>
+          <Stack direction="row" spacing={1.5} alignItems="flex-start">
+            {radio(mode === 'choose')}
+            <Box>
+              <Typography sx={{ fontWeight: 700 }}>Choose Pandit Ji</Typography>
+              <Typography sx={{ fontSize: 12.5, color: 'text.secondary', mt: 0.4 }}>Select from our available pandits.</Typography>
+            </Box>
+          </Stack>
+        </Box>
         <Box onClick={() => setMode('any')} sx={optionSx(mode === 'any')}>
           <Stack direction="row" spacing={1.5} alignItems="flex-start">
             {radio(mode === 'any')}
@@ -434,16 +446,6 @@ function PanditStep({ mode, setMode, panditId, setPanditId, pandits, loading, av
               <Typography sx={{ fontWeight: 700 }}>Any Available Pandit</Typography>
               <Typography sx={{ fontSize: 12.5, color: 'text.secondary', mt: 0.4 }}>We will assign a verified and experienced pandit ji for your puja.</Typography>
               <Typography sx={{ fontSize: 13, fontWeight: 700, color: '#2e7d32', mt: 0.8 }}>{inr(0)} extra (Recommended)</Typography>
-            </Box>
-          </Stack>
-        </Box>
-        <Box onClick={() => setMode('choose')} sx={optionSx(mode === 'choose')}>
-          <Stack direction="row" spacing={1.5} alignItems="flex-start">
-            {radio(mode === 'choose')}
-            <Box>
-              <Typography sx={{ fontWeight: 700 }}>Choose Pandit Ji</Typography>
-              <Typography sx={{ fontSize: 12.5, color: 'text.secondary', mt: 0.4 }}>Select from our available pandits.</Typography>
-              <Typography sx={{ fontSize: 13, fontWeight: 700, color: ORANGE, mt: 0.8 }}>+ View Pandits</Typography>
             </Box>
           </Stack>
         </Box>
@@ -462,13 +464,13 @@ function PanditStep({ mode, setMode, panditId, setPanditId, pandits, loading, av
                 const on = panditId === p.id;
                 return (
                   <Grid size={{ lg: 3, md: 4, sm: 6, xs: 12 }} key={p.id}>
-                    <Box onClick={() => p.available && setPanditId(p.id)} sx={{ position: 'relative', borderRadius: '14px', overflow: 'hidden', cursor: p.available ? 'pointer' : 'not-allowed', opacity: p.available ? 1 : 0.55, border: `1.5px solid ${on ? ORANGE : BORDER}`, background: '#fff', boxShadow: on ? '0 10px 26px rgba(251,139,5,0.25)' : 'none', transition: 'all .2s ease', '&:hover': p.available ? { transform: 'translateY(-4px)', borderColor: ORANGE } : {} }}>
+                    <Box onClick={() => p.available && setPanditId(p.id)} sx={{ position: 'relative', borderRadius: '14px', overflow: 'hidden', cursor: p.available ? 'pointer' : 'not-allowed', opacity: p.available ? 1 : 0.55, border: `1.5px solid ${on ? '#2e7d32' : BORDER}`, background: '#fff', boxShadow: on ? '0 10px 26px rgba(46,125,50,0.25)' : 'none', transition: 'all .2s ease', '&:hover': p.available ? { transform: 'translateY(-4px)', borderColor: on ? '#2e7d32' : ORANGE } : {} }}>
                       <Box sx={{ position: 'relative', height: 150, background: '#f0e0d0' }}>
                         {p.image ? <Image alt={p.name} src={p.image} fill style={{ objectFit: 'cover' }} /> : <Stack alignItems="center" justifyContent="center" sx={{ height: '100%' }}><FaUserTie size={44} color={ORANGE} /></Stack>}
-                        <Box sx={{ position: 'absolute', top: 8, right: 8, width: 22, height: 22, borderRadius: '50%', border: `2px solid ${ORANGE}`, background: on ? ORANGE : '#fff', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 13 }}>{on ? '✓' : ''}</Box>
+                        <Box sx={{ position: 'absolute', top: 8, right: 8, width: 22, height: 22, borderRadius: '50%', border: `2px solid ${on ? '#2e7d32' : ORANGE}`, background: on ? '#2e7d32' : '#fff', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 13 }}>{on ? '✓' : ''}</Box>
                       </Box>
                       <Box sx={{ p: 1.5 }}>
-                        <Typography sx={{ fontWeight: 700, fontSize: 14.5 }}>{p.name || 'Pandit Ji'}</Typography>
+                        <Typography onClick={(e) => { e.stopPropagation(); setProfileId(p.id); }} sx={{ fontWeight: 700, fontSize: 14.5, cursor: 'pointer', display: 'inline-block', '&:hover': { color: ORANGE, textDecoration: 'underline' } }}>{p.name || 'Pandit Ji'}</Typography>
                         {p.experience && <Typography sx={{ fontSize: 12.5, color: 'text.secondary' }}>{p.experience} Experience</Typography>}
                         {p.language?.length > 0 && (
                           <Stack direction="row" gap={0.6} flexWrap="wrap" sx={{ mt: 0.8 }}>
@@ -487,6 +489,49 @@ function PanditStep({ mode, setMode, panditId, setPanditId, pandits, loading, av
           </Box>
         )
       )}
+
+      <Dialog open={!!profile} onClose={() => setProfileId('')} maxWidth="xs" fullWidth PaperProps={{ sx: { borderRadius: '18px', overflow: 'hidden' } }}>
+        {profile && (
+          <Box>
+            <Box sx={{ position: 'relative', height: 280, background: '#fdf1e3' }}>
+              {profile.image ? <Image alt={profile.name} src={profile.image} fill style={{ objectFit: 'contain' }} /> : <Stack alignItems="center" justifyContent="center" sx={{ height: '100%' }}><FaUserTie size={56} color={ORANGE} /></Stack>}
+              <IconButton onClick={() => setProfileId('')} size="small" sx={{ position: 'absolute', top: 8, right: 8, background: '#fff', '&:hover': { background: '#fff3e0' } }}><MdClose size={18} /></IconButton>
+            </Box>
+            <Box sx={{ p: 2.5 }}>
+              <Stack direction="row" alignItems="center" spacing={0.8}>
+                <Typography sx={{ fontWeight: 800, fontSize: 19 }}>{profile.name || 'Pandit Ji'}</Typography>
+                <MdVerified size={18} color="#2e7d32" />
+              </Stack>
+              {profile.experience && <Typography sx={{ fontSize: 13.5, color: 'text.secondary', mt: 0.3 }}>{profile.experience} Experience</Typography>}
+              {profile.city && (
+                <Stack direction="row" alignItems="center" spacing={0.5} sx={{ mt: 0.6 }}>
+                  <MdLocationOn size={16} color={ORANGE} />
+                  <Typography sx={{ fontSize: 13.5, color: 'text.secondary' }}>{profile.city}</Typography>
+                </Stack>
+              )}
+              {profile.language?.length > 0 && (
+                <Stack direction="row" gap={0.6} flexWrap="wrap" sx={{ mt: 1.2 }}>
+                  {profile.language.slice(0, 4).map((l) => (
+                    <Box key={l} sx={{ fontSize: 11.5, fontWeight: 600, color: '#b86000', background: '#fff3e0', border: '1px solid #fbc97a', borderRadius: '12px', px: 1, py: 0.2, textTransform: 'capitalize' }}>{l}</Box>
+                  ))}
+                </Stack>
+              )}
+              {profile.about && (
+                <Typography sx={{ fontSize: 13, color: 'text.secondary', mt: 1.5, display: '-webkit-box', WebkitLineClamp: 3, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>{profile.about}</Typography>
+              )}
+              <Typography sx={{ fontSize: 12.5, fontWeight: 700, mt: 1.5, color: profile.available ? '#2e7d32' : '#c62828' }}>
+                {profile.available ? 'Available at your selected time' : 'Not available at this time'}
+              </Typography>
+              <Stack direction="row" spacing={1.2} sx={{ mt: 2.2 }}>
+                {profile.available && (
+                  <Button fullWidth onClick={() => { setPanditId(profile.id); setProfileId(''); }} sx={{ borderRadius: '50px', textTransform: 'none', fontWeight: 700, border: `1.5px solid ${ORANGE}`, color: ORANGE }}>Select Pandit</Button>
+                )}
+                <Button fullWidth component={Link} href={`/vendors/${profile.id}`} variant="contained" sx={{ borderRadius: '50px', textTransform: 'none', fontWeight: 700, boxShadow: 'none', background: ORANGE, color: '#fff', '&:hover': { background: '#e07b00', boxShadow: 'none' } }}>See Full Profile</Button>
+              </Stack>
+            </Box>
+          </Box>
+        )}
+      </Dialog>
     </Stack>
   );
 }
@@ -501,6 +546,30 @@ function ReviewRow({ icon: Icon, label, value, onEdit }) {
         <Typography sx={{ fontSize: 14, fontWeight: 600, wordBreak: 'break-word' }}>{value}</Typography>
       </Box>
       <Button size="small" onClick={onEdit} sx={{ textTransform: 'none', color: ORANGE, fontWeight: 700 }}>Edit</Button>
+    </Stack>
+  );
+}
+
+function SumRow({ icon: Icon, color, label, value, valueColor, labelColor }) {
+  return (
+    <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ py: 0.75 }}>
+      <Stack direction="row" alignItems="center" spacing={1}>
+        <Icon size={16} color={color} />
+        <Typography sx={{ fontSize: 14, color: labelColor || '#555' }}>{label}</Typography>
+      </Stack>
+      <Typography sx={{ fontSize: 14, fontWeight: 500, color: valueColor || '#1a1a1a' }}>{value}</Typography>
+    </Stack>
+  );
+}
+
+function FreeLine({ icon: Icon, color, label }) {
+  return (
+    <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ py: 0.75 }}>
+      <Stack direction="row" alignItems="center" spacing={1}>
+        <Icon size={16} color={color} />
+        <Typography sx={{ fontSize: 14, color: '#555' }}>{label}</Typography>
+      </Stack>
+      <Box sx={{ height: 20, display: 'flex', alignItems: 'center', fontSize: 10, fontWeight: 700, px: 1, borderRadius: '10px', bgcolor: '#dcfce7', color: '#16a34a', border: '1px solid #86efac' }}>FREE</Box>
     </Stack>
   );
 }
@@ -538,20 +607,48 @@ function ReviewStep({ combo, date, time, address, mode, panditName, goTo }) {
         </Box>
       </Grid>
       <Grid size={{ md: 5, xs: 12 }}>
-        <Box sx={cardSx}>
-          <Typography sx={{ fontWeight: 700, mb: 1 }}>Price Details</Typography>
-          {hasBreakup ? (
-            <>
-              <PriceLine label={`Puja Service (${combo.puja?.name || ''})`} value={inr(b.pujaPrice)} />
-              <PriceLine label="Puja Samagri Kit" value={inr(b.kitPrice)} />
-              <PriceLine label="Individual Total" value={inr(combo.originalPrice)} />
-              {combo.discountAmount > 0 && <PriceLine label="Combo Discount" value={`−${inr(combo.discountAmount)}`} green />}
-            </>
-          ) : (
-            <PriceLine label="Combo (Pandit Ji + Puja + Kit)" value={inr(combo.comboPrice)} />
-          )}
-          <Box sx={{ borderTop: `1px solid ${BORDER}`, mt: 1, pt: 1 }}>
-            <PriceLine label="Total Amount" value={inr(combo.comboPrice)} bold />
+        <Box sx={{ ...cardSx, position: 'relative', overflow: 'hidden', '&::before': { content: '""', position: 'absolute', top: 0, left: 0, right: 0, height: '3px', background: 'linear-gradient(90deg, #f97316, #fb923c, #fdba74)' } }}>
+          <Stack direction="row" alignItems="center" spacing={1.25} sx={{ mb: 2 }}>
+            <Box sx={{ width: 32, height: 32, borderRadius: '50%', bgcolor: '#fff3e0', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+              <MdReceipt size={17} color="#f97316" />
+            </Box>
+            <Box>
+              <Typography sx={{ fontWeight: 700, fontSize: 16, color: '#1a1a1a', lineHeight: 1.2 }}>Price Details</Typography>
+              <Typography sx={{ fontSize: 12, color: '#888' }}>Breakdown of your order</Typography>
+            </Box>
+          </Stack>
+
+          <Stack spacing={0.25}>
+            {hasBreakup ? (
+              <>
+                <SumRow icon={MdShoppingBag} color="#f97316" label={`Puja Service (${combo.puja?.name || ''})`} value={inr(b.pujaPrice)} />
+                <SumRow icon={MdInventory2} color="#f97316" label="Puja Samagri Kit" value={inr(b.kitPrice)} />
+              </>
+            ) : (
+              <SumRow icon={MdShoppingBag} color="#f97316" label="Combo (Pandit Ji + Puja + Kit)" value={inr(combo.comboPrice)} />
+            )}
+            <FreeLine icon={MdDeliveryDining} color="#6366f1" label="Delivery charge" />
+            <FreeLine icon={MdInventory2} color="#0ea5e9" label="Handling charge" />
+            <FreeLine icon={MdCreditCard} color="#22c55e" label="Platform fee" />
+            {hasBreakup && <SumRow icon={MdReceiptLong} color="#a78bfa" label="Individual Total" value={inr(combo.originalPrice)} />}
+            {hasBreakup && combo.discountAmount > 0 && <SumRow icon={MdLocalOffer} color="#2e7d32" label="Combo Discount" value={`−${inr(combo.discountAmount)}`} valueColor="#2e7d32" labelColor="#2e7d32" />}
+          </Stack>
+
+          <Box sx={{ borderTop: '1px dashed rgba(249,115,22,0.3)', my: 1.5 }} />
+
+          <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 2 }}>
+            <Stack direction="row" alignItems="center" spacing={1}>
+              <MdAccountBalanceWallet size={18} color="#f97316" />
+              <Typography sx={{ fontSize: 14, fontWeight: 600, color: '#1a1a1a' }}>Total Amount</Typography>
+            </Stack>
+            <Typography sx={{ fontSize: 20, fontWeight: 800, color: '#f97316' }}>{inr(combo.comboPrice)}</Typography>
+          </Stack>
+
+          <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 0.75, p: 1.25, bgcolor: 'rgba(249,115,22,0.07)', borderRadius: '12px', border: '1px dashed rgba(249,115,22,0.4)' }}>
+            <MdInfoOutline size={15} color="#f97316" style={{ marginTop: 1, flexShrink: 0 }} />
+            <Typography sx={{ fontSize: 12, color: '#555', lineHeight: 1.5 }}>
+              <strong style={{ color: '#92400e' }}>GST inclusive:</strong> All prices displayed are inclusive of applicable GST.
+            </Typography>
           </Box>
           <Typography sx={{ fontSize: 12, color: 'text.secondary', mt: 1.5 }}>
             Pay securely online via UPI, Credit/Debit Card, Net Banking or Wallet. You will choose the payment method on the next secure page.
@@ -576,7 +673,7 @@ export default function ComboBookingWizard({ slug }) {
   const [slotsLoading, setSlotsLoading] = React.useState(false);
   const [address, setAddress] = React.useState(EMPTY_ADDRESS);
   const [addrErrors, setAddrErrors] = React.useState({});
-  const [mode, setMode] = React.useState('any');
+  const [mode, setMode] = React.useState('choose');
   const [panditId, setPanditId] = React.useState('');
   const [pandits, setPandits] = React.useState([]);
   const [panditsLoading, setPanditsLoading] = React.useState(false);
@@ -630,6 +727,46 @@ export default function ComboBookingWizard({ slug }) {
       /* storage unavailable */
     }
   }, [restored, storeKey, step, date, time, address, mode, panditId]);
+
+  // browser Back/Forward moves between wizard steps instead of leaving the page
+  const histReady = React.useRef(false);
+  React.useEffect(() => {
+    if (!restored || histReady.current) return;
+    histReady.current = true;
+    try {
+      const st = window.history.state || {};
+      if (Number.isInteger(st.comboStep)) return;
+      window.history.replaceState({ ...st, comboStep: 0 }, '');
+      for (let i = 1; i <= step; i += 1) window.history.pushState({ ...(window.history.state || {}), comboStep: i }, '');
+    } catch (e) {
+      /* history unavailable */
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [restored]);
+
+  React.useEffect(() => {
+    if (!restored || !histReady.current) return;
+    try {
+      const cur = window.history.state?.comboStep;
+      if (cur === step) return;
+      window.history.pushState({ ...(window.history.state || {}), comboStep: step }, '');
+    } catch (e) {
+      /* history unavailable */
+    }
+  }, [step, restored]);
+
+  React.useEffect(() => {
+    const onPop = (e) => {
+      const st = e.state?.comboStep;
+      if (Number.isInteger(st)) {
+        setError('');
+        setStep(st);
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      }
+    };
+    window.addEventListener('popstate', onPop);
+    return () => window.removeEventListener('popstate', onPop);
+  }, []);
 
   // slots for selected date
   React.useEffect(() => {

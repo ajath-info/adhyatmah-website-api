@@ -145,6 +145,8 @@ const getPujaComboPandits = async (req, res) => {
                     image: p.cover?.url || "",
                     experience: p.experience || "",
                     language: p.language || [],
+                    city: p.city || "",
+                    about: String(p.about || "").slice(0, 300),
                     available: freeIds ? freeIds.has(String(p._id)) : true,
                 })),
             },

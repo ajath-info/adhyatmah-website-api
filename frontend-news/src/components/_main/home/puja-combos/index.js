@@ -3,7 +3,8 @@ import React from 'react';
 import Link from 'next/link';
 import { Typography, Grid, Stack, Box, Container, Button } from '@mui/material';
 import { IoArrowForward } from 'react-icons/io5';
-import { GiPrayer, GiTempleGate, GiOpenTreasureChest, GiTakeMyMoney } from 'react-icons/gi';
+import { GiFireBowl, GiTakeMyMoney } from 'react-icons/gi';
+import { FaUserTie, FaBoxOpen } from 'react-icons/fa';
 import { RiSecurePaymentFill } from 'react-icons/ri';
 import ComboCard from 'src/components/cards/combo';
 
@@ -19,9 +20,9 @@ function ArrowLine({ direction = 'left' }) {
 }
 
 const HIGHLIGHTS = [
-    { icon: GiPrayer, title: 'Verified Pandit Ji', sub: 'Experienced & Trusted' },
-    { icon: GiTempleGate, title: 'Complete Puja Service', sub: 'As per Vedic Rituals' },
-    { icon: GiOpenTreasureChest, title: 'Puja Samagri Kit', sub: 'All Essential Items' },
+    { icon: FaUserTie, title: 'Verified Pandit Ji', sub: 'Experienced & Trusted' },
+    { icon: GiFireBowl, title: 'Complete Puja Service', sub: 'As per Vedic Rituals' },
+    { icon: FaBoxOpen, title: 'Puja Samagri Kit', sub: 'All Essential Items' },
     { icon: GiTakeMyMoney, title: 'Better Value', sub: 'Save More With Combos' },
     { icon: RiSecurePaymentFill, title: 'Secure Payments', sub: 'Safe & Hassle-Free Booking' }
 ];

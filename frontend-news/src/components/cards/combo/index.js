@@ -3,7 +3,8 @@ import React from 'react';
 import Link from 'next/link';
 import { Card, Box, Stack, Typography, Button } from '@mui/material';
 import { MdAccessTime } from 'react-icons/md';
-import { GiPrayer, GiTempleGate, GiOpenTreasureChest } from 'react-icons/gi';
+import { GiFireBowl } from 'react-icons/gi';
+import { FaUserTie, FaBoxOpen } from 'react-icons/fa';
 import { FiUser } from 'react-icons/fi';
 import Image from '@/components/blur-image';
 
@@ -28,7 +29,7 @@ const pujaServiceText = (name) => {
 function Line({ icon: Icon, text }) {
     return (
         <Stack direction="row" alignItems="center" spacing={1}>
-            <Icon size={19} color={ORANGE} style={{ flexShrink: 0 }} />
+            <Icon size={16} color={ORANGE} style={{ flexShrink: 0 }} />
             <Typography sx={{ fontSize: 13, color: '#4a3a2a', lineHeight: 1.3 }}>{text}</Typography>
         </Stack>
     );
@@ -59,7 +60,7 @@ export default function ComboCard({ combo, compact = false }) {
             <Box sx={{ position: 'relative', width: '100%', height: 168, overflow: 'hidden', background: '#f0e0d0', flexShrink: 0 }}>
                 {imageUrl ? <Image alt={combo.name || 'Puja combo'} src={imageUrl} fill style={{ objectFit: 'cover' }} /> : <Stack alignItems="center" justifyContent="center" sx={{ height: '100%', fontSize: 56 }}>🪔</Stack>}
                 {saving > 0 && (
-                    <Box sx={{ position: 'absolute', top: 10, ...(compact ? { left: 10 } : { right: 10 }), background: 'linear-gradient(135deg, #3aa655 0%, #2e7d32 100%)', color: '#fff', fontSize: 11, fontWeight: 700, px: 1.2, py: 0.5, borderRadius: '20px', border: '1.5px solid rgba(255,255,255,0.85)', boxShadow: '0 3px 8px rgba(46,125,50,0.35)' }}>
+                    <Box sx={{ position: 'absolute', top: 10, ...(compact ? { left: 10 } : { right: 10 }), background: '#e8380d', color: '#fff', fontSize: 11, fontWeight: 700, px: 1.2, py: 0.5, borderRadius: '20px', border: '1.5px solid rgba(255,255,255,0.85)', boxShadow: '0 3px 8px rgba(232,56,13,0.35)' }}>
                         {percent > 0 ? `${percent}% OFF` : `SAVE ${inr(saving)}`}
                     </Box>
                 )}
@@ -68,9 +69,9 @@ export default function ComboCard({ combo, compact = false }) {
             <Stack spacing={1.2} sx={{ px: '12px', pt: '12px', flexGrow: 1 }}>
                 <Typography sx={{ fontSize: 16, fontWeight: 700, color: '#2d1a06', lineHeight: 1.3 }}>{combo.name}</Typography>
                 {!compact && <Stack spacing={0.8}>
-                    <Line icon={GiPrayer} text="Verified Pandit Ji" />
-                    {combo.puja?.name && <Line icon={GiTempleGate} text={pujaServiceText(combo.puja.name)} />}
-                    {(combo.kits?.length > 1 || combo.kit?.name) && <Line icon={GiOpenTreasureChest} text={combo.kits?.length > 1 ? 'Complete Puja Samagri Kit' : combo.kit.name} />}
+                    <Line icon={FaUserTie} text="Verified Pandit Ji" />
+                    {combo.puja?.name && <Line icon={GiFireBowl} text={pujaServiceText(combo.puja.name)} />}
+                    {(combo.kits?.length > 1 || combo.kit?.name) && <Line icon={FaBoxOpen} text={combo.kits?.length > 1 ? 'Complete Puja Samagri Kit' : combo.kit.name} />}
                 </Stack>}
                 <Stack direction="row" flexWrap="wrap" gap={0.8}>
                     {combo.duration && <Chip icon={<MdAccessTime size={13} color={ORANGE} />}>{combo.duration}</Chip>}

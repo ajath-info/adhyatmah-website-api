@@ -329,17 +329,9 @@ export default function ComboDetailsPage() {
             )}
 
             {saving > 0 && (
-              <Stack
-                direction="row"
-                alignItems="center"
-                spacing={0.8}
-                sx={{ position: 'absolute', top: 14, left: 14, background: '#e8380d', color: '#fff', fontSize: 13, fontWeight: 700, px: 1.6, py: 0.7, borderRadius: '24px', zIndex: 2, boxShadow: '0 4px 12px rgba(232,56,13,0.35)' }}
-              >
-                <MdOutlineNotificationsActive size={17} />
-                <span>
-                  Save {inr(saving)}{combo.discountPercent > 0 ? ` (${combo.discountPercent}% off)` : ''}
-                </span>
-              </Stack>
+              <Box sx={{ position: 'absolute', top: 14, left: 14, background: '#e8380d', color: '#fff', fontSize: 11, fontWeight: 700, px: 1.2, py: 0.5, borderRadius: '20px', border: '1.5px solid rgba(255,255,255,0.85)', boxShadow: '0 3px 8px rgba(232,56,13,0.35)', zIndex: 2 }}>
+                {combo.discountPercent > 0 ? `${combo.discountPercent}% OFF` : `SAVE ${inr(saving)}`}
+              </Box>
             )}
 
             {images.length > 1 && (
@@ -505,7 +497,9 @@ export default function ComboDetailsPage() {
               icon={FaBoxOpen}
               label="Puja Samagri Kit"
               title={kitTitle}
-              image={kits[0]?.image || ''}
+              image="/images/samagri-kit.jpg"
+              imagePosition="center 40%"
+              fallbackIcon={FaBoxOpen}
               delay={240}
               points={[
                 ...(kits.length ? [] : combo.kit?.items?.length ? combo.kit.items : combo.inclusions || []),
