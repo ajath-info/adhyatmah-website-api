@@ -23,6 +23,7 @@ const allowedOrigins = [
   "http://localhost:3001",
   "https://adhyatmah.com",
   "https://www.adhyatmah.com",
+  // "https://pnm1k830-3000.inc1.devtunnels.ms",
 ];
 
 app.use(

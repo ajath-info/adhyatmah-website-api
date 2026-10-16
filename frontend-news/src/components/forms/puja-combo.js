@@ -105,7 +105,7 @@ export default function PujaComboForm({ data: current, isLoading: dataLoading })
     const originalPrice =
         master && selectedKits.length
             ? (master.pujaMrp || Math.max(master.originalPrice || 0, master.price || 0)) +
-              selectedKits.reduce((t, k) => t + (k.effectiveMrp || k.effectivePrice || 0), 0)
+            selectedKits.reduce((t, k) => t + (k.effectiveMrp || k.effectivePrice || 0), 0)
             : 0;
     const price = Number(values.comboPrice) || 0;
     const discountAmount = originalPrice > price && price > 0 ? originalPrice - price : 0;
@@ -150,7 +150,7 @@ export default function PujaComboForm({ data: current, isLoading: dataLoading })
         setFieldValue('images', values.images.filter((i) => i._id !== img._id));
         // only delete from storage if it was uploaded during this editing session
         if (newlyUploaded.includes(img._id)) {
-            try { await api.singleDeleteFile(img._id); } catch (_) {}
+            try { await api.singleDeleteFile(img._id); } catch (_) { }
         }
     };
 

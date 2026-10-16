@@ -137,7 +137,7 @@ const RefundReturnPolicy = () => {
             <h2>Returning Goods</h2>
             <p>You are responsible for the cost and risk of returning the Goods to Us. You should send the Goods at the following address:</p>
             <p>108, 1st floor, Tower A, Plot No. A-40, I-THUM TOWER, Sector 62 Noida, Uttar Pradesh- 201309<br />
-              +919452872182<br />
+              +918800828311<br />
               info@adhyatmah.com</p>
             <p>We cannot be held responsible for Goods damaged or lost in return shipment. Therefore, We recommend an insured and trackable mail service. We are unable to issue a refund without actual receipt of the Goods or proof of received return delivery.</p>
             <h2>Gifts</h2>

@@ -160,7 +160,7 @@ function DesktopFooter({ branding, isHome }) {
                   href={`tel:${branding?.contact?.whatsappNo}`}
                   sx={{ fontSize: 13, color: 'text.secondary', textDecoration: 'none', '&:hover': { color: 'primary.main' } }}
                 >
-                  {branding?.contact?.whatsappNo || '+91 94528 72182'}
+                  {branding?.contact?.whatsappNo || '+91 8800828311'}
                 </Typography>
               </Stack>
 
@@ -181,7 +181,7 @@ function DesktopFooter({ branding, isHome }) {
 
               <Box
                 component={Link}
-                href="https://wa.me/919452872182?text=I'm%20interested%20in%20your%20app%20services"
+                href="https://wa.me/918800828311?text=I'm%20interested%20in%20your%20app%20services"
                 sx={{
                   display: 'inline-flex',
                   alignItems: 'center',
@@ -420,7 +420,7 @@ function MobileFooter({ branding, isHome }) {
                     href={`tel:${branding?.contact?.whatsappNo}`}
                     sx={{ fontSize: 13, color: 'text.secondary', textDecoration: 'none' }}
                   >
-                    {branding?.contact?.whatsappNo || '+91 94528 72182'}
+                    {branding?.contact?.whatsappNo || '+91 8800828311'}
                   </Typography>
                 </Stack>
 
@@ -437,7 +437,7 @@ function MobileFooter({ branding, isHome }) {
 
                 <Box
                   component={Link}
-                  href="https://wa.me/919452872182?text=I'm%20interested%20in%20your%20app%20services"
+                  href="https://wa.me/918800828311?text=I'm%20interested%20in%20your%20app%20services"
                   sx={{
                     display: 'inline-flex',
                     alignItems: 'center',

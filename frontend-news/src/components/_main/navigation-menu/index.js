@@ -26,7 +26,7 @@ import {
 } from '@mui/material';
 
 import { FiMenu, FiChevronDown } from 'react-icons/fi';
-import { BiBell } from 'react-icons/bi';
+import { FaAndroid, FaApple } from 'react-icons/fa';
 import { HiOutlineShoppingCart } from 'react-icons/hi';
 
 // components
@@ -81,7 +81,31 @@ const NAVIGATION_ITEMS = [
     label: 'Panchang & Muhurat',
     href: '/panchang-muhurat',
     children: [
-      { label: 'Panchang & Muhurat', href: '/panchang-muhurat' }
+      // newTab: true -> opens in a new browser tab instead of navigating in
+      // the current one. Only set for modules that have their own separate
+      // design/layout (see src/app/(spiritual)/layout.js). Add it to future
+      // entries here (Kundali etc.) once those get the same treatment.
+      { label: 'Panchang & Muhurat', href: '/panchang-muhurat' },
+      { label: 'Kundali Matching', href: '/kundali-matching' }
+    ]
+  },
+  {
+    // External store links -> always open in a new tab
+    label: 'Apps',
+    href: '#',
+    children: [
+      {
+        label: 'Android App',
+        href: 'https://play.google.com/store/apps/details?id=com.app.adhyatmah',
+        newTab: true,
+        icon: FaAndroid
+      },
+      {
+        label: 'iOS App',
+        href: 'https://apps.apple.com/in/app/adhyatmah/id6749001841',
+        newTab: true,
+        icon: FaApple
+      }
     ]
   },
   {
@@ -118,8 +142,17 @@ export default function NavigationMenu() {
   const [openSubMenus, setOpenSubMenus] = React.useState({});
   const toggleMobile = () => setMobileOpen((prev) => !prev);
 
-  const navigate = (href) => {
-    router.push(href);
+  // Accepts either a plain href string (kept for anything still calling it
+  // that way) or a nav item/child object — { href, newTab }. newTab items
+  // open in a new browser tab instead of navigating the current one.
+  const navigate = (target) => {
+    const href = typeof target === 'string' ? target : target.href;
+    const newTab = typeof target === 'object' && target?.newTab;
+    if (newTab) {
+      window.open(href, '_blank', 'noopener,noreferrer');
+    } else {
+      router.push(href);
+    }
     setMobileOpen(false);
   };
 
@@ -147,37 +180,8 @@ export default function NavigationMenu() {
             Menu
           </Typography>
 
-          {/* Bell + Cart */}
+          {/* Cart */}
           <Stack direction="row" alignItems="center" spacing={1}>
-            <Stack
-              alignItems="center"
-              justifyContent="center"
-              sx={{
-                width: 36,
-                height: 36,
-                borderRadius: '50%',
-                border: '1px solid #F9A34A',
-                cursor: 'pointer'
-              }}
-            >
-              <Badge
-                badgeContent={0}
-                color="error"
-                overlap="circular"
-                sx={{
-                  '& .MuiBadge-badge': {
-                    fontSize: '0.6rem',
-                    minWidth: 14,
-                    height: 14,
-                    top: -2,
-                    right: -2
-                  }
-                }}
-              >
-                <BiBell size={18} color="#F9A34A" />
-              </Badge>
-            </Stack>
-
             <Stack
               component="a"
               href="/cart"
@@ -253,7 +257,7 @@ export default function NavigationMenu() {
               <ListItem disablePadding>
                 <ListItemButton
                   onClick={() =>
-                    hasChildren ? toggleSubMenu(item.label) : navigate(item.href)
+                    hasChildren ? toggleSubMenu(item.label) : navigate(item)
                   }
                   sx={{
                     py: 1.75,
@@ -294,7 +298,7 @@ export default function NavigationMenu() {
                     {item.children.map((child) => (
                       <ListItem key={child.label} disablePadding>
                         <ListItemButton
-                          onClick={() => navigate(child.href)}
+                          onClick={() => navigate(child)}
                           sx={{
                             py: 1.25,
                             pl: 5,
@@ -307,6 +311,9 @@ export default function NavigationMenu() {
                             }
                           }}
                         >
+                          {child.icon && (
+                            <child.icon size={16} style={{ marginRight: 10, flexShrink: 0 }} />
+                          )}
                           <ListItemText
                             primary={child.label}
                             primaryTypographyProps={{ fontSize: 14 }}
@@ -336,9 +343,13 @@ export default function NavigationMenu() {
     };
     const handleClose = () => setOpen(false);
 
-    const handleSelect = (href) => {
+    const handleSelect = (child) => {
       handleClose();
-      router.push(href);
+      if (child?.newTab) {
+        window.open(child.href, '_blank', 'noopener,noreferrer');
+      } else {
+        router.push(child.href);
+      }
     };
 
     return (
@@ -430,8 +441,11 @@ export default function NavigationMenu() {
               {item.children.map((child) => (
                 <Box
                   key={child.label}
-                  onClick={() => handleSelect(child.href)}
+                  onClick={() => handleSelect(child)}
                   sx={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 1,
                     fontSize: 14,
                     fontWeight: 500,
                     py: 1,
@@ -444,6 +458,7 @@ export default function NavigationMenu() {
                     }
                   }}
                 >
+                  {child.icon && <child.icon size={16} />}
                   {child.label}
                 </Box>
               ))}

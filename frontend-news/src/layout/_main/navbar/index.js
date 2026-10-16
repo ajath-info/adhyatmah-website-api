@@ -7,7 +7,6 @@ import { useSelector } from 'react-redux';
 // mui
 import { alpha } from '@mui/material/styles';
 import { Toolbar, Stack, AppBar, useMediaQuery, Container, Badge, Button } from '@mui/material';
-import { BiBell } from 'react-icons/bi';
 import { HiOutlineShoppingCart } from 'react-icons/hi';
 
 // components
@@ -38,7 +37,6 @@ export default function Navbar({ branding }) {
   const showAuthenticatedUI = mounted && isAuthenticated;
 
   const isMobile = useMediaQuery('(max-width:992px)');
-  const [hoverBell, setHoverBell] = React.useState(false);
   const [hoverCart, setHoverCart] = React.useState(false);
 
   return (
@@ -80,7 +78,7 @@ export default function Navbar({ branding }) {
               <NavigationMenu />
             </Stack>
 
-            {/* Right - Language + Bell + Login/Register */}
+            {/* Right - Language + Cart + Login/Register */}
             <Stack direction="row" alignItems="center" spacing={1.5} sx={{ flexShrink: 0 }}>
 
               {/* Language Switcher */}
@@ -93,43 +91,6 @@ export default function Navbar({ branding }) {
                 }}
               >
                 <LanguageSwitcher />
-              </Stack>
-
-              {/* Bell / Notifications */}
-              <Stack
-                alignItems="center"
-                justifyContent="center"
-                onMouseEnter={() => setHoverBell(true)}
-                onMouseLeave={() => setHoverBell(false)}
-                sx={{
-                  width: 42,
-                  height: 42,
-                  borderRadius: '50%',
-                  border: '1px solid #F9A34A',
-                  cursor: 'pointer',
-                  transition: 'all .2s',
-                  backgroundColor: hoverBell ? '#F9A34A' : 'transparent'
-                }}
-              >
-                <Badge
-                  badgeContent={0}
-                  color="error"
-                  overlap="circular"
-                  sx={{
-                    '& .MuiBadge-badge': {
-                      fontSize: '0.65rem',
-                      minWidth: 16,
-                      height: 16,
-                      top: -2,
-                      right: -2
-                    }
-                  }}
-                >
-                  <BiBell
-                    size={20}
-                    color={hoverBell ? '#fff' : '#F9A34A'}
-                  />
-                </Badge>
               </Stack>
 
               {/* Cart */}
@@ -204,7 +165,7 @@ export default function Navbar({ branding }) {
         </Container>
       </AppBar>
 
-      {/* Mobile Top Bar - Logo + Hamburger (menu drawer holds Bell, Cart & Sign in) */}
+      {/* Mobile Top Bar - Logo + Hamburger (menu drawer holds Cart & Sign in) */}
       <AppBar
         elevation={0}
         sx={{
@@ -231,7 +192,7 @@ export default function Navbar({ branding }) {
             <Logo branding={branding} />
           </Stack>
 
-          {/* Right - Hamburger (Bell, Cart & Sign in now live inside the menu drawer) */}
+          {/* Right - Hamburger (Cart & Sign in now live inside the menu drawer) */}
           <Stack direction="row" alignItems="center" sx={{ flexShrink: 0, mr: 1 }}>
             <NavigationMenu />
           </Stack>

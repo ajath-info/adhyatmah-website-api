@@ -136,7 +136,7 @@ const PrivacyPolicy = () => {
                 <p>Adhyatmah Bharat</p>
               </li>
               <li>
-                <p>+91 9452872182</p>
+                <p>+91 8800828311</p>
               </li>
               <li>
                 <p>108, 1st floor, Tower A, Plot No. A-40, I-THUM TOWER, Sector 62 Noida, Uttar Pradesh- 201309</p>

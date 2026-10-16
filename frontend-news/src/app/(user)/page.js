@@ -54,7 +54,7 @@ const localBusinessSchema = {
     postalCode: '201309',
     addressCountry: 'IN',
   },
-  telephone: '+91-9452872182',
+  telephone: '+91-8800828311',
   email: 'info@adhyatmah.com',
   openingHours: 'Mo-Su 06:00-22:00',
   url: 'https://www.adhyatmah.com',

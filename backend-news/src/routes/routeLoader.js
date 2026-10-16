@@ -25,6 +25,11 @@ const articleRoutes = require("./admin/articleRoutes");
 const adminJobRoutes = require("./admin/job-routes");
 const adminJobApplicationRoutes = require("./admin/job-application-routes");
 const adminLanguageRoutes = require("./admin/language-routes");
+const adminPanchangRoutes = require("./admin/panchang-routes");
+const adminVratRoutes = require("./admin/vrat-routes");
+const adminFestivalRoutes = require("./admin/festival-routes");
+const adminKundaliRoutes = require("./admin/kundali-routes");
+const adminKundaliMatchingRoutes = require("./admin/kundali-matching-routes");
 const adminPujaComboRoutes = require("./admin/puja-combo-routes");
 
 //////////////// user routes ////////////////////////
@@ -61,6 +66,11 @@ const userContactRoutes = require("./user/contact-routes");
 const userOrderRoutes = require("./user/order-routes");
 const shopifyRoutes = require("./user/shopify-routes");
 const userJobRoutes = require("./user/job-routes");
+const userPanchangRoutes = require("./user/panchang-routes");
+const userVratRoutes = require("./user/vrat-routes");
+const userFestivalRoutes = require("./user/festival-routes");
+const userKundaliRoutes = require("./user/kundali-routes");
+const userKundaliMatchingRoutes = require("./user/kundali-matching-routes");
 const userPujaComboRoutes = require("./user/puja-combo-routes");
 
 /////////////// vendor routes //////////////////////
@@ -101,6 +111,11 @@ router.use("/api", articleRoutes);
 router.use("/api", adminJobRoutes);
 router.use("/api", adminJobApplicationRoutes);
 router.use("/api", adminLanguageRoutes);
+router.use("/api", adminPanchangRoutes);
+router.use("/api", adminVratRoutes);
+router.use("/api", adminFestivalRoutes);
+router.use("/api", adminKundaliRoutes);
+router.use("/api", adminKundaliMatchingRoutes);
 router.use("/api", adminPujaComboRoutes);
 
 //////////////// user routes ////////////////////////
@@ -136,6 +151,11 @@ router.use("/api", userOrderRoutes);
 router.use("/api", userPolicyRoutes);
 router.use("/api", userContactRoutes);
 router.use("/api", userJobRoutes);
+router.use("/api", userPanchangRoutes);
+router.use("/api", userVratRoutes);
+router.use("/api", userFestivalRoutes);
+router.use("/api", userKundaliRoutes);
+router.use("/api", userKundaliMatchingRoutes);
 router.use("/api", userPujaComboRoutes);
 router.use("/", shopifyRoutes);
 /////////////// vendor routes //////////////////////

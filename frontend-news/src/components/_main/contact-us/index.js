@@ -68,13 +68,13 @@ const ContactUsMain = () => {
                     </Typography>
                     <Typography
                       component={Link}
-                      href="tel:+919452872182"
+                      href="tel:+918800828311"
                       variant="subtitle2"
                       fontSize="14px"
                       fontWeight={600}
                       color="text.secondary"
                     >
-                      +91 9452872182
+                      +91 8800828311
                     </Typography>
                   </Box>
                 </Stack>
