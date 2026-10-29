@@ -1,5 +1,3 @@
-
-
 'use client';
 import React, { useEffect, useMemo, useState, useCallback } from 'react';
 import Link from 'next/link';
@@ -59,18 +57,19 @@ import { resolveFestivalImageSrc } from 'src/utils/festival-image';
 // ---------------------------------------------------------------------------
 // Theme tokens — Chandra (चंद्र) silver-blue palette, local to this module.
 // ---------------------------------------------------------------------------
+// Colours are CSS variables from src/theme/panchang-vars.js (light + dark).
 const THEME = {
-    navy: '#2B3A63',
-    navySoft: '#46577E',
-    accent: '#4C6FA5',
-    accentSoft: '#E7EEFA',
-    bgGradient: 'linear-gradient(180deg, #DDE6F5 0%, #EEF3FC 45%, #FFFFFF 100%)',
-    panelBorder: '#C9D6EE',
-    iconBg: '#E7EEFA',
-    muted: '#64748B',
-    gold: '#E0A03A',
-    shadow: '0 6px 20px rgba(43, 58, 99, 0.08)',
-    shadowLg: '0 16px 40px rgba(43, 58, 99, 0.16)'
+    navy: 'var(--pm-navy)',
+    navySoft: 'var(--pm-navy-soft)',
+    accent: 'var(--pm-accent)',
+    accentSoft: 'var(--pm-icon-bg)',
+    bgGradient: 'var(--pm-page-grad)',
+    panelBorder: 'var(--pm-border)',
+    iconBg: 'var(--pm-icon-bg)',
+    muted: 'var(--pm-muted)',
+    gold: 'var(--pm-gold)',
+    shadow: 'var(--pm-shadow)',
+    shadowLg: 'var(--pm-shadow-lg)'
 };
 
 const PURPOSE_ICONS = {
@@ -90,7 +89,7 @@ const panelSx = {
     borderRadius: 3.5,
     border: `1px solid ${THEME.panelBorder}`,
     boxShadow: THEME.shadow,
-    bgcolor: '#fff'
+    bgcolor: 'var(--pm-surface)'
 };
 
 // sticky offset so side panels sit below the site navbar
@@ -138,8 +137,8 @@ function relativeChip(diff) {
     if (diff === null) return null;
     if (diff === 0) return { label: 'Today', bg: '#16A34A', color: '#fff' };
     if (diff === 1) return { label: 'Tomorrow', bg: THEME.gold, color: '#fff' };
-    if (diff > 1 && diff <= 30) return { label: `In ${diff} days`, bg: 'rgba(255,255,255,0.92)', color: THEME.navy };
-    if (diff < 0) return { label: 'Passed', bg: 'rgba(43,58,99,0.7)', color: '#fff' };
+    if (diff > 1 && diff <= 30) return { label: `In ${diff} days`, bg: 'var(--pm-badge-bg)', color: THEME.navy };
+    if (diff < 0) return { label: 'Passed', bg: 'rgba(23, 59, 103,0.7)', color: '#fff' };
     return null;
 }
 
@@ -208,7 +207,7 @@ function VratCard({ vrat, onViewDetails, availableImages }) {
                     <Box
                         sx={{
                             height: '100%',
-                            background: 'linear-gradient(135deg, #A9C0E8, #4C6FA5)',
+                            background: 'linear-gradient(135deg, #B9CBE8, #173B67)',
                             display: 'flex',
                             alignItems: 'center',
                             justifyContent: 'center',
@@ -224,7 +223,7 @@ function VratCard({ vrat, onViewDetails, availableImages }) {
                     sx={{
                         position: 'absolute',
                         inset: 0,
-                        background: 'linear-gradient(180deg, rgba(27,42,74,0.18) 0%, rgba(27,42,74,0) 40%, rgba(27,42,74,0.35) 100%)',
+                        background: 'linear-gradient(180deg, rgba(23, 59, 103,0.18) 0%, rgba(23, 59, 103,0) 40%, rgba(23, 59, 103,0.35) 100%)',
                         pointerEvents: 'none'
                     }}
                 />
@@ -237,7 +236,7 @@ function VratCard({ vrat, onViewDetails, availableImages }) {
                         left: 10,
                         minWidth: 46,
                         textAlign: 'center',
-                        bgcolor: '#fff',
+                        bgcolor: 'var(--pm-badge-bg)',
                         borderRadius: 2,
                         px: 1,
                         py: 0.5,
@@ -297,7 +296,7 @@ function VratCard({ vrat, onViewDetails, availableImages }) {
                     <Chip
                         size="small"
                         label={vrat.type || 'Vrat'}
-                        sx={{ bgcolor: '#EDE7FF', color: '#6B3FD6', fontWeight: 700, fontSize: 11 }}
+                        sx={{ bgcolor: 'var(--pm-lav-bg)', color: 'var(--pm-lav)', fontWeight: 700, fontSize: 11 }}
                     />
                     {vrat.isHighlyAuspicious && (
                         <Chip
@@ -352,9 +351,9 @@ function VratCard({ vrat, onViewDetails, availableImages }) {
                             fontSize: 12.5,
                             borderRadius: 2,
                             py: 0.8,
-                            bgcolor: THEME.accent,
+                            bgcolor: 'var(--pm-accent-solid)',
                             color: '#fff',
-                            '&:hover': { bgcolor: THEME.navySoft }
+                            '&:hover': { bgcolor: 'var(--pm-accent-hover)' }
                         }}
                     >
                         View Details
@@ -431,8 +430,8 @@ function VratDetailsDialog({ vrat, onClose, availableImages }) {
                         p: 3,
                         pt: headerImg ? 12 : 3,
                         background: headerImg
-                            ? `linear-gradient(180deg, rgba(27,42,74,0.1) 0%, rgba(27,42,74,0.88) 100%), url(${headerImg}) center 20% / cover no-repeat`
-                            : 'linear-gradient(135deg, #A9C0E8, #4C6FA5)',
+                            ? `linear-gradient(180deg, rgba(23, 59, 103,0.1) 0%, rgba(23, 59, 103,0.88) 100%), url(${headerImg}) center 20% / cover no-repeat`
+                            : 'linear-gradient(135deg, #B9CBE8, #173B67)',
                         color: '#fff',
                         position: 'relative'
                     }}
@@ -512,12 +511,12 @@ function VratDetailsDialog({ vrat, onClose, availableImages }) {
                             )}
 
                             {!!(data.benefits || []).length && (
-                                <Box sx={{ p: 2, borderRadius: 3, bgcolor: '#F4F8EE', border: '1px solid #DCE9C9' }}>
+                                <Box sx={{ p: 2, borderRadius: 3, bgcolor: 'var(--pm-green-bg)', border: '1px solid var(--pm-green-border)' }}>
                                     <SectionTitle>Benefits</SectionTitle>
                                     <Stack spacing={0.9}>
                                         {data.benefits.map((b, i) => (
                                             <Stack key={i} direction="row" spacing={1} alignItems="flex-start">
-                                                <Box sx={{ color: '#15803D', mt: '3px', display: 'flex' }}>
+                                                <Box sx={{ color: 'var(--pm-green-text)', mt: '3px', display: 'flex' }}>
                                                     <TbCheck size={15} />
                                                 </Box>
                                                 <Typography sx={{ fontSize: 13.5, color: THEME.navySoft, lineHeight: 1.6 }}>{b}</Typography>
@@ -545,7 +544,7 @@ const QUOTES = [
 
 function InfoTile({ icon: Icon, label, value }) {
     return (
-        <Stack direction="row" spacing={1} alignItems="center" sx={{ p: 1.1, borderRadius: 2.5, bgcolor: '#F6F9FE' }}>
+        <Stack direction="row" spacing={1} alignItems="center" sx={{ p: 1.1, borderRadius: 2.5, bgcolor: 'var(--pm-soft-bg)' }}>
             <Box
                 sx={{
                     width: 30,
@@ -616,10 +615,10 @@ function TodaysVratCard({ today, panchang }) {
                                 label={v.title}
                                 sx={{
                                     justifyContent: 'flex-start',
-                                    bgcolor: '#FFF4E0',
-                                    color: '#B45309',
+                                    bgcolor: 'var(--pm-gold-bg)',
+                                    color: 'var(--pm-gold-text)',
                                     fontWeight: 800,
-                                    '& .MuiChip-icon': { color: '#E0A03A' }
+                                    '& .MuiChip-icon': { color: 'var(--pm-gold)' }
                                 }}
                             />
                         ))}
@@ -643,7 +642,7 @@ function QuoteCard() {
             sx={{
                 p: 2.2,
                 borderRadius: 3.5,
-                background: 'linear-gradient(135deg, #E7EEFA 0%, #D6E2F7 100%)',
+                background: 'var(--pm-quote-grad)',
                 border: `1px solid ${THEME.panelBorder}`
             }}
         >
@@ -693,9 +692,9 @@ function BenefitsCard() {
                     fontWeight: 700,
                     borderRadius: 2,
                     py: 0.9,
-                    bgcolor: THEME.accent,
+                    bgcolor: 'var(--pm-accent-solid)',
                     color: '#fff',
-                    '&:hover': { bgcolor: THEME.navySoft }
+                    '&:hover': { bgcolor: 'var(--pm-accent-hover)' }
                 }}
                 endIcon={<TbArrowRight size={14} />}
             >
@@ -722,7 +721,7 @@ function CountPill({ children, active }) {
                 borderRadius: 10,
                 fontSize: 11,
                 fontWeight: 800,
-                bgcolor: active ? THEME.accent : THEME.accentSoft,
+                bgcolor: active ? 'var(--pm-accent-solid)' : THEME.accentSoft,
                 color: active ? '#fff' : THEME.accent
             }}
         >
@@ -848,12 +847,12 @@ export default function VratUpvas({ availableImages = [] }) {
         borderRadius: 10,
         whiteSpace: 'nowrap',
         flexShrink: 0,
-        bgcolor: active ? THEME.accent : '#fff',
+        bgcolor: active ? 'var(--pm-accent-solid)' : 'var(--pm-surface)',
         color: active ? '#fff' : THEME.navySoft,
         border: `1px solid ${active ? THEME.accent : THEME.panelBorder}`,
-        boxShadow: active ? '0 6px 14px rgba(76,111,165,0.35)' : 'none',
+        boxShadow: active ? '0 6px 14px rgba(242,140,40,0.35)' : 'none',
         transition: 'all 0.15s ease',
-        '&:hover': { bgcolor: active ? THEME.navySoft : THEME.accentSoft },
+        '&:hover': { bgcolor: active ? 'var(--pm-accent-hover)' : THEME.accentSoft },
         '& .MuiChip-icon': { color: active ? '#fff' : THEME.accent }
     });
 
@@ -951,7 +950,7 @@ export default function VratUpvas({ availableImages = [] }) {
                                     size="small"
                                     value={selectedMonth}
                                     onChange={(e) => setSelectedMonth(e.target.value)}
-                                    sx={{ bgcolor: '#fff', borderRadius: 2.5, fontWeight: 700, color: THEME.navy }}
+                                    sx={{ bgcolor: 'var(--pm-surface)', borderRadius: 2.5, fontWeight: 700, color: THEME.navy }}
                                 >
                                     {months.map((m) => (
                                         <MenuItem key={m.value} value={m.value}>
@@ -1048,7 +1047,7 @@ export default function VratUpvas({ availableImages = [] }) {
                                         color: THEME.accent,
                                         bgcolor: THEME.accentSoft,
                                         borderRadius: 2,
-                                        '&:hover': { bgcolor: '#D3E0F5' }
+                                        '&:hover': { bgcolor: 'var(--pm-icon-bg-hover)' }
                                     }}
                                 >
                                     Clear filters
@@ -1113,7 +1112,7 @@ export default function VratUpvas({ availableImages = [] }) {
                                         size="small"
                                         label={p}
                                         onDelete={() => togglePurpose(p)}
-                                        sx={{ bgcolor: '#EDE7FF', color: '#6B3FD6', fontWeight: 700 }}
+                                        sx={{ bgcolor: 'var(--pm-lav-bg)', color: 'var(--pm-lav)', fontWeight: 700 }}
                                     />
                                 ))}
                             </Stack>
@@ -1154,7 +1153,7 @@ export default function VratUpvas({ availableImages = [] }) {
                                     onClick={clearFilters}
                                     disableElevation
                                     variant="contained"
-                                    sx={{ textTransform: 'none', fontWeight: 700, borderRadius: 2, bgcolor: THEME.accent }}
+                                    sx={{ textTransform: 'none', fontWeight: 700, borderRadius: 2, bgcolor: 'var(--pm-accent-solid)' }}
                                 >
                                     Clear filters
                                 </Button>
@@ -1175,9 +1174,9 @@ export default function VratUpvas({ availableImages = [] }) {
                                         borderRadius: 2,
                                         fontWeight: 700,
                                         color: page === i + 1 ? '#fff' : THEME.navySoft,
-                                        bgcolor: page === i + 1 ? THEME.accent : '#fff',
+                                        bgcolor: page === i + 1 ? 'var(--pm-accent-solid)' : 'var(--pm-surface)',
                                         border: `1px solid ${page === i + 1 ? THEME.accent : THEME.panelBorder}`,
-                                        '&:hover': { bgcolor: page === i + 1 ? THEME.accent : THEME.iconBg }
+                                        '&:hover': { bgcolor: page === i + 1 ? 'var(--pm-accent-solid)' : THEME.iconBg }
                                     }}
                                 >
                                     {i + 1}

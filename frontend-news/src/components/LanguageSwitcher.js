@@ -1,76 +1,3 @@
-// import { Menu, MenuItem } from '@mui/material';
-// import { useState } from 'react';
-// import Image from 'next/image';
-
-// const languages = [
-//   { code: 'en', label: 'English' },
-//   { code: 'hi', label: 'Hindi' },
-//   { code: 'mr', label: 'Marathi' },
-//   { code: 'sa', label: 'Sanskrit' },
-//   { code: 'bn', label: 'Bengali' },
-//   { code: 'gu', label: 'Gujarati' },
-//   { code: 'or', label: 'Odia' },
-//   { code: 'ta', label: 'Tamil' },
-//   { code: 'te', label: 'Telugu' },
-//   { code: 'kn', label: 'Kannada' },
-//   { code: 'ml', label: 'Malayalam' }
-// ];
-
-// export default function LanguageSwitcher() {
-//   const [lang, setLang] = useState('en');
-//   const [anchorEl, setAnchorEl] = useState(null);
-
-//   const handleOpen = (e) => setAnchorEl(e.currentTarget);
-//   const handleClose = () => setAnchorEl(null);
-
-//   const handleChange = (value) => {
-//     setLang(value);
-//     handleClose();
-
-//     const interval = setInterval(() => {
-//       const googleSelect = document.querySelector('.goog-te-combo');
-//       if (googleSelect) {
-//         googleSelect.value = value;
-//         googleSelect.dispatchEvent(new Event('change'));
-//         clearInterval(interval);
-//       }
-//     }, 500);
-//   };
-
-//   return (
-//     <div className="notranslate" translate="no">
-
-//       {/* IMAGE BUTTON */}
-//       <div
-//         onClick={handleOpen}
-//         style={{
-//           cursor: 'pointer',
-//           display: 'flex',
-//           alignItems: 'center'
-//         }}
-//       >
-//         <Image
-//   src="/images/adhyatmah-language-logo.png"
-//   alt="Language"
-//   width={36}
-//   height={46}
-//   style={{ display: 'block' }}
-// />
-//       </div>
-
-//       {/* DROPDOWN MENU */}
-//       <Menu anchorEl={anchorEl} open={Boolean(anchorEl)} onClose={handleClose}>
-//         {languages.map((item) => (
-//           <MenuItem key={item.code} onClick={() => handleChange(item.code)}>
-//             {item.label}
-//           </MenuItem>
-//         ))}
-//       </Menu>
-
-//     </div>
-//   );
-// }
-
 'use client';
 import { Menu, MenuItem } from '@mui/material';
 import { useState, useEffect, useRef } from 'react';
@@ -96,12 +23,39 @@ function getCurrentLang() {
   return languages.find((l) => l.code === code) ? code : 'en';
 }
 
+// Every domain a `googtrans` cookie could have been written on.
+// e.g. on www.adhyatmah.com -> host-only, www.adhyatmah.com, .www.adhyatmah.com,
+// adhyatmah.com and .adhyatmah.com. Google's own script sets the cookie on the ROOT domain
+// as well, so clearing only the current hostname leaves the cookie behind on the live site
+// (that is why English would not come back there, while localhost has no parent domain).
+function getCookieDomains() {
+  const host = location.hostname;
+  const domains = [undefined, host, '.' + host]; // undefined = host-only cookie
+  const parts = host.split('.');
+  if (parts.length > 1 && !/^\d+(\.\d+){3}$/.test(host)) {
+    for (let i = 1; i < parts.length - 1; i++) {
+      const parent = parts.slice(i).join('.');
+      domains.push(parent, '.' + parent);
+    }
+  }
+  return domains;
+}
+
+function writeGoogTrans(value, expire) {
+  const expires = expire ? '; expires=Thu, 01 Jan 1970 00:00:00 UTC; max-age=0' : '';
+  getCookieDomains().forEach((domain) => {
+    document.cookie =
+      'googtrans=' + value + expires + '; path=/' + (domain ? '; domain=' + domain : '');
+  });
+}
+
 function setGoogleTranslateLang(langCode) {
   if (langCode === 'en') {
-    document.cookie = 'googtrans=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
-    document.cookie = 'googtrans=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; domain=.' + location.hostname;
-    document.cookie = 'googtrans=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; domain=' + location.hostname;
+    // remove the cookie everywhere (all domain variants, path=/)
+    writeGoogTrans('', true);
   } else {
+    // clear stale copies first so an old root-domain cookie can't override the new language
+    writeGoogTrans('', true);
     const val = '/en/' + langCode;
     document.cookie = 'googtrans=' + val + '; path=/';
     document.cookie = 'googtrans=' + val + '; path=/; domain=.' + location.hostname;

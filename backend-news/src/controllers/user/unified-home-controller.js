@@ -191,8 +191,8 @@ const getUnifiedHomeData = async (req, res) => {
     const sellerVendorIds = await getSellerVendorIds();
     const panditUserFilter =
       sellerVendorIds.length > 0
-        ? { role: "vendor", _id: { $nin: sellerVendorIds } }
-        : { role: "vendor" };
+        ? { role: "vendor", status: "active", _id: { $nin: sellerVendorIds } }
+        : { role: "vendor", status: "active" };
 
     const [bannersData, categoriesData, vendorsData, productReviewsData, serviceReviewsData, vendorReviewsData] =
       await Promise.all([

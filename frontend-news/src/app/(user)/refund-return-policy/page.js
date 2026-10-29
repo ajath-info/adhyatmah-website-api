@@ -1,5 +1,3 @@
-// pages/refund-return-policy.js
-
 import React from 'react';
 
 // mui

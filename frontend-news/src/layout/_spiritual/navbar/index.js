@@ -21,7 +21,7 @@ import {
 
 // icons
 import { IoMoonOutline, IoSunnyOutline } from 'react-icons/io5';
-import { TbMenu2, TbX } from 'react-icons/tb';
+import { TbMenu2, TbX, TbHome2 } from 'react-icons/tb';
 
 // redux
 import { useSelector, useDispatch } from '@/redux';
@@ -40,15 +40,17 @@ import AnnouncementBar from '@/components/_main/announcement-bar';
 // Kundali Matching's own, fully independent navbar (separate file/theme/links)
 import KundaliNavbar from './kundali-navbar';
 
+// Colours come from CSS variables (see src/theme/panchang-vars.js) so the
+// sub-navbar follows light / dark mode automatically.
 const NAV_THEME = {
-    navy: '#1B2A4A',
-    muted: '#6B7291',
-    accent: '#4C5FD6',
-    border: '#E5E9F8'
+    navy: 'var(--pm-navy)',
+    muted: 'var(--pm-muted)',
+    accent: 'var(--pm-accent)',
+    border: 'var(--pm-border)'
 };
 
 const NAV_LINKS = [
-    { label: 'Home', href: '/home' },
+    { label: 'Home', href: '/home', icon: TbHome2 }, // icon only in the desktop bar (label kept for mobile menu / a11y)
     { label: 'Panchang', href: '/panchang-muhurat' },
     { label: 'Calendar', href: '/calendar' },
     { label: 'Festivals', href: '/festivals' },
@@ -57,7 +59,7 @@ const NAV_LINKS = [
     { label: 'Planetary Transit', href: '/planetary-transit' }
 ];
 
-function NavLink({ label, href, active }) {
+function NavLink({ label, href, active, icon: Icon }) {
     return (
         <Typography
             component={Link}
@@ -69,10 +71,14 @@ function NavLink({ label, href, active }) {
                 color: active ? NAV_THEME.accent : NAV_THEME.navy,
                 borderBottom: active ? `2px solid ${NAV_THEME.accent}` : '2px solid transparent',
                 pb: 0.5,
+                display: Icon ? 'inline-flex' : undefined,
+                alignItems: Icon ? 'center' : undefined,
                 '&:hover': { color: NAV_THEME.accent }
             }}
+            aria-label={Icon ? label : undefined}
+            title={Icon ? label : undefined}
         >
-            {label}
+            {Icon ? <Icon size={20} /> : label}
         </Typography>
     );
 }
@@ -113,7 +119,8 @@ function PanchangSubNav() {
                     // sits right under the main site header (88px desktop / 64px mobile + 1px border)
                     top: { xs: 65, md: 89 },
                     zIndex: 998,
-                    bgcolor: '#FFFFFF',
+                    bgcolor: 'var(--pm-surface)',
+                    backgroundImage: 'none',
                     borderBottom: `1px solid ${NAV_THEME.border}`
                 }}
             >

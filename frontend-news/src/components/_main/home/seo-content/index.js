@@ -8,6 +8,7 @@ import { GiHouse, GiTempleGate, GiFireBowl, GiDiamondRing, GiFamilyTree, GiFirew
 import { MdLocationOn, MdOutlineTravelExplore, MdAdd, MdRemove } from 'react-icons/md';
 
 import Link from 'next/link';
+import Image from 'next/image';
 import { BsShieldFillCheck } from 'react-icons/bs';
 import { GiPrayerBeads } from 'react-icons/gi';
 
@@ -129,7 +130,7 @@ function ExploreRow({ title, isOpen, onToggle, children }) {
         '&:hover .explore-title': { color: ORANGE }
       }}
     >
-      <Stack direction="row" alignItems="center" justifyContent="space-between" spacing={2} sx={{ py: 1.75 }}>
+      <Stack direction="row" alignItems="center" justifyContent="space-between" spacing={2} sx={{ py: 2.25 }}>
         <Typography
           component="h3"
           className="explore-title"
@@ -219,9 +220,9 @@ export default function HomeSeoContent() {
             overflow: 'hidden'
           }}
         >
-          <Grid container spacing={{ xs: 3, md: 6 }} alignItems="center">
+          <Grid container spacing={{ xs: 3, md: 6 }} alignItems="stretch">
             {/* Accordion stack — on the left on desktop (mirrors the FAQ section, which has it on the right) */}
-            <Grid size={{ xs: 12, md: 7 }} sx={{ order: { xs: 2, md: 1 } }}>
+            <Grid size={{ xs: 12, md: 7.5 }} sx={{ order: { xs: 2, md: 1 } }}>
               <Stack spacing={1.5}>
                 <ExploreRow
                   title="Online Puja Booking with Verified Pandits Across India"
@@ -471,12 +472,12 @@ export default function HomeSeoContent() {
 
             {/* Heading + description + illustration — on the right on desktop (mirrors the FAQ
                 section, which has this block on the left) */}
-            <Grid size={{ xs: 12, md: 5 }} sx={{ order: { xs: 1, md: 2 } }}>
-              <Stack spacing={2} alignItems="center" textAlign="center">
+            <Grid size={{ xs: 12, md: 4.5 }} sx={{ order: { xs: 1, md: 2 }, display: 'flex' }}>
+              <Stack spacing={2} sx={{ width: '100%' }}>
                 <Typography
                   component="h2"
                   sx={{
-                    fontSize: { xs: 24, sm: 28, md: 32 },
+                    fontSize: { xs: 24, sm: 28, md: 28 },
                     fontWeight: 700,
                     color: '#1A1A1A',
                     lineHeight: 1.2
@@ -484,10 +485,23 @@ export default function HomeSeoContent() {
                 >
                   Explore More About Adhyatmah
                 </Typography>
-                <Typography sx={{ fontSize: { xs: 13.5, md: 14.5 }, color: '#5C5C5C', lineHeight: 1.7, maxWidth: 380 }}>
+                <Typography sx={{ fontSize: { xs: 13.5, md: 14.5 }, color: '#5C5C5C', lineHeight: 1.7 }}>
                   Everything you need to know about booking a verified pandit online — ceremonies we cover, how to
                   find a pandit near you, and the cities where Adhyatmah is available.
                 </Typography>
+
+                {/* Illustration — hidden on mobile, same as the FAQ section.
+                    Full column width, whole picture, no rounded corners. */}
+                <Box sx={{ display: { xs: 'none', md: 'block' }, width: '100%', mt: 1 }}>
+                  <Image
+                    src="/images/explore-adhyatmah.webp"
+                    alt="Explore More About Adhyatmah"
+                    width={1369}
+                    height={1149}
+                    sizes="(max-width: 900px) 100vw, 40vw"
+                    style={{ width: '100%', height: 'auto', display: 'block' }}
+                  />
+                </Box>
               </Stack>
             </Grid>
           </Grid>

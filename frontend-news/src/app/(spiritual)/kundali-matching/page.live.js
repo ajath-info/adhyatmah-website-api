@@ -1,8 +1,3 @@
-// Place at: src/app/(spiritual)/kundali-matching/page.js
-// IMPORTANT: delete src/app/(user)/kundali-matching/page.js after adding this
-// file — two pages resolving to the same /kundali-matching URL will break
-// the Next.js build. Metadata/SEO is unchanged from before.
-
 import React from 'react';
 
 // mui
